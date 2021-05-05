@@ -26,13 +26,11 @@ jobs:
       run: |
         echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
         dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
-        
-    #dotnet test "EstateManagement.EstateAggregate.Tests\EstateManagement.EstateAggregate.Tests.csproj"
-    #dotnet test "EstateManagement.MerchantAggregate.Tests\EstateManagement.MerchantAggregate.Tests.csproj"
-    #dotnet test "EstateManagement.Tests\EstateManagement.Tests.csproj"
+        dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
+        dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"
                
-    #- name: Build Docker Image
-    #  run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
+    - name: Build Docker Image
+      run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
            
     #- name: Run Integration Tests
     #  run: dotnet test "EstateManagement.IntegrationTests\EstateManagement.IntegrationTests.csproj" --filter Category=PRTe st
