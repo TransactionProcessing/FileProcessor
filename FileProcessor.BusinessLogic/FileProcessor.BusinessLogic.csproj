@@ -4,4 +4,22 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="EstateManagement.Client" Version="1.0.10.2" />
+		<PackageReference Include="SecurityService.Client" Version="1.0.6.2" />
+		<PackageReference Include="Shared" Version="1.0.5" />
+		<PackageReference Include="Shared.DomainDrivenDesign" Version="1.0.5" />
+		<PackageReference Include="MediatR" Version="9.0.0" />
+		<PackageReference Include="Shared.EventStore" Version="1.0.5" />
+		<PackageReference Include="System.IO.Abstractions" Version="13.2.29" />
+		<PackageReference Include="TransactionProcessor.Client" Version="1.0.12.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\FileProcessor.FileAggregate\FileProcessor.FileAggregate.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="FileFormatHandlers\" />
+	</ItemGroup>
 </Project>

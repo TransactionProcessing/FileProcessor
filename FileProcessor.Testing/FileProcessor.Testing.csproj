@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+	  <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileProcessor.BusinessLogic\FileProcessor.BusinessLogic.csproj" />
+    <ProjectReference Include="..\FileProcessor.File.DomainEvents\FileProcessor.File.DomainEvents.csproj" />
+  </ItemGroup>
+
+</Project>
