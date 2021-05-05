@@ -28,7 +28,9 @@ jobs:
     - name: Run Unit Tests
       run: |
         echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
-        dotnet test "FileProcessor.BusinessLogic.Tests\EstateManagement.BusinessLogic.Tests.csproj"       
+        dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
+        dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
+        dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"      
 
     - name: Build Docker Images 
       run: |
