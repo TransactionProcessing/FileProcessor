@@ -17,6 +17,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\FileProcessor.FileAggregate\FileProcessor.FileAggregate.csproj" />
+	  <ProjectReference Include="..\FileProcessor.FileImportLogAggregate\FileProcessor.FileImportLogAggregate.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -8,6 +8,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
     using EstateManagement.Client;
     using File.DomainEvents;
     using FileAggregate;
+    using FileImportLog.DomainEvents;
     using Managers;
     using MediatR;
     using Microsoft.Extensions.Logging;
@@ -78,7 +79,25 @@ namespace FileProcessor.BusinessLogic.EventHandling
 
             await this.Mediator.Send(request, cancellationToken);
         }
-        
+
+        /// <summary>
+        /// Handles the specific domain event.
+        /// </summary>
+        /// <param name="domainEvent">The domain event.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private async Task HandleSpecificDomainEvent(FileAddedToImportLogEvent domainEvent,
+                                                     CancellationToken cancellationToken)
+        {
+            ProcessUploadedFileRequest request = new ProcessUploadedFileRequest(domainEvent.EstateId,
+                                                                                domainEvent.MerchantId,
+                                                                                domainEvent.FileId,
+                                                                                domainEvent.UserId,
+                                                                                domainEvent.FilePath,
+                                                                                domainEvent.FileProfileId);
+
+            await this.Mediator.Send(request, cancellationToken);
+        }
+
         #endregion
     }
 }

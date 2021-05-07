@@ -15,6 +15,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     using EventHandling;
     using FileAggregate;
     using FileFormatHandlers;
+    using FileImportLogAggregate;
     using FIleProcessor.Models;
     using Managers;
     using Newtonsoft.Json;
@@ -32,10 +33,11 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="MediatR.IRequestHandler{FileProcessor.BusinessLogic.Requests.UploadFileRequest}" />
-    /// <seealso cref="MediatR.IRequestHandler{FileProcessor.BusinessLogic.Requests.SafaricomTopupRequest}" />
-    /// <seealso cref="MediatR.IRequestHandler{FileProcessor.BusinessLogic.Requests.ProcessTransactionForFileLineRequest}" />
+    /// <seealso cref="UploadFileRequest" />
+    /// <seealso cref="SafaricomTopupRequest" />
+    /// <seealso cref="ProcessTransactionForFileLineRequest" />
     public class FileRequestHandler : IRequestHandler<UploadFileRequest>,
+                                      IRequestHandler<ProcessUploadedFileRequest>,
                                       IRequestHandler<SafaricomTopupRequest>,
                                       IRequestHandler<ProcessTransactionForFileLineRequest>
     {
@@ -43,6 +45,8 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         /// The file processor manager
         /// </summary>
         private readonly IFileProcessorManager FileProcessorManager;
+
+        private readonly IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent> FileImportLogAggregateRepository;
 
         /// <summary>
         /// The file aggregate repository
@@ -85,6 +89,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         /// <param name="fileFormatHandlerResolver">The file format handler resolver.</param>
         /// <param name="fileSystem">The file system.</param>
         public FileRequestHandler(IFileProcessorManager fileProcessorManager,
+                                  IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent> fileImportLogAggregateRepository,
                                   IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> fileAggregateRepository,
                                   ITransactionProcessorClient transactionProcessorClient,
                                   IEstateClient estateClient,
@@ -93,6 +98,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                                   IFileSystem fileSystem)
         {
             this.FileProcessorManager = fileProcessorManager;
+            this.FileImportLogAggregateRepository = fileImportLogAggregateRepository;
             this.FileAggregateRepository = fileAggregateRepository;
             this.TransactionProcessorClient = transactionProcessorClient;
             this.EstateClient = estateClient;
@@ -115,8 +121,21 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Unit> Handle(UploadFileRequest request,
                                        CancellationToken cancellationToken)
         {
-            // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
-            // Find the file profile
+            DateTime importLogDateTime = DateTime.Now;
+
+            // This will now create the import log and add an event for the file being uploaded
+            Guid importLogId = this.CreateGuidFromDateTime(importLogDateTime.Date);
+
+            // Get the import log
+            FileImportLogAggregate fileImportLogAggregate = await this.FileImportLogAggregateRepository.GetLatestVersion(importLogId, cancellationToken);
+
+            if (fileImportLogAggregate.IsCreated == false)
+            {
+                // First file of the day so create
+                fileImportLogAggregate.CreateImportLog(request.EstateId, importLogDateTime);
+            }
+
+            // Move the file
             FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(request.FileProfileId, cancellationToken);
 
             if (fileProfile == null)
@@ -137,14 +156,35 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 throw new DirectoryNotFoundException($"Directory {fileProfile.ListeningDirectory} not found");
             }
 
-            file.MoveTo($"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{request.FileId:N}", overwrite:true);
+            String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{request.FileId:N}";
+            file.MoveTo(fileDestination, overwrite:true);;
 
-            // Write file to import log
-            // TODO:
+            // Update Import log aggregate
+            fileImportLogAggregate.AddImportedFile(request.FileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
 
+            // Save changes
+            await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
+
+            return new Unit();
+        }
+
+        private Guid CreateGuidFromDateTime(DateTime dateTime)
+        {
+            var bytes = BitConverter.GetBytes(dateTime.Ticks);
+
+            Array.Resize(ref bytes, 16);
+
+            var guid = new Guid(bytes);
+
+            return guid;
+        }
+
+        public async Task<Unit> Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
+        {
+            // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
             FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
 
-            fileAggregate.UploadFile(request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, originalName);
+            fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath);
 
             await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
 
@@ -169,6 +209,11 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Unit> Handle(SafaricomTopupRequest request,
                                        CancellationToken cancellationToken)
         {
+            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
+
+            if (fileAggregate.IsCreated == false)
+                return new Unit();
+
             IFileInfo file = this.FileSystem.FileInfo.FromFileName(request.FileName);
 
             if (file.Exists == false)
@@ -217,8 +262,6 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             if (String.IsNullOrEmpty(fileContent) == false)
             {
-                FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
-
                 String[] fileLines = fileContent.Split(Environment.NewLine);
 
                 foreach (String fileLine in fileLines)

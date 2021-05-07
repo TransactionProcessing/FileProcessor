@@ -35,14 +35,19 @@ namespace FileProcessor.FileAggregate
         private Guid FileProfileId;
 
         /// <summary>
+        /// The file import log identifier
+        /// </summary>
+        private Guid FileImportLogId;
+
+        /// <summary>
         /// The user identifier
         /// </summary>
         private Guid UserId;
 
         /// <summary>
-        /// The original file name
+        /// The file location
         /// </summary>
-        private String OriginalFileName;
+        private String FileLocation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAggregate" /> class.
@@ -87,12 +92,12 @@ namespace FileProcessor.FileAggregate
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is uploaded.
+        /// Gets a value indicating whether this instance is created.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if this instance is uploaded; otherwise, <c>false</c>.
+        ///   <c>true</c> if this instance is created; otherwise, <c>false</c>.
         /// </value>
-        public Boolean IsUploaded { get; private set; }
+        public Boolean IsCreated { get; private set; }
 
         /// <summary>
         /// Plays the event.
@@ -107,14 +112,15 @@ namespace FileProcessor.FileAggregate
         /// Plays the event.
         /// </summary>
         /// <param name="domainEvent">The domain event.</param>
-        private void PlayEvent(FileUploadedEvent domainEvent)
+        private void PlayEvent(FileCreatedEvent domainEvent)
         {
-            this.IsUploaded = true;
+            this.IsCreated = true;
             this.EstateId = domainEvent.EstateId;
             this.MerchantId = domainEvent.MerchantId;
             this.FileProfileId = domainEvent.FileProfileId;
-            this.OriginalFileName = domainEvent.OriginalFileName;
             this.UserId = domainEvent.UserId;
+            this.FileLocation = domainEvent.FileLocation;
+            this.FileImportLogId = domainEvent.FileImportLogId;
         }
 
         /// <summary>
@@ -135,7 +141,8 @@ namespace FileProcessor.FileAggregate
                        MerchantId = this.MerchantId,
                        FileProfileId = this.FileProfileId,
                        FileId = this.AggregateId,
-                       OriginalFileName = this.OriginalFileName,
+                       FileImportLogId = this.FileImportLogId,
+                       FileLocation = this.FileLocation,
                        UserId = this.UserId
                    };
         }
@@ -178,21 +185,23 @@ namespace FileProcessor.FileAggregate
         /// <summary>
         /// Uploads the file.
         /// </summary>
+        /// <param name="fileImportLogId">The file import log identifier.</param>
         /// <param name="estateId">The estate identifier.</param>
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="userId">The user identifier.</param>
         /// <param name="fileProfileId">The file profile identifier.</param>
-        /// <param name="originalFileName">Name of the original file.</param>
-        public void UploadFile(Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName)
+        /// <param name="fileLocation">The file location.</param>
+        /// <exception cref="System.InvalidOperationException">File Id {this.AggregateId} has already been uploaded</exception>
+        public void CreateFile(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation)
         {
-            if (this.IsUploaded)
+            if (this.IsCreated)
             {
-                throw new InvalidOperationException($"File Id {this.AggregateId} has already been uploaded");
+                throw new InvalidOperationException($"File Id {this.AggregateId} has already been created");
             }
 
-            FileUploadedEvent fileUploadedEvent = new FileUploadedEvent(this.AggregateId, estateId, merchantId, userId, fileProfileId, originalFileName);
+            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(this.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation);
 
-            this.ApplyAndAppend(fileUploadedEvent);
+            this.ApplyAndAppend(fileCreatedEvent);
         }
 
         /// <summary>
@@ -201,7 +210,7 @@ namespace FileProcessor.FileAggregate
         /// <param name="fileLine">The file line.</param>
         public void AddFileLine(String fileLine)
         {
-            if (this.IsUploaded == false)
+            if (this.IsCreated == false)
             {
                 throw new InvalidOperationException($"File Id {this.AggregateId} has not been uploaded yet");
             }

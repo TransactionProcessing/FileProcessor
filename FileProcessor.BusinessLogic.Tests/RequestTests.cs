@@ -24,6 +24,20 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public void ProcessUploadedFileRequest_CanBeCreated_IsCreated()
+        {
+            ProcessUploadedFileRequest processUploadedFileRequest =
+                new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePath, TestData.FileProfileId);
+
+            processUploadedFileRequest.EstateId.ShouldBe(TestData.EstateId);
+            processUploadedFileRequest.MerchantId.ShouldBe(TestData.MerchantId);
+            processUploadedFileRequest.FileId.ShouldBe(TestData.FileId);
+            processUploadedFileRequest.UserId.ShouldBe(TestData.UserId);
+            processUploadedFileRequest.FilePath.ShouldBe(TestData.FilePath);
+            processUploadedFileRequest.FileProfileId.ShouldBe(TestData.FileProfileId);
+        }
+
+        [Fact]
         public void SafaricomTopupRequest_CanBeCreated_IsCreated()
         {
             SafaricomTopupRequest safaricomTopupRequest = new SafaricomTopupRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);

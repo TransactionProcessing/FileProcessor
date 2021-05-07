@@ -6,7 +6,9 @@ namespace FileProcessor.Testing
     using BusinessLogic.Managers;
     using EstateManagement.DataTransferObjects.Responses;
     using File.DomainEvents;
+    using FileImportLog.DomainEvents;
     using FileAggregate;
+    using FileImportLogAggregate;
     using FIleProcessor.Models;
     using Newtonsoft.Json;
     using SecurityService.DataTransferObjects.Responses;
@@ -36,6 +38,8 @@ namespace FileProcessor.Testing
         
         public static String FileLine = "D,124567,100";
 
+        public static String FileLocation = "home/txnproc/bulkfiles/safaricom/ExampleFile.csv";
+
         public static String OriginalFileName = "ExampleFile.csv";
 
         public static Guid TransactionId = Guid.Parse("EFAA401D-9ED7-4588-9451-0E3372CBC4CB");
@@ -51,6 +55,16 @@ namespace FileProcessor.Testing
         public static String SafaricomDetailLineAmount = "100";
 
         public static String SafaricomDetailLineCustomerAccountNumber = "07777771234";
+
+        public static FileAddedToImportLogEvent FileAddedToImportLogEvent =>
+            new FileAddedToImportLogEvent(TestData.FileImportLogId,
+                                          TestData.FileId,
+                                          TestData.EstateId,
+                                          TestData.MerchantId,
+                                          TestData.UserId,
+                                          TestData.FileProfileId,
+                                          TestData.OriginalFileName,
+                                          TestData.FilePath);
 
         public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
 
@@ -120,6 +134,10 @@ namespace FileProcessor.Testing
 
         public static String ContractProductWithNullValueDisplayText = "Custom";
 
+        public static Guid FileImportLogId = Guid.Parse("5F1149F8-0313-45E4-BE3A-3D7B07EEB414");
+
+        public static DateTime ImportLogDateTime = new DateTime(2021,5,7);
+
         public static List<ContractResponse> GetEmptyMerchantContractsResponse => new List<ContractResponse>();
 
         public static Dictionary<String, String> TransactionMetadata =>
@@ -129,16 +147,28 @@ namespace FileProcessor.Testing
                 {"CustomerAccountNumber", "123456789"}
             };
 
+        public static FileImportLogAggregate GetEmptyFileImportLogAggregate()
+        {
+            return new FileImportLogAggregate();
+        }
+
+        public static FileImportLogAggregate GetCreatedFileImportLogAggregate()
+        {
+            FileImportLogAggregate fileImportLogAggregate = new FileImportLogAggregate();
+            fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
+            return fileImportLogAggregate;
+        }
+
         public static FileAggregate GetEmptyFileAggregate()
         {
             return new FileAggregate();
         }
 
-        public static FileAggregate GetUploadedFileAggregate()
+        public static FileAggregate GetCreatedFileAggregate()
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.UploadFile(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
 
             return fileAggregate;
         }
@@ -147,7 +177,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.UploadFile(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
             fileAggregate.AddFileLine("D,1,2");
 
             return fileAggregate;
@@ -157,7 +187,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.UploadFile(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
             fileAggregate.AddFileLine("D,1,2");
             fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             return fileAggregate;

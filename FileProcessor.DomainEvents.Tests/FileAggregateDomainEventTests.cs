@@ -7,24 +7,26 @@ namespace FileProcessor.DomainEvents.Tests
     using Shouldly;
     using Testing;
 
-    public class DomainEventTests
+    public class FileAggregateDomainEventTests
     {
         [Fact]
-        public void FileUploadedEvent_CanBeCreated_IsCreated()
+        public void FileCreatedEvent_CanBeCreated_IsCreated()
         {
-            FileUploadedEvent fileUploadedEvent = new FileUploadedEvent(TestData.FileId,
-                                                                        TestData.EstateId,
-                                                                        TestData.MerchantId,
-                                                                        TestData.UserId,
-                                                                        TestData.FileProfileId,
-                                                                        TestData.OriginalFileName);
+            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(TestData.FileId,
+                                                                     TestData.FileImportLogId,
+                                                                     TestData.EstateId,
+                                                                     TestData.MerchantId,
+                                                                     TestData.UserId,
+                                                                     TestData.FileProfileId,
+                                                                     TestData.FileLocation);
 
-            fileUploadedEvent.FileId.ShouldBe(TestData.FileId);
-            fileUploadedEvent.EstateId.ShouldBe(TestData.EstateId);
-            fileUploadedEvent.MerchantId.ShouldBe(TestData.MerchantId);
-            fileUploadedEvent.UserId.ShouldBe(TestData.UserId);
-            fileUploadedEvent.FileProfileId.ShouldBe(TestData.FileProfileId);
-            fileUploadedEvent.OriginalFileName.ShouldBe(TestData.OriginalFileName);
+            fileCreatedEvent.FileId.ShouldBe(TestData.FileId);
+            fileCreatedEvent.FileImportLogId.ShouldBe(TestData.FileImportLogId);
+            fileCreatedEvent.EstateId.ShouldBe(TestData.EstateId);
+            fileCreatedEvent.MerchantId.ShouldBe(TestData.MerchantId);
+            fileCreatedEvent.UserId.ShouldBe(TestData.UserId);
+            fileCreatedEvent.FileProfileId.ShouldBe(TestData.FileProfileId);
+            fileCreatedEvent.FileLocation.ShouldBe(TestData.FileLocation);
         }
 
         [Fact]
