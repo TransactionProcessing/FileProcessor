@@ -78,6 +78,18 @@
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             // TODO: Do we poll here for files incase they have been left from a previous run
+            var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
+            Directory.CreateDirectory(temporaryFileLocation);
+            var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(cancellationToken);
+
+            foreach (FileProfile fileProfile in fileProfiles)
+            {
+                Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
+                Directory.CreateDirectory(fileProfile.ProcessedDirectory);
+                Directory.CreateDirectory(fileProfile.FailedDirectory);
+            }
+
+
             await base.StartAsync(cancellationToken);
         }
 
