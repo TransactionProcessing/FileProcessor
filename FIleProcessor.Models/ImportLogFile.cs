@@ -1,14 +1,16 @@
-﻿using System;
-
-namespace FIleProcessor.Models
+﻿namespace FIleProcessor.Models
 {
+    using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class FileDetails
+    public class FileImportLog
+    {
+        public Guid EstateId { get; set; }
+        public DateTime FileImportLogDateTime { get; set; }
+        public Guid FileImportLogId { get; set; }
+        public List<ImportLogFile> Files { get; set; }
+    }
+    public class ImportLogFile
     {
         /// <summary>
         /// Gets or sets the file identifier.
@@ -48,30 +50,22 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file profile identifier.
         /// </value>
-        public Guid  FileProfileId { get; set; }
+        public Guid FileProfileId { get; set; }
 
         /// <summary>
-        /// Gets or sets the file import log identifier.
+        /// Gets or sets the name of the original file.
         /// </summary>
         /// <value>
-        /// The file import log identifier.
+        /// The name of the original file.
         /// </value>
-        public Guid FileImportLogId { get; set; }
+        public String OriginalFileName { get; set; }
 
         /// <summary>
-        /// Gets or sets the file location.
+        /// Gets or sets the file path.
         /// </summary>
         /// <value>
-        /// The file location.
+        /// The file path.
         /// </value>
-        public String FileLocation { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file lines.
-        /// </summary>
-        /// <value>
-        /// The file lines.
-        /// </value>
-        public List<FileLine> FileLines { get; set; }
+        public String FilePath { get; set; }
     }
 }

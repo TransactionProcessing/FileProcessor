@@ -13,6 +13,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using EstateManagement.Client;
     using FileAggregate;
     using FileFormatHandlers;
+    using FileImportLogAggregate;
     using Managers;
     using Microsoft.Extensions.Configuration;
     using Moq;
@@ -37,9 +38,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -48,19 +52,20 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                          {
                                                                              return fileFormatHandler.Object;
                                                                          };
-           
+
             MockFileSystem fileSystem = new MockFileSystem();
             fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom");
-            
+
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
                                                                            securityServiceClient.Object,
                                                                            fileFormatHandlerResolver,
                                                                            fileSystem);
-            
+
             UploadFileRequest uploadFileRequest =
                 new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
@@ -71,10 +76,57 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public async Task FileRequestHandler_UploadFileRequest_ImportLogAlreadyCreated_RequestIsHandled()
+        {
+            Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileImportLogAggregate);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
+            Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
+            Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
+            Mock<IFileFormatHandler> fileFormatHandler = new Mock<IFileFormatHandler>();
+            Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
+            {
+                return fileFormatHandler.Object;
+            };
+
+            MockFileSystem fileSystem = new MockFileSystem();
+            fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom");
+
+            FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
+                                                                           fileAggregateRepository.Object,
+                                                                           transactionProcessorClient.Object,
+                                                                           estateClient.Object,
+                                                                           securityServiceClient.Object,
+                                                                           fileFormatHandlerResolver,
+                                                                           fileSystem);
+
+            UploadFileRequest uploadFileRequest =
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+
+            Should.NotThrow(async () =>
+            {
+                await fileRequestHandler.Handle(uploadFileRequest, CancellationToken.None);
+            });
+        }
+
+        [Fact]
         public async Task FileRequestHandler_UploadFileRequest_NoFileProfiles_RequestIsHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileNull);
+
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileImportLogAggregate);
+
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
@@ -89,6 +141,7 @@ namespace FileProcessor.BusinessLogic.Tests
             MockFileSystem fileSystem = new MockFileSystem();
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -110,6 +163,11 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileImportLogAggregate);
+
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
@@ -124,6 +182,7 @@ namespace FileProcessor.BusinessLogic.Tests
             MockFileSystem fileSystem = new MockFileSystem();
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -145,6 +204,11 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileImportLogAggregate);
+
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
@@ -160,6 +224,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -177,14 +242,54 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public void FileRequestHandler_ProcessUploadedFileRequest_RequestIsHandled()
+        {
+            Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
+            Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
+            Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
+            Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
+            Mock<IFileFormatHandler> fileFormatHandler = new Mock<IFileFormatHandler>();
+            Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
+            {
+                return fileFormatHandler.Object;
+            };
+
+            MockFileSystem fileSystem = new MockFileSystem();
+            FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
+                                                                           fileAggregateRepository.Object,
+                                                                           transactionProcessorClient.Object,
+                                                                           estateClient.Object,
+                                                                           securityServiceClient.Object,
+                                                                           fileFormatHandlerResolver,
+                                                                           fileSystem);
+            ProcessUploadedFileRequest processUploadedFileRequest =
+                new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePath, TestData.FileProfileId);
+
+            Should.NotThrow(async () =>
+            {
+                await fileRequestHandler.Handle(processUploadedFileRequest, CancellationToken.None);
+            });
+        }
+
+
+        [Fact]
         public void FileRequestHandler_SafaricomTopupRequest_RequestIsHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -202,6 +307,51 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
+                                                                           fileAggregateRepository.Object,
+                                                                           transactionProcessorClient.Object,
+                                                                           estateClient.Object,
+                                                                           securityServiceClient.Object,
+                                                                           fileFormatHandlerResolver,
+                                                                           fileSystem);
+            SafaricomTopupRequest safaricomTopupRequest =
+                new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
+
+            Should.NotThrow(async () =>
+            {
+                await fileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
+            });
+        }
+
+        [Fact]
+        public void FileRequestHandler_SafaricomTopupRequest_FileAggregateNotCreated_RequestIsHandled()
+        {
+            Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
+            Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
+            Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
+            Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
+            Mock<IFileFormatHandler> fileFormatHandler = new Mock<IFileFormatHandler>();
+            Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
+            {
+                return fileFormatHandler.Object;
+            };
+
+            MockFileSystem fileSystem = new MockFileSystem();
+            fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+
+            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
+            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
+            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
+
+            FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -222,10 +372,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
 
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -238,6 +390,7 @@ namespace FileProcessor.BusinessLogic.Tests
             MockFileSystem fileSystem = new MockFileSystem();
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -258,8 +411,13 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileNull);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            fileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                                            .ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -273,6 +431,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -294,10 +453,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
 
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -314,6 +475,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -334,10 +496,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
 
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -354,6 +518,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -374,10 +539,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
 
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -394,6 +561,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -414,10 +582,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
 
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
             Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
             Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
@@ -435,6 +605,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -457,7 +628,9 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
-            
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
@@ -491,6 +664,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -511,6 +685,8 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileRequestHandler_ProcessTransactionLineForFileRequest_FileAggregateNotFound_RequestHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
@@ -533,6 +709,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -553,9 +730,11 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileRequestHandler_ProcessTransactionLineForFileRequest_FileAggregateWithNoLines_RequestHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetUploadedFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
 
             Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
 
@@ -575,6 +754,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -595,6 +775,8 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileRequestHandler_ProcessTransactionLineForFileRequest_LineInRequestNotFoundInFileAggregate_RequestHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
@@ -617,6 +799,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -637,6 +820,8 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileRequestHandler_ProcessTransactionLineForFileRequest_LineInRequestAlreadyProcessed_RequestHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLinesAlreadyProcessed);
@@ -659,6 +844,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -679,6 +865,8 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileRequestHandler_ProcessTransactionForFileLineRequest_FileProfileNotFound_RequestIsHandled()
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -703,6 +891,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -724,6 +913,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -758,6 +949,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -780,6 +972,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -812,6 +1006,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -833,6 +1028,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -867,6 +1064,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -888,6 +1086,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -922,6 +1122,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -943,6 +1144,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -977,6 +1180,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,
@@ -998,6 +1202,8 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
             fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
             Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
@@ -1032,6 +1238,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
 
             FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
+                                                                           fileImportLogAggregateRepository.Object,
                                                                            fileAggregateRepository.Object,
                                                                            transactionProcessorClient.Object,
                                                                            estateClient.Object,

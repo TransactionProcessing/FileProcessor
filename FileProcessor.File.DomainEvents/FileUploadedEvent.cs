@@ -9,9 +9,42 @@
     /// <seealso cref="Shared.DomainDrivenDesign.EventSourcing.DomainEventRecord.DomainEvent" />
     /// <seealso cref="Shared.DomainDrivenDesign.EventSourcing.IDomainEvent" />
     /// <seealso cref="System.IEquatable{Shared.DomainDrivenDesign.EventSourcing.DomainEventRecord.DomainEvent}" />
-    /// <seealso cref="System.IEquatable{FileProcessor.File.DomainEvents.FileUploadedEvent}" />
-    public record FileUploadedEvent : DomainEventRecord.DomainEvent
+    /// <seealso cref="System.IEquatable{FileProcessor.File.DomainEvents.FileCreatedEvent}" />
+    public record FileCreatedEvent : DomainEventRecord.DomainEvent
     {
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileCreatedEvent" /> class.
+        /// </summary>
+        /// <param name="aggregateId">The aggregate identifier.</param>
+        /// <param name="fileImportLogId">The file import log identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="merchantId">The merchant identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="fileProfileId">The file profile identifier.</param>
+        /// <param name="fileLocation">The file location.</param>
+        public FileCreatedEvent(Guid aggregateId,
+                                 Guid fileImportLogId,
+                                 Guid estateId,
+                                 Guid merchantId,
+                                 Guid userId,
+                                 Guid fileProfileId,
+                                 String fileLocation) : base(aggregateId, Guid.NewGuid())
+        {
+            this.FileId = aggregateId;
+            this.FileImportLogId = fileImportLogId;
+            this.EstateId = estateId;
+            this.MerchantId = merchantId;
+            this.UserId = userId;
+            this.FileProfileId = fileProfileId;
+            this.FileLocation = fileLocation;
+        }
+
+        #endregion
+
+        #region Properties
+
         /// <summary>
         /// Gets or sets the estate identifier.
         /// </summary>
@@ -19,14 +52,6 @@
         /// The estate identifier.
         /// </value>
         public Guid EstateId { get; init; }
-
-        /// <summary>
-        /// Gets or sets the merchant identifier.
-        /// </summary>
-        /// <value>
-        /// The merchant identifier.
-        /// </value>
-        public Guid MerchantId { get; init; }
 
         /// <summary>
         /// Gets or sets the file identifier.
@@ -37,12 +62,20 @@
         public Guid FileId { get; init; }
 
         /// <summary>
-        /// Gets or sets the user identifier.
+        /// Gets or sets the file import log identifier.
         /// </summary>
         /// <value>
-        /// The user identifier.
+        /// The file import log identifier.
         /// </value>
-        public Guid UserId { get; init; }
+        public Guid FileImportLogId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the file location.
+        /// </summary>
+        /// <value>
+        /// The file location.
+        /// </value>
+        public String FileLocation { get; init; }
 
         /// <summary>
         /// Gets or sets the file profile identifier.
@@ -53,31 +86,21 @@
         public Guid FileProfileId { get; init; }
 
         /// <summary>
-        /// Gets or sets the name of the original file.
+        /// Gets or sets the merchant identifier.
         /// </summary>
         /// <value>
-        /// The name of the original file.
+        /// The merchant identifier.
         /// </value>
-        public String OriginalFileName { get; init; }
+        public Guid MerchantId { get; init; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileUploadedEvent" /> class.
+        /// Gets or sets the user identifier.
         /// </summary>
-        /// <param name="aggregateId">The aggregate identifier.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="fileProfileId">The file profile identifier.</param>
-        /// <param name="originalFileName">Name of the original file.</param>
-        public FileUploadedEvent(Guid aggregateId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId,
-                                 String originalFileName) : base(aggregateId, Guid.NewGuid())
-        {
-            this.FileId = aggregateId;
-            this.EstateId = estateId;
-            this.MerchantId = merchantId;
-            this.UserId = userId;
-            this.FileProfileId = fileProfileId;
-            this.OriginalFileName = originalFileName;
-        }
+        /// <value>
+        /// The user identifier.
+        /// </value>
+        public Guid UserId { get; init; }
+
+        #endregion
     }
 }

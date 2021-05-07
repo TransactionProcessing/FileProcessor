@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FileProcessor.BusinessLogic\FileProcessor.BusinessLogic.csproj" />
     <ProjectReference Include="..\FileProcessor.File.DomainEvents\FileProcessor.File.DomainEvents.csproj" />
+    <ProjectReference Include="..\FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj" />
   </ItemGroup>
 
 </Project>

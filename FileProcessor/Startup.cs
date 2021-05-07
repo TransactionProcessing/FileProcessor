@@ -23,6 +23,7 @@ namespace FileProcessor
     using EstateManagement.Client;
     using EventStore.Client;
     using File.DomainEvents;
+    using FileImportLog.DomainEvents;
     using FIleProcessor.Models;
     using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -182,8 +183,17 @@ namespace FileProcessor
             services.AddSingleton(httpClient);
 
             services.AddSingleton<IAggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>>();
+            services.AddSingleton<IAggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
-            FileUploadedEvent f = new FileUploadedEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), String.Empty);
+            FileCreatedEvent f = new FileCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), String.Empty);
+            FileAddedToImportLogEvent f1 = new FileAddedToImportLogEvent(Guid.NewGuid(),
+                                                                         Guid.NewGuid(),
+                                                                         Guid.NewGuid(),
+                                                                         Guid.NewGuid(),
+                                                                         Guid.NewGuid(),
+                                                                         Guid.NewGuid(),
+                                                                         String.Empty,
+                                                                         String.Empty);
 
             TypeProvider.LoadDomainEventsTypeDynamically();
 
@@ -194,7 +204,9 @@ namespace FileProcessor
                                                   });
 
             services.AddSingleton<IRequestHandler<UploadFileRequest, Unit>, FileRequestHandler>();
+            services.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
+            services.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();
 
             Dictionary<String, String[]> eventHandlersConfiguration = new Dictionary<String, String[]>();
 
