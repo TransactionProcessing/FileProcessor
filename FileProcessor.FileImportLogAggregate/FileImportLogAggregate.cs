@@ -4,6 +4,7 @@ namespace FileProcessor.FileImportLogAggregate
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using FileImportLog.DomainEvents;
     using FIleProcessor.Models;
     using Microsoft.AspNetCore.Mvc.Rendering;
@@ -94,7 +95,15 @@ namespace FileProcessor.FileImportLogAggregate
         /// <param name="filePath">The file path.</param>
         public void AddImportedFile(Guid fileId, Guid merchantId,Guid userId, Guid fileProfileId, String originalFileName, String filePath)
         {
-            // TODO: Do we check here for a duplicate (somehow!!)
+            if (this.IsCreated == false)
+            {
+                throw new InvalidOperationException("Import log has not been created");
+            }
+
+            if (this.Files.Any(f => f.FileId == fileId))
+            {
+                throw new InvalidOperationException($"Duplicate file {originalFileName} detected File Id [{fileId}]");
+            }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
                 new FileAddedToImportLogEvent(this.AggregateId, fileId, this.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath);

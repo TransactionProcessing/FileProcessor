@@ -8,6 +8,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 {
     using System.IO;
     using System.IO.Abstractions;
+    using System.Security.Cryptography;
     using MediatR;
     using System.Threading;
     using EstateManagement.Client;
@@ -36,7 +37,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     /// <seealso cref="UploadFileRequest" />
     /// <seealso cref="SafaricomTopupRequest" />
     /// <seealso cref="ProcessTransactionForFileLineRequest" />
-    public class FileRequestHandler : IRequestHandler<UploadFileRequest>,
+    public class FileRequestHandler : IRequestHandler<UploadFileRequest,Guid>,
                                       IRequestHandler<ProcessUploadedFileRequest>,
                                       IRequestHandler<SafaricomTopupRequest>,
                                       IRequestHandler<ProcessTransactionForFileLineRequest>
@@ -118,7 +119,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         /// <exception cref="NotFoundException">No file profile found with Id {request.FileProfileId}</exception>
         /// <exception cref="System.IO.FileNotFoundException">File {file.FullName} not found</exception>
         /// <exception cref="System.IO.DirectoryNotFoundException">Directory {fileProfile.ListeningDirectory} not found</exception>
-        public async Task<Unit> Handle(UploadFileRequest request,
+        public async Task<Guid> Handle(UploadFileRequest request,
                                        CancellationToken cancellationToken)
         {
             DateTime importLogDateTime = DateTime.Now;
@@ -155,17 +156,46 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             {
                 throw new DirectoryNotFoundException($"Directory {fileProfile.ListeningDirectory} not found");
             }
+            
+            // Read the file data
+            String fileContent = null;
+            //Open file for Read\Write
+            using (Stream fs = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+            {
+                //Create object of StreamReader by passing FileStream object on which it needs to operates on
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    //Use ReadToEnd method to read all the content from file
+                    fileContent = await sr.ReadToEndAsync();
+                }
+            }
 
-            String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{request.FileId:N}";
-            file.MoveTo(fileDestination, overwrite:true);;
+            Guid fileId = this.CreateGuidFromFileData(fileContent);
+
+            String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{fileId:N}";
+            file.MoveTo(fileDestination, overwrite: true);
 
             // Update Import log aggregate
-            fileImportLogAggregate.AddImportedFile(request.FileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
+            fileImportLogAggregate.AddImportedFile(fileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
 
             // Save changes
             await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
 
-            return new Unit();
+            return fileId;
+        }
+
+        private Guid CreateGuidFromFileData(String fileContents)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                //Generate hash from the key
+                Byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(fileContents));
+
+                Byte[] j = bytes.Skip(Math.Max(0, bytes.Count() - 16)).ToArray(); //Take last 16
+
+                //Create our Guid.
+                return new Guid(j);
+            }
         }
 
         private Guid CreateGuidFromDateTime(DateTime dateTime)

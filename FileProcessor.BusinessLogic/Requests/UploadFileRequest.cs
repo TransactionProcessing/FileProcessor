@@ -10,7 +10,7 @@
     /// <seealso cref="MediatR.IRequest{MediatR.Unit}" />
     /// <seealso cref="MediatR.IBaseRequest" />
     /// <seealso cref="System.IEquatable{FileProcessor.BusinessLogic.Requests.UploadFileRequest}" />
-    public record UploadFileRequest : IRequest
+    public record UploadFileRequest : IRequest<Guid>
     {
         #region Constructors
 
@@ -19,20 +19,17 @@
         /// </summary>
         /// <param name="estateId">The estate identifier.</param>
         /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="fileId">The file identifier.</param>
         /// <param name="userId">The user identifier.</param>
         /// <param name="filePath">The file path.</param>
         /// <param name="fileProfileId">The file profile identifier.</param>
         public UploadFileRequest(Guid estateId,
                                  Guid merchantId,
-                                 Guid fileId,
                                  Guid userId,
                                  String filePath,
                                  Guid fileProfileId)
         {
             this.EstateId = estateId;
             this.MerchantId = merchantId;
-            this.FileId = fileId;
             this.UserId = userId;
             this.FilePath = filePath;
             this.FileProfileId = fileProfileId;
@@ -49,14 +46,6 @@
         /// The estate identifier.
         /// </value>
         public Guid EstateId { get; init; }
-
-        /// <summary>
-        /// Gets or sets the file identifier.
-        /// </summary>
-        /// <value>
-        /// The file identifier.
-        /// </value>
-        public Guid FileId { get; init; }
 
         /// <summary>
         /// Gets or sets the file path.

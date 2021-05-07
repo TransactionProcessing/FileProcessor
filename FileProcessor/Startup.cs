@@ -203,7 +203,7 @@ namespace FileProcessor
                                                       return t => context.GetService(t);
                                                   });
 
-            services.AddSingleton<IRequestHandler<UploadFileRequest, Unit>, FileRequestHandler>();
+            services.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();

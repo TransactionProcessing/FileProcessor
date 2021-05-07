@@ -79,5 +79,17 @@ namespace FileProcessor.FileImportLogAggregate.Tests
                                                         fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
                                                     });
         }
+
+        [Fact]
+        public void FileImportLogAggregate_AddImportedFile_DuplicateFileId_ErrorThrown()
+        {
+            FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
+            fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
+            fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+            Should.Throw<InvalidOperationException>(() =>
+                                                    {
+                                                        fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+                                                    });
+        }
     }
 }
