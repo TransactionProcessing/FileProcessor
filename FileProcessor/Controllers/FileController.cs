@@ -40,7 +40,6 @@ namespace FileProcessor.Controllers
             var file = formCollection.Files.First();
             
             var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
-            Guid fileId = Guid.NewGuid();
             var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
 
             var fullPath = Path.Combine(temporaryFileLocation, fileName);
@@ -52,9 +51,9 @@ namespace FileProcessor.Controllers
 
             // Create a command with the file in it
             BusinessLogic.Requests.UploadFileRequest uploadFileRequest =
-                new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, fileId, request.UserId, fullPath, request.FileProfileId);
+                new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId);
 
-            await this.Mediator.Send(uploadFileRequest, cancellationToken);
+            Guid fileId = await this.Mediator.Send(uploadFileRequest, cancellationToken);
 
             return this.Accepted(fileId);
         }

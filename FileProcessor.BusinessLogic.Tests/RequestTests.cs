@@ -13,11 +13,10 @@ namespace FileProcessor.BusinessLogic.Tests
         public void UploadFileRequest_CanBeCreated_IsCreated()
         {
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePath, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePath, TestData.FileProfileId);
 
             uploadFileRequest.EstateId.ShouldBe(TestData.EstateId);
             uploadFileRequest.MerchantId.ShouldBe(TestData.MerchantId);
-            uploadFileRequest.FileId.ShouldBe(TestData.FileId);
             uploadFileRequest.UserId.ShouldBe(TestData.UserId);
             uploadFileRequest.FilePath.ShouldBe(TestData.FilePath);
             uploadFileRequest.FileProfileId.ShouldBe(TestData.FileProfileId);

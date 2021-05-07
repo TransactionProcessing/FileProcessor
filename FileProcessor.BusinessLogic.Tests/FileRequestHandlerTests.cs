@@ -67,7 +67,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            fileSystem);
 
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
             Should.NotThrow(async () =>
                             {
@@ -109,7 +109,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            fileSystem);
 
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
             Should.NotThrow(async () =>
             {
@@ -150,7 +150,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            fileSystem);
 
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
             Should.Throw<NotFoundException>(async () =>
             {
@@ -191,7 +191,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            fileSystem);
 
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
             Should.Throw<FileNotFoundException>(async () =>
                                                 {
@@ -233,7 +233,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            fileSystem);
 
             UploadFileRequest uploadFileRequest =
-                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
+                new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId);
 
             Should.Throw<DirectoryNotFoundException>(async () =>
             {
