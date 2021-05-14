@@ -175,6 +175,13 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{fileId:N}";
             file.MoveTo(fileDestination, overwrite: true);
 
+            var x = fileImportLogAggregate.GetFileImportLog();
+            Logger.LogInformation("Import Log File List Start");
+            foreach (ImportLogFile importLogFile in x.Files)
+            {
+                Logger.LogInformation(importLogFile.FilePath);    
+            }
+            Logger.LogInformation("Import Log File List End");
             // Update Import log aggregate
             fileImportLogAggregate.AddImportedFile(fileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
 
@@ -292,7 +299,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             if (String.IsNullOrEmpty(fileContent) == false)
             {
-                String[] fileLines = fileContent.Split(Environment.NewLine);
+                String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
 
                 foreach (String fileLine in fileLines)
                 {
@@ -426,8 +433,13 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                                                                      {"estate_id", fileDetails.EstateId.ToString()},
                                                                      {"merchant_id", fileDetails.MerchantId.ToString()}
                                                                  },
-                SerialisedData = JsonConvert.SerializeObject(saleTransactionRequest)
+                SerialisedData = JsonConvert.SerializeObject(saleTransactionRequest, new JsonSerializerSettings
+                                                                                     {
+                                                                                         TypeNameHandling = TypeNameHandling.All
+                                                                                     })
             };
+
+            Logger.LogInformation(serialisedRequestMessage.SerialisedData);
 
             // Send request to transaction processor
             SerialisedMessage serialisedResponseMessage = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, serialisedRequestMessage, cancellationToken);

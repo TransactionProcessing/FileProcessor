@@ -143,7 +143,7 @@
                     this.LogCritical(e);
                 }
 
-                String fileProfilePollingWindowInSeconds = ""; //ConfigurationReader.GetValue("AppSetting", "FileProfilePollingWindowInSeconds");
+                String fileProfilePollingWindowInSeconds = ConfigurationReader.GetValue("AppSettings", "FileProfilePollingWindowInSeconds");
                 if (string.IsNullOrEmpty(fileProfilePollingWindowInSeconds))
                 {
                     fileProfilePollingWindowInSeconds = "60";

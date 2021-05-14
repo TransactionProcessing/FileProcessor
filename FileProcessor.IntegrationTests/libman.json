@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "provider": "filesystem",
+      "library": "https://github.com/StuartFerguson/EventStoreProjections/releases/download/1.0.0/MerchantBalanceCalculator.js",
+      "destination": "projections/continuous"
+    },
+    {
+      "provider": "filesystem",
+      "library": "https://github.com/StuartFerguson/EventStoreProjections/releases/download/1.0.0/MerchantAggregator.js",
+      "destination": "projections/continuous"
+    }
+  ]
+}

@@ -16,6 +16,10 @@ FROM build AS publish
 RUN dotnet publish "FileProcessor.csproj" -c Release -o /app/publish
 
 FROM base AS final
+WORKDIR /home
+RUN mkdir -p /home/txnproc/bulkfiles
+
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "FileProcessor.dll"]
