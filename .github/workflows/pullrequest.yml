@@ -33,5 +33,5 @@ jobs:
     - name: Build Docker Image
       run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
            
-    #- name: Run Integration Tests
-    #  run: dotnet test "EstateManagement.IntegrationTests\EstateManagement.IntegrationTests.csproj" --filter Category=PRTe st
+    - name: Run Integration Tests
+      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest
