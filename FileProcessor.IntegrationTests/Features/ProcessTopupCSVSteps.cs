@@ -32,6 +32,9 @@ namespace FileProcessor.IntegrationTests.Features
             this.TestingContext = testingContext;
         }
 
+        // Github Actions - Environment vars 
+        // CI - always try when under CI
+        // HOME - action home
 
         [Given(@"I have a safaricom topup file with the following contents")]
         public void GivenIHaveASafaricomTopupFileWithTheFollowingContents(Table table)
