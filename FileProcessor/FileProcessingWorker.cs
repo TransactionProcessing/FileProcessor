@@ -131,6 +131,7 @@
                         foreach (String file in files)
                         {
                             this.LogDebug($"File {file} detected");
+                            Console.WriteLine($"File {file} detected");
                             var request = this.CreateProcessFileRequest(fileProfile, file);
                             fileProcessingTasks.Add(this.Mediator.Send(request));
                         }
