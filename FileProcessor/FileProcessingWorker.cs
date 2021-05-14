@@ -79,16 +79,20 @@
         {
             // TODO: Do we poll here for files incase they have been left from a previous run
             var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
+            this.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
             Directory.CreateDirectory(temporaryFileLocation);
+            this.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
             var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(cancellationToken);
 
             foreach (FileProfile fileProfile in fileProfiles)
             {
                 Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
+                this.LogInformation($"Created in progress at [{ fileProfile.ListeningDirectory}//inprogress");
                 Directory.CreateDirectory(fileProfile.ProcessedDirectory);
+                this.LogInformation($"Created ProcessedDirectory at [{fileProfile.ProcessedDirectory}]");
                 Directory.CreateDirectory(fileProfile.FailedDirectory);
+                this.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
             }
-
 
             await base.StartAsync(cancellationToken);
         }
@@ -126,12 +130,12 @@
                     var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(stoppingToken);
                     foreach (FileProfile fileProfile in fileProfiles)
                     {
-                        this.LogDebug($"About to look in {fileProfile.ListeningDirectory} for files");
+                        this.LogInformation($"About to look in {fileProfile.ListeningDirectory} for files");
                         var files = Directory.GetFiles(fileProfile.ListeningDirectory).Take(1).ToList(); // Only process 1 file per file profile concurrently
 
                         foreach (String file in files)
                         {
-                            this.LogDebug($"File {file} detected");
+                            this.LogInformation($"File {file} detected");
                             var request = this.CreateProcessFileRequest(fileProfile, file);
                             fileProcessingTasks.Add(this.Mediator.Send(request));
                         }
