@@ -126,12 +126,12 @@
                     var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(stoppingToken);
                     foreach (FileProfile fileProfile in fileProfiles)
                     {
+                        this.LogDebug($"About to look in {fileProfile.ListeningDirectory} for files");
                         var files = Directory.GetFiles(fileProfile.ListeningDirectory).Take(1).ToList(); // Only process 1 file per file profile concurrently
 
                         foreach (String file in files)
                         {
                             this.LogDebug($"File {file} detected");
-                            Console.WriteLine($"File {file} detected");
                             var request = this.CreateProcessFileRequest(fileProfile, file);
                             fileProcessingTasks.Add(this.Mediator.Send(request));
                         }
