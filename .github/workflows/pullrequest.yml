@@ -21,22 +21,22 @@ jobs:
         echo "CI is > ${CI}"
         echo "HOME is > ${HOME}"
 
-    #- name: Restore Nuget Packages
-    #  run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
+    - name: Restore Nuget Packages
+      run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
 
-    #- name: Build Code
-    #  run: dotnet build FileProcessor.sln --configuration Release
+    - name: Build Code
+      run: dotnet build FileProcessor.sln --configuration Release
 
-    #- name: Run Unit Tests
-    #  run: |
-    #    echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
-    #    dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
-    #    dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
-    #    dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj"
-    #    dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"
+    - name: Run Unit Tests
+      run: |
+        echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
+        dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
+        dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
+        dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj"
+        dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"
                
-    #- name: Build Docker Image
-    #  run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
+    - name: Build Docker Image
+      run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
            
-    #- name: Run Integration Tests        
-    #  run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest
+    - name: Run Integration Tests        
+      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest

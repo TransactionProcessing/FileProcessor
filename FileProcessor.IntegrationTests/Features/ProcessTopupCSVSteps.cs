@@ -60,9 +60,9 @@ namespace FileProcessor.IntegrationTests.Features
                 currentRow++;
             }
             
-            Directory.CreateDirectory("/home/txnproc/specflow");
+            Directory.CreateDirectory("/home/runner/specflow");
             Guid fileNameId = Guid.NewGuid();
-            String filepath = $"/home/txnproc/specflow/safaricomtopup_{fileNameId.ToString("N")}.txt";
+            String filepath = $"/home/runner/specflow/safaricomtopup_{fileNameId.ToString("N")}.txt";
             // Should have the whole file here
             using (StreamWriter sw = new StreamWriter(filepath))
             {
