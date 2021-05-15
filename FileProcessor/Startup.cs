@@ -125,10 +125,11 @@ namespace FileProcessor
                     HasHeaderRow = x.GetValue<Boolean>("HasHeaderRow"),
                     HasTrailerRow = x.GetValue<Boolean>("HasTrailerRow"),
                     ListeningDirectory = x.GetValue<String>("ListeningDirectory"),
-                    OperatorName = x.GetValue<String>("OperatorName")
-                }).Select(f =>
+                    OperatorName = x.GetValue<String>("OperatorName"),
+                    LineTerminator = x.GetValue<String>("LineTerminator")
+            }).Select(f =>
                           {
-                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.HasHeaderRow, f.HasTrailerRow);
+                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator, f.HasHeaderRow, f.HasTrailerRow);
                           });
             services.AddSingleton<List<FileProfile>>(fileProfiles.ToList());
 
@@ -153,7 +154,7 @@ namespace FileProcessor
             {
                 services.AddEventStoreClient(Startup.ConfigureEventStoreSettings);
                 services.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
-                //services.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
+                services.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
                 services.AddSingleton<IConnectionStringConfigurationRepository, ConfigurationReaderConnectionStringRepository>();
             }
 

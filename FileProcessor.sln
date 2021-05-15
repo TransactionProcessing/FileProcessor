@@ -27,11 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileProcessor.DomainEvents.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileProcessor.FileAggregate.Tests", "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj", "{C690895E-0850-4564-BC1C-4306EEA70E03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileProcessor.FileImportLogAggregate", "FileProcessor.FileImportLogAggregate\FileProcessor.FileImportLogAggregate.csproj", "{407BB702-E9AD-4100-9174-3B3BBE79AFF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileProcessor.FileImportLogAggregate", "FileProcessor.FileImportLogAggregate\FileProcessor.FileImportLogAggregate.csproj", "{407BB702-E9AD-4100-9174-3B3BBE79AFF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileProcessor.FileImportLog.DomainEvents", "FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj", "{0C3CC2E5-7DE5-4DC6-89F8-20A34008510B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileProcessor.FileImportLog.DomainEvents", "FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj", "{0C3CC2E5-7DE5-4DC6-89F8-20A34008510B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileProcessor.FileImportLogAggregate.Tests", "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj", "{E5538650-D916-4E30-B26D-3A3C63D9C480}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileProcessor.FileImportLogAggregate.Tests", "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj", "{E5538650-D916-4E30-B26D-3A3C63D9C480}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileProcessor.IntegrationTests", "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj", "{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +93,10 @@ Global
 		{E5538650-D916-4E30-B26D-3A3C63D9C480}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5538650-D916-4E30-B26D-3A3C63D9C480}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5538650-D916-4E30-B26D-3A3C63D9C480}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,6 +115,7 @@ Global
 		{407BB702-E9AD-4100-9174-3B3BBE79AFF2} = {DB9E2720-74A1-4B32-B5BF-6C7C75385A40}
 		{0C3CC2E5-7DE5-4DC6-89F8-20A34008510B} = {DB9E2720-74A1-4B32-B5BF-6C7C75385A40}
 		{E5538650-D916-4E30-B26D-3A3C63D9C480} = {90754177-874F-4E7F-ACC4-BE1B879332E6}
+		{DCD88706-0BE9-40F3-B1C7-2C852AA6E15C} = {90754177-874F-4E7F-ACC4-BE1B879332E6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {36E7D51E-38C9-4250-A7D8-7CA2FCEE0B3D}
