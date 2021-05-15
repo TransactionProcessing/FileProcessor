@@ -174,14 +174,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{fileId:N}";
             file.MoveTo(fileDestination, overwrite: true);
-
-            var x = fileImportLogAggregate.GetFileImportLog();
-            Logger.LogInformation("Import Log File List Start");
-            foreach (ImportLogFile importLogFile in x.Files)
-            {
-                Logger.LogInformation(importLogFile.FilePath);    
-            }
-            Logger.LogInformation("Import Log File List End");
+            Logger.LogInformation($"File moved to [{fileDestination}]");
             // Update Import log aggregate
             fileImportLogAggregate.AddImportedFile(fileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
 
