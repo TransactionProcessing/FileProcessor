@@ -172,7 +172,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             Guid fileId = this.CreateGuidFromFileData(fileContent);
 
-            String fileDestination = $"{fileProfile.ListeningDirectory}\\{request.EstateId:N}-{fileId:N}";
+            String fileDestination = $"{fileProfile.ListeningDirectory}//{request.EstateId:N}-{fileId:N}";
             file.MoveTo(fileDestination, overwrite: true);
             Logger.LogInformation($"File moved to [{fileDestination}]");
             // Update Import log aggregate
