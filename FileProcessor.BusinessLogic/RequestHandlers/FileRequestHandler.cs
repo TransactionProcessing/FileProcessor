@@ -373,6 +373,10 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             // need to now parse the line (based on the file format), this builds the metadata
             Dictionary<String, String> transactionMetadata = this.ParseFileLine(request.FileLine, fileProfile.FileFormatHandler);
 
+            // Add the file data to the request metadata
+            transactionMetadata.Add("FileId", request.FileId.ToString());
+            transactionMetadata.Add("FileLineNumber", request.LineNumber.ToString());
+
             this.TokenResponse = await this.GetToken(cancellationToken);
 
             Interlocked.Increment(ref FileRequestHandler.TransactionNumber);
