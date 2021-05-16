@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="EstateReporting.Client" Version="1.0.13.1" />
+	  <PackageReference Include="Grpc.Net.Client" Version="2.35.0" />
+	  <PackageReference Include="Ductus.FluentDocker" Version="2.7.3" />
+	  <PackageReference Include="EstateReporting.Database" Version="1.0.13.1" />
+	  <PackageReference Include="EstateManagement.Client" Version="1.0.10.2" />
+	  <PackageReference Include="EventStore.Client.Grpc.PersistentSubscriptions" Version="20.10.0" />
+	  <PackageReference Include="EventStore.Client.Grpc.ProjectionManagement" Version="20.10.0" />
+	  <PackageReference Include="EventStore.Client.Grpc.Streams" Version="20.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="SecurityService.Client" Version="1.0.6.2" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="1.0.5" />
+    <PackageReference Include="Shouldly" Version="4.0.3" />
+    <PackageReference Include="SpecFlow.xUnit" Version="3.7.38" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Steps\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Features\ProcessTopupCSV.feature.cs">
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <SpecFlowFeatureFiles Update="Features\ProcessTopupCSV.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+      <LastGenOutput>ProcessTopupCSV.feature.cs</LastGenOutput>
+    </SpecFlowFeatureFiles>
+  </ItemGroup>
+
+</Project>

@@ -78,6 +78,7 @@ namespace FileProcessor.Testing
                             TestData.SafaricomListeningDirectory,
                             TestData.SafaricomRequestType,
                             TestData.OperatorIdentifier,
+                            TestData.SafaricomLineTerminator,
                             TestData.SafaricomHasHeaderRow,
                             TestData.SafaricomHasTrailerRow);
 
@@ -92,6 +93,7 @@ namespace FileProcessor.Testing
 
         public static String SafaricomRequestType = "ProcessSafaricomFileRequest";
 
+        public static String SafaricomLineTerminator = "\n";
         public static Boolean SafaricomHasHeaderRow = true;
 
         public static Boolean SafaricomHasTrailerRow = true;

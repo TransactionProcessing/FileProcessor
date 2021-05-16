@@ -14,9 +14,12 @@ namespace FileProcessor
     using System.Net.Http;
     using BusinessLogic.Managers;
     using EventStore.Client;
+    using File.DomainEvents;
+    using FileImportLog.DomainEvents;
     using MediatR;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.EventStore.EventHandling;
+    using Shared.EventStore.Subscriptions;
     using Shared.Logger;
 
     [ExcludeFromCodeCoverage]
@@ -58,6 +61,29 @@ namespace FileProcessor
                                                                                                     provider.GetRequiredService<IFileProcessorManager>();
                                                                                                 IMediator mediator = provider.GetRequiredService<IMediator>();
                                                                                                 FileProcessingWorker worker = new FileProcessingWorker(fileProcessorManager,mediator);
+                                                                                                worker.TraceGenerated += Worker_TraceGenerated;
+                                                                                                return worker;
+                                                                                            });
+
+                                              FileAddedToImportLogEvent fileAddedToImportLogEvent =
+                                                  new FileAddedToImportLogEvent(Guid.Empty,
+                                                                                Guid.Empty,
+                                                                                Guid.Empty,
+                                                                                Guid.Empty,
+                                                                                Guid.Empty,
+                                                                                Guid.Empty,
+                                                                                String.Empty,
+                                                                                String.Empty);
+
+                                              FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
+
+                                              services.AddHostedService<SubscriptionWorker>(provider =>
+                                                                                            {
+                                                                                                IDomainEventHandlerResolver r =
+                                                                                                    provider.GetRequiredService<IDomainEventHandlerResolver>();
+                                                                                                EventStorePersistentSubscriptionsClient p = provider.GetRequiredService<EventStorePersistentSubscriptionsClient>();
+                                                                                                HttpClient h = provider.GetRequiredService<HttpClient>();
+                                                                                                SubscriptionWorker worker = new SubscriptionWorker(r, p, h);
                                                                                                 worker.TraceGenerated += Worker_TraceGenerated;
                                                                                                 return worker;
                                                                                             });

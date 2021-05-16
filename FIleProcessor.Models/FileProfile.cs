@@ -83,6 +83,14 @@
         public String RequestType { get; init; }
 
         /// <summary>
+        /// Gets or sets the line terminator.
+        /// </summary>
+        /// <value>
+        /// The line terminator.
+        /// </value>
+        public String LineTerminator { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="FileProfile" /> class.
         /// </summary>
         /// <param name="fileProfileId">The file profile identifier.</param>
@@ -92,7 +100,7 @@
         /// <param name="operatorName">Name of the operator.</param>
         /// <param name="hasHeaderRow">if set to <c>true</c> [has header row].</param>
         /// <param name="hasTrailerRow">if set to <c>true</c> [has trailer row].</param>
-        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, Boolean hasHeaderRow = false, Boolean hasTrailerRow = false)
+        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator, Boolean hasHeaderRow = false, Boolean hasTrailerRow = false)
         {
             this.FileProfileId = fileProfileId;
             this.Name = name;
@@ -103,6 +111,7 @@
             this.OperatorName = operatorName;
             this.HasHeaderRow = hasHeaderRow;
             this.HasTrailerRow = hasTrailerRow;
+            this.LineTerminator = lineTerminator;
         }
     }
 }
