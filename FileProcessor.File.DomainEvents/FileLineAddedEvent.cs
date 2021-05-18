@@ -70,4 +70,40 @@
 
         #endregion
     }
+
+    public record FileProcessingCompletedEvent : DomainEventRecord.DomainEvent
+    {
+        public FileProcessingCompletedEvent(Guid aggregateId,
+                                            Guid estateId,
+                                            DateTime processingCompletedDateTime) : base(aggregateId, Guid.NewGuid())
+        {
+            this.EstateId = estateId;
+            this.FileId = aggregateId;
+            this.ProcessingCompletedDateTime = processingCompletedDateTime;
+        }
+
+        /// <summary>
+        /// Gets or sets the estate identifier.
+        /// </summary>
+        /// <value>
+        /// The estate identifier.
+        /// </value>
+        public Guid EstateId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the processing completed date time.
+        /// </summary>
+        /// <value>
+        /// The processing completed date time.
+        /// </value>
+        public DateTime ProcessingCompletedDateTime { get; init; }
+
+        /// <summary>
+        /// Gets or sets the file identifier.
+        /// </summary>
+        /// <value>
+        /// The file identifier.
+        /// </value>
+        public Guid FileId { get; init; }
+    }
 }

@@ -25,12 +25,13 @@
         /// <param name="fileProfileId">The file profile identifier.</param>
         /// <param name="fileLocation">The file location.</param>
         public FileCreatedEvent(Guid aggregateId,
-                                 Guid fileImportLogId,
-                                 Guid estateId,
-                                 Guid merchantId,
-                                 Guid userId,
-                                 Guid fileProfileId,
-                                 String fileLocation) : base(aggregateId, Guid.NewGuid())
+                                Guid fileImportLogId,
+                                Guid estateId,
+                                Guid merchantId,
+                                Guid userId,
+                                Guid fileProfileId,
+                                String fileLocation,
+                                DateTime fileReceivedDateTime) : base(aggregateId, Guid.NewGuid())
         {
             this.FileId = aggregateId;
             this.FileImportLogId = fileImportLogId;
@@ -39,6 +40,7 @@
             this.UserId = userId;
             this.FileProfileId = fileProfileId;
             this.FileLocation = fileLocation;
+            this.FileReceivedDateTime = fileReceivedDateTime;
         }
 
         #endregion
@@ -84,6 +86,14 @@
         /// The file profile identifier.
         /// </value>
         public Guid FileProfileId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the file received date time.
+        /// </summary>
+        /// <value>
+        /// The file received date time.
+        /// </value>
+        public DateTime FileReceivedDateTime { get; init; }
 
         /// <summary>
         /// Gets or sets the merchant identifier.

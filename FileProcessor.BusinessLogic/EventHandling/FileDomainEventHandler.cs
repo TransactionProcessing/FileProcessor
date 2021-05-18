@@ -90,10 +90,12 @@ namespace FileProcessor.BusinessLogic.EventHandling
         {
             ProcessUploadedFileRequest request = new ProcessUploadedFileRequest(domainEvent.EstateId,
                                                                                 domainEvent.MerchantId,
+                                                                                domainEvent.FileImportLogId,
                                                                                 domainEvent.FileId,
                                                                                 domainEvent.UserId,
                                                                                 domainEvent.FilePath,
-                                                                                domainEvent.FileProfileId);
+                                                                                domainEvent.FileProfileId,
+                                                                                domainEvent.FileUploadedDateTime);
 
             await this.Mediator.Send(request, cancellationToken);
         }

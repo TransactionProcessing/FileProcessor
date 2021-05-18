@@ -64,7 +64,8 @@ namespace FileProcessor.Testing
                                           TestData.UserId,
                                           TestData.FileProfileId,
                                           TestData.OriginalFileName,
-                                          TestData.FilePath);
+                                          TestData.FilePath,
+                                          TestData.FileUploadedDateTime);
 
         public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
 
@@ -140,6 +141,10 @@ namespace FileProcessor.Testing
 
         public static DateTime ImportLogDateTime = new DateTime(2021,5,7);
 
+        public static DateTime FileUploadedDateTime = new DateTime(2021, 5, 7);
+
+        public static DateTime ProcessingCompletedDateTime = new DateTime(2021, 5, 7);
+
         public static List<ContractResponse> GetEmptyMerchantContractsResponse => new List<ContractResponse>();
 
         public static Dictionary<String, String> TransactionMetadata =>
@@ -170,7 +175,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
 
             return fileAggregate;
         }
@@ -179,7 +184,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine("D,1,2");
 
             return fileAggregate;
@@ -189,7 +194,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine("D,1,2");
             fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             return fileAggregate;

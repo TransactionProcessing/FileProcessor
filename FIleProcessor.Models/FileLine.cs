@@ -26,12 +26,12 @@
         public Int32 LineNumber { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [successfully processed].
+        /// Gets or sets a value indicating whether this <see cref="FileLine"/> is ignored.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [successfully processed]; otherwise, <c>false</c>.
+        ///   <c>true</c> if ignored; otherwise, <c>false</c>.
         /// </value>
-        public Boolean SuccessfullyProcessed { get; set; }
+        public ProcessingResult ProcessingResult { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction identifier.

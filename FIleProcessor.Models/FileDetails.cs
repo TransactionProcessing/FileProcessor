@@ -19,6 +19,14 @@ namespace FIleProcessor.Models
         public Guid FileId { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [processing completed].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [processing completed]; otherwise, <c>false</c>.
+        /// </value>
+        public Boolean ProcessingCompleted { get; set; }
+
+        /// <summary>
         /// Gets or sets the estate identifier.
         /// </summary>
         /// <value>
@@ -48,7 +56,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file profile identifier.
         /// </value>
-        public Guid  FileProfileId { get; set; }
+        public Guid FileProfileId { get; set; }
 
         /// <summary>
         /// Gets or sets the file import log identifier.
@@ -73,5 +81,23 @@ namespace FIleProcessor.Models
         /// The file lines.
         /// </value>
         public List<FileLine> FileLines { get; set; }
+
+        /// <summary>
+        /// Gets or sets the processing summary.
+        /// </summary>
+        /// <value>
+        /// The processing summary.
+        /// </value>
+        public ProcessingSummary ProcessingSummary { get; set; }
+}
+
+    public class ProcessingSummary
+    {
+        public Int32 TotalLines { get; set; }
+        public Int32 SuccessfullyProcessedLines { get; set; }
+        public Int32 FailedLines { get; set; }
+        public Int32 IgnoredLines { get; set; }
+        public Int32 NotProcessedLines { get; set; }
+
     }
 }
