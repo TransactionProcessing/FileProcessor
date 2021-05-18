@@ -8,7 +8,7 @@
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProcessUploadedFileRequest"/> class.
+        /// Initializes a new instance of the <see cref="ProcessUploadedFileRequest" /> class.
         /// </summary>
         /// <param name="estateId">The estate identifier.</param>
         /// <param name="merchantId">The merchant identifier.</param>
@@ -16,19 +16,24 @@
         /// <param name="userId">The user identifier.</param>
         /// <param name="filePath">The file path.</param>
         /// <param name="fileProfileId">The file profile identifier.</param>
+        /// <param name="fileUploadedDateTime">The file uploaded date time.</param>
         public ProcessUploadedFileRequest(Guid estateId,
                                           Guid merchantId,
+                                          Guid fileImportLogId,
                                           Guid fileId,
                                           Guid userId,
                                           String filePath,
-                                          Guid fileProfileId)
+                                          Guid fileProfileId,
+                                          DateTime fileUploadedDateTime)
         {
+            this.FileUploadedDateTime = fileUploadedDateTime;
             this.EstateId = estateId;
             this.MerchantId = merchantId;
             this.FileId = fileId;
             this.UserId = userId;
             this.FilePath = filePath;
             this.FileProfileId = fileProfileId;
+            this.FileImportLogId = fileImportLogId;
         }
 
         #endregion
@@ -42,6 +47,14 @@
         /// The estate identifier.
         /// </value>
         public Guid EstateId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the file uploaded date time.
+        /// </summary>
+        /// <value>
+        /// The file uploaded date time.
+        /// </value>
+        public DateTime FileUploadedDateTime { get; init; }
 
         /// <summary>
         /// Gets or sets the file identifier.

@@ -24,7 +24,7 @@ namespace FileProcessor.DomainEvents.Tests
                                                                                                 TestData.EstateId,TestData.MerchantId,
                                                                                                 TestData.UserId, TestData.FileProfileId,
                                                                                                 TestData.OriginalFileName,
-                                                                                                TestData.FilePath);
+                                                                                                TestData.FilePath, TestData.FileUploadedDateTime);
 
             fileAddedToImportLogEvent.FileImportLogId.ShouldBe(TestData.FileImportLogId);
             fileAddedToImportLogEvent.FileId.ShouldBe(TestData.FileId);
@@ -34,6 +34,7 @@ namespace FileProcessor.DomainEvents.Tests
             fileAddedToImportLogEvent.FileProfileId.ShouldBe(TestData.FileProfileId);
             fileAddedToImportLogEvent.OriginalFileName.ShouldBe(TestData.OriginalFileName);
             fileAddedToImportLogEvent.FilePath.ShouldBe(TestData.FilePath);
+            fileAddedToImportLogEvent.FileUploadedDateTime.ShouldBe(TestData.FileUploadedDateTime);
         }
     }
 }

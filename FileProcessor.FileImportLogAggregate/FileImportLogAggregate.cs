@@ -93,7 +93,13 @@ namespace FileProcessor.FileImportLogAggregate
         /// <param name="fileProfileId">The file profile identifier.</param>
         /// <param name="originalFileName">Name of the original file.</param>
         /// <param name="filePath">The file path.</param>
-        public void AddImportedFile(Guid fileId, Guid merchantId,Guid userId, Guid fileProfileId, String originalFileName, String filePath)
+        /// <param name="fileUploadedDateTime">The file uploaded date time.</param>
+        /// <exception cref="InvalidOperationException">
+        /// Import log has not been created
+        /// or
+        /// Duplicate file {originalFileName} detected File Id [{fileId}]
+        /// </exception>
+        public void AddImportedFile(Guid fileId, Guid merchantId,Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime)
         {
             if (this.IsCreated == false)
             {
@@ -106,7 +112,7 @@ namespace FileProcessor.FileImportLogAggregate
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
-                new FileAddedToImportLogEvent(this.AggregateId, fileId, this.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath);
+                new FileAddedToImportLogEvent(this.AggregateId, fileId, this.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath, fileUploadedDateTime);
 
             this.ApplyAndAppend(fileAddedToImportLogEvent);
         }

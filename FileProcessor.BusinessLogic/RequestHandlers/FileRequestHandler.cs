@@ -174,9 +174,9 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             String fileDestination = $"{fileProfile.ListeningDirectory}//{request.EstateId:N}-{fileId:N}";
             file.MoveTo(fileDestination, overwrite: true);
-            Logger.LogInformation($"File moved to [{fileDestination}]");
+
             // Update Import log aggregate
-            fileImportLogAggregate.AddImportedFile(fileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination);
+            fileImportLogAggregate.AddImportedFile(fileId, request.MerchantId, request.UserId, request.FileProfileId, originalName, fileDestination, request.FileUploadedDateTime);
 
             // Save changes
             await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
@@ -209,12 +209,13 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             return guid;
         }
 
+       
         public async Task<Unit> Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
         {
             // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
             FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
 
-            fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath);
+            fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath, request.FileUploadedDateTime);
 
             await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
 
@@ -368,7 +369,11 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             // Determine if we need to actually process this file line
             if (this.FileLineCanBeIgnored(request.FileLine, fileProfile.FileFormatHandler))
+            { 
+                // Write something to aggregate to say line was explicity ignored
+                fileAggregate.RecordFileLineAsIgnored(request.LineNumber);
                 return new Unit();
+            }
 
             // need to now parse the line (based on the file format), this builds the metadata
             Dictionary<String, String> transactionMetadata = this.ParseFileLine(request.FileLine, fileProfile.FileFormatHandler);

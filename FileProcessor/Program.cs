@@ -73,7 +73,8 @@ namespace FileProcessor
                                                                                 Guid.Empty,
                                                                                 Guid.Empty,
                                                                                 String.Empty,
-                                                                                String.Empty);
+                                                                                String.Empty,
+                                                                                new DateTime());
 
                                               FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
 

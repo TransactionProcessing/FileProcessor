@@ -6,6 +6,7 @@
     /// <summary>
     /// 
     /// </summary>
+    /// <seealso cref="MediatR.IRequest{System.Guid}" />
     /// <seealso cref="MediatR.IRequest" />
     /// <seealso cref="MediatR.IRequest{MediatR.Unit}" />
     /// <seealso cref="MediatR.IBaseRequest" />
@@ -15,24 +16,27 @@
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UploadFileRequest"/> class.
+        /// Initializes a new instance of the <see cref="UploadFileRequest" /> class.
         /// </summary>
         /// <param name="estateId">The estate identifier.</param>
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="userId">The user identifier.</param>
         /// <param name="filePath">The file path.</param>
         /// <param name="fileProfileId">The file profile identifier.</param>
+        /// <param name="fileUploadedDateTime">The file uploaded date time.</param>
         public UploadFileRequest(Guid estateId,
                                  Guid merchantId,
                                  Guid userId,
                                  String filePath,
-                                 Guid fileProfileId)
+                                 Guid fileProfileId,
+                                 DateTime fileUploadedDateTime)
         {
             this.EstateId = estateId;
             this.MerchantId = merchantId;
             this.UserId = userId;
             this.FilePath = filePath;
             this.FileProfileId = fileProfileId;
+            this.FileUploadedDateTime = fileUploadedDateTime;
         }
 
         #endregion
@@ -46,6 +50,14 @@
         /// The estate identifier.
         /// </value>
         public Guid EstateId { get; init; }
+
+        /// <summary>
+        /// Gets or sets the file uploaded date time.
+        /// </summary>
+        /// <value>
+        /// The file uploaded date time.
+        /// </value>
+        public DateTime FileUploadedDateTime { get; init; }
 
         /// <summary>
         /// Gets or sets the file path.

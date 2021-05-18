@@ -21,7 +21,5 @@
         /// <param name="fileLine">The file line.</param>
         /// <returns></returns>
         Boolean FileLineCanBeIgnored(String fileLine);
-
-
     }
 }

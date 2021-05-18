@@ -59,7 +59,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
         {
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
             fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
-            fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+            fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
 
             FileImportLog fileImportLog = fileImportLogAggregate.GetFileImportLog();
             fileImportLog.ShouldNotBeNull();
@@ -76,7 +76,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
 
             Should.Throw<InvalidOperationException>(() =>
                                                     {
-                                                        fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+                                                        fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
                                                     });
         }
 
@@ -85,10 +85,10 @@ namespace FileProcessor.FileImportLogAggregate.Tests
         {
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
             fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
-            fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+            fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
             Should.Throw<InvalidOperationException>(() =>
                                                     {
-                                                        fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath);
+                                                        fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
                                                     });
         }
     }

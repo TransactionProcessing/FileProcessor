@@ -40,6 +40,11 @@ namespace FileProcessor.FileAggregate
         private Guid FileImportLogId;
 
         /// <summary>
+        /// The file received date time
+        /// </summary>
+        private DateTime FileReceivedDateTime;
+
+        /// <summary>
         /// The user identifier
         /// </summary>
         private Guid UserId;
@@ -48,6 +53,11 @@ namespace FileProcessor.FileAggregate
         /// The file location
         /// </summary>
         private String FileLocation;
+
+        /// <summary>
+        /// The is completed
+        /// </summary>
+        private Boolean IsCompleted;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAggregate" /> class.
@@ -121,6 +131,7 @@ namespace FileProcessor.FileAggregate
             this.UserId = domainEvent.UserId;
             this.FileLocation = domainEvent.FileLocation;
             this.FileImportLogId = domainEvent.FileImportLogId;
+            this.FileReceivedDateTime = domainEvent.FileReceivedDateTime;
         }
 
         /// <summary>
@@ -136,6 +147,7 @@ namespace FileProcessor.FileAggregate
         {
             return new FileDetails
                    {
+                       ProcessingCompleted = this.IsCompleted,
                        FileLines = this.FileLines,
                        EstateId = this.EstateId,
                        MerchantId = this.MerchantId,
@@ -143,7 +155,15 @@ namespace FileProcessor.FileAggregate
                        FileId = this.AggregateId,
                        FileImportLogId = this.FileImportLogId,
                        FileLocation = this.FileLocation,
-                       UserId = this.UserId
+                       UserId = this.UserId,
+                       ProcessingSummary = new ProcessingSummary
+                                           {
+                                               TotalLines = this.FileLines.Count,
+                                               FailedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Failed),
+                                               IgnoredLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Ignored),
+                                               NotProcessedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.NotProcessed),
+                                               SuccessfullyProcessedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Successful)
+                       }
                    };
         }
 
@@ -164,12 +184,23 @@ namespace FileProcessor.FileAggregate
         /// Plays the event.
         /// </summary>
         /// <param name="domainEvent">The domain event.</param>
+        private void PlayEvent(FileLineProcessingIgnoredEvent domainEvent)
+        {
+            // find the line 
+            FileLine fileLine = this.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
+            fileLine.ProcessingResult = ProcessingResult.Ignored;
+        }
+
+        /// <summary>
+        /// Plays the event.
+        /// </summary>
+        /// <param name="domainEvent">The domain event.</param>
         private void PlayEvent(FileLineProcessingSuccessfulEvent domainEvent)
         {
             // find the line 
             FileLine fileLine = this.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
-            fileLine.SuccessfullyProcessed = true;
+            fileLine.ProcessingResult = ProcessingResult.Successful;
         }
 
         /// <summary>
@@ -180,6 +211,16 @@ namespace FileProcessor.FileAggregate
         {
             FileLine fileLine = this.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
+            fileLine.ProcessingResult = ProcessingResult.Failed;
+        }
+
+        /// <summary>
+        /// Plays the event.
+        /// </summary>
+        /// <param name="domainEvent">The domain event.</param>
+        private void PlayEvent(FileProcessingCompletedEvent domainEvent)
+        {
+            this.IsCompleted = true;
         }
 
         /// <summary>
@@ -191,15 +232,17 @@ namespace FileProcessor.FileAggregate
         /// <param name="userId">The user identifier.</param>
         /// <param name="fileProfileId">The file profile identifier.</param>
         /// <param name="fileLocation">The file location.</param>
+        /// <param name="fileReceivedDateTime">The file received date time.</param>
+        /// <exception cref="InvalidOperationException">File Id {this.AggregateId} has already been created</exception>
         /// <exception cref="System.InvalidOperationException">File Id {this.AggregateId} has already been uploaded</exception>
-        public void CreateFile(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation)
+        public void CreateFile(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime)
         {
             if (this.IsCreated)
             {
                 throw new InvalidOperationException($"File Id {this.AggregateId} has already been created");
             }
 
-            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(this.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation);
+            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(this.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation, fileReceivedDateTime);
 
             this.ApplyAndAppend(fileCreatedEvent);
         }
@@ -208,6 +251,7 @@ namespace FileProcessor.FileAggregate
         /// Adds the file line.
         /// </summary>
         /// <param name="fileLine">The file line.</param>
+        /// <exception cref="InvalidOperationException">File Id {this.AggregateId} has not been uploaded yet</exception>
         public void AddFileLine(String fileLine)
         {
             if (this.IsCreated == false)
@@ -222,10 +266,38 @@ namespace FileProcessor.FileAggregate
         }
 
         /// <summary>
+        /// Records the file line as ignored.
+        /// </summary>
+        /// <param name="lineNumber">The line number.</param>
+        /// <exception cref="InvalidOperationException">File has no lines to mark as successful</exception>
+        /// <exception cref="NotFoundException">File line with number {lineNumber} not found to mark as successful</exception>
+        public void RecordFileLineAsIgnored(Int32 lineNumber)
+        {
+            if (this.FileLines.Any() == false)
+            {
+                throw new InvalidOperationException("File has no lines to mark as ignored");
+            }
+
+            if (this.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
+            {
+                throw new NotFoundException($"File line with number {lineNumber} not found to mark as ignored");
+            }
+
+            FileLineProcessingIgnoredEvent fileLineProcessingIgnoredEvent =
+                new FileLineProcessingIgnoredEvent(this.AggregateId, this.EstateId, lineNumber);
+
+            this.ApplyAndAppend(fileLineProcessingIgnoredEvent);
+
+            this.CompletedChecks();
+        }
+
+        /// <summary>
         /// Records the file line as successful.
         /// </summary>
         /// <param name="lineNumber">The line number.</param>
         /// <param name="transactionId">The transaction identifier.</param>
+        /// <exception cref="InvalidOperationException">File has no lines to mark as successful</exception>
+        /// <exception cref="NotFoundException">File line with number {lineNumber} not found to mark as successful</exception>
         public void RecordFileLineAsSuccessful(Int32 lineNumber, Guid transactionId)
         {
             if (this.FileLines.Any() == false)
@@ -242,6 +314,8 @@ namespace FileProcessor.FileAggregate
                 new FileLineProcessingSuccessfulEvent(this.AggregateId, this.EstateId, lineNumber, transactionId);
 
             this.ApplyAndAppend(fileLineProcessingSuccessfulEvent);
+
+            this.CompletedChecks();
         }
 
         /// <summary>
@@ -251,6 +325,8 @@ namespace FileProcessor.FileAggregate
         /// <param name="transactionId">The transaction identifier.</param>
         /// <param name="responseCode">The response code.</param>
         /// <param name="responseMessage">The response message.</param>
+        /// <exception cref="InvalidOperationException">File has no lines to mark as failed</exception>
+        /// <exception cref="NotFoundException">File line with number {lineNumber} not found to mark as failed</exception>
         public void RecordFileLineAsFailed(Int32 lineNumber, Guid transactionId, String responseCode, String responseMessage)
         {
             if (this.FileLines.Any() == false)
@@ -267,6 +343,22 @@ namespace FileProcessor.FileAggregate
                 new FileLineProcessingFailedEvent(this.AggregateId, this.EstateId, lineNumber, transactionId, responseCode,responseMessage);
 
             this.ApplyAndAppend(fileLineProcessingFailedEvent);
+
+            this.CompletedChecks();
+        }
+
+        /// <summary>
+        /// Completeds the checks.
+        /// </summary>
+        private void CompletedChecks()
+        {
+            if (this.FileLines.Any(f => f.ProcessingResult == ProcessingResult.NotProcessed) == false)
+            {
+                // All lines have been processed, write out a completed event
+                FileProcessingCompletedEvent fileProcessingCompletedEvent = new FileProcessingCompletedEvent(this.AggregateId, this.EstateId, DateTime.Now);
+
+                this.ApplyAndAppend(fileProcessingCompletedEvent);
+            }
         }
     }
 }

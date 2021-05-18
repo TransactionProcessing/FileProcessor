@@ -18,7 +18,8 @@ namespace FileProcessor.DomainEvents.Tests
                                                                      TestData.MerchantId,
                                                                      TestData.UserId,
                                                                      TestData.FileProfileId,
-                                                                     TestData.FileLocation);
+                                                                     TestData.FileLocation,
+                                                                     TestData.FileUploadedDateTime);
 
             fileCreatedEvent.FileId.ShouldBe(TestData.FileId);
             fileCreatedEvent.FileImportLogId.ShouldBe(TestData.FileImportLogId);
@@ -27,6 +28,7 @@ namespace FileProcessor.DomainEvents.Tests
             fileCreatedEvent.UserId.ShouldBe(TestData.UserId);
             fileCreatedEvent.FileProfileId.ShouldBe(TestData.FileProfileId);
             fileCreatedEvent.FileLocation.ShouldBe(TestData.FileLocation);
+            fileCreatedEvent.FileReceivedDateTime.ShouldBe(TestData.FileUploadedDateTime);
         }
 
         [Fact]
@@ -65,7 +67,28 @@ namespace FileProcessor.DomainEvents.Tests
             fileLineProcessingFailedEvent.EstateId.ShouldBe(TestData.EstateId);
             fileLineProcessingFailedEvent.ResponseCode.ShouldBe(TestData.ResponseCode);
             fileLineProcessingFailedEvent.ResponseMessage.ShouldBe(TestData.ResponseMessage);
+        }
 
+        [Fact]
+        public void FileLineProcessingIgnoredEvent_CanBeCreated_IsCreated()
+        {
+            FileLineProcessingIgnoredEvent fileLineProcessingIgnoredEvent =
+                new FileLineProcessingIgnoredEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber);
+
+            fileLineProcessingIgnoredEvent.FileId.ShouldBe(TestData.FileId);
+            fileLineProcessingIgnoredEvent.LineNumber.ShouldBe(TestData.LineNumber);
+            fileLineProcessingIgnoredEvent.EstateId.ShouldBe(TestData.EstateId);
+        }
+
+        [Fact]
+        public void FileProcessingCompletedEvent_CanBeCreated_IsCreated()
+        {
+            FileProcessingCompletedEvent fileProcessingCompletedEvent =
+                new FileProcessingCompletedEvent(TestData.FileId, TestData.EstateId, TestData.ProcessingCompletedDateTime);
+
+            fileProcessingCompletedEvent.FileId.ShouldBe(TestData.FileId);
+            fileProcessingCompletedEvent.EstateId.ShouldBe(TestData.EstateId);
+            fileProcessingCompletedEvent.ProcessingCompletedDateTime.ShouldBe(TestData.ProcessingCompletedDateTime);
         }
     }
 }

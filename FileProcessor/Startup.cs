@@ -186,7 +186,8 @@ namespace FileProcessor
             services.AddSingleton<IAggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>>();
             services.AddSingleton<IAggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
 
-            FileCreatedEvent f = new FileCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), String.Empty);
+            FileCreatedEvent f = new FileCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), String.Empty,
+                                                      new DateTime());
             FileAddedToImportLogEvent f1 = new FileAddedToImportLogEvent(Guid.NewGuid(),
                                                                          Guid.NewGuid(),
                                                                          Guid.NewGuid(),
@@ -194,7 +195,8 @@ namespace FileProcessor
                                                                          Guid.NewGuid(),
                                                                          Guid.NewGuid(),
                                                                          String.Empty,
-                                                                         String.Empty);
+                                                                         String.Empty,
+                                                                         new DateTime());
 
             TypeProvider.LoadDomainEventsTypeDynamically();
 

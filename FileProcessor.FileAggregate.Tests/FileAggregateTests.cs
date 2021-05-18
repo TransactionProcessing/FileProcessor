@@ -21,6 +21,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             fileDetails.ShouldNotBeNull();
             fileDetails.FileId.ShouldBe(TestData.FileId);
+            fileDetails.ProcessingCompleted.ShouldBeFalse();
         }
 
         [Fact]
@@ -34,7 +35,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
 
             fileAggregate.IsCreated.ShouldBeTrue();
             FileDetails fileDetails = fileAggregate.GetFile();
@@ -47,20 +48,22 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.UserId.ShouldBe(TestData.UserId);
             fileDetails.FileProfileId.ShouldBe(TestData.FileProfileId);
             fileDetails.FileLocation.ShouldBe(TestData.FileLocation);
+            fileDetails.FileLines.ShouldBeEmpty();
+            fileDetails.ProcessingCompleted.ShouldBeFalse();
         }
 
         [Fact]
-        public void FileAggregate_CretaeFile_FileAlreadyCreated_ErrorThrown()
+        public void FileAggregate_CreateFile_FileAlreadyCreated_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
 
             Should.Throw<InvalidOperationException>(() =>
                                                     {
 
                                                         fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                                                                 TestData.FileProfileId, TestData.FileLocation);
+                                                                                 TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
                                                     });
         }
 
@@ -69,7 +72,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine(TestData.FileLine);
 
             FileDetails fileDetails = fileAggregate.GetFile();
@@ -77,6 +80,13 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.FileLines.ShouldNotBeEmpty();
             fileDetails.FileLines.ShouldHaveSingleItem();
             fileDetails.FileLines.Single().LineData.ShouldBe(TestData.FileLine);
+            fileDetails.ProcessingCompleted.ShouldBeFalse();
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(0);
         }
 
         [Fact]
@@ -95,7 +105,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine(TestData.FileLine);
             fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
 
@@ -105,8 +115,15 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.FileLines.ShouldHaveSingleItem();
             fileDetails.FileLines.Single().LineNumber.ShouldBe(1);
             fileDetails.FileLines.Single().LineData.ShouldBe(TestData.FileLine);
-            fileDetails.FileLines.Single().SuccessfullyProcessed.ShouldBeTrue();
+            fileDetails.FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.Successful);
             fileDetails.FileLines.Single().TransactionId.ShouldBe(TestData.TransactionId);
+            fileDetails.ProcessingCompleted.ShouldBeTrue();
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(0);
         }
 
         [Fact]
@@ -125,7 +142,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
 
             Should.Throw<InvalidOperationException>(() =>
                                                     {
@@ -138,7 +155,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine(TestData.FileLine);
             Should.Throw<NotFoundException>(() =>
                                             {
@@ -151,7 +168,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine(TestData.FileLine);
             fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId,TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
 
@@ -161,8 +178,15 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.FileLines.ShouldHaveSingleItem();
             fileDetails.FileLines.Single().LineNumber.ShouldBe(1);
             fileDetails.FileLines.Single().LineData.ShouldBe(TestData.FileLine);
-            fileDetails.FileLines.Single().SuccessfullyProcessed.ShouldBeFalse();
+            fileDetails.FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.Failed);
             fileDetails.FileLines.Single().TransactionId.ShouldBe(TestData.TransactionId);
+            fileDetails.ProcessingCompleted.ShouldBeTrue();
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(0);
         }
 
         [Fact]
@@ -181,7 +205,7 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
 
             Should.Throw<InvalidOperationException>(() =>
                                                     {
@@ -194,12 +218,74 @@ namespace FileProcessor.FileAggregate.Tests
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation);
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine(TestData.FileLine);
             Should.Throw<NotFoundException>(() =>
                                             {
                                                 fileAggregate.RecordFileLineAsFailed(TestData.NotFoundLineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                             });
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsIgnored_FileLineUpdatedAsIgnored()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(TestData.FileLine);
+            fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
+
+            FileDetails fileDetails = fileAggregate.GetFile();
+            fileDetails.FileLines.ShouldNotBeNull();
+            fileDetails.FileLines.ShouldNotBeEmpty();
+            fileDetails.FileLines.ShouldHaveSingleItem();
+            fileDetails.FileLines.Single().LineNumber.ShouldBe(1);
+            fileDetails.FileLines.Single().LineData.ShouldBe(TestData.FileLine);
+            fileDetails.FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.Ignored);
+            fileDetails.ProcessingCompleted.ShouldBeTrue();
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(1);
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsIgnored_FileNotCreated_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+
+            Should.Throw<InvalidOperationException>(() =>
+            {
+                fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
+            });
+        }
+
+        [Fact]
+        public void FileAggregate_FileAggregate_RecordFileLineAsIgnored_FileHasNoLine_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+
+            Should.Throw<InvalidOperationException>(() =>
+            {
+                fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
+            });
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsIgnored_LineNotFound_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(TestData.FileLine);
+            Should.Throw<NotFoundException>(() =>
+            {
+                fileAggregate.RecordFileLineAsIgnored(TestData.NotFoundLineNumber);
+            });
         }
     }
 }
