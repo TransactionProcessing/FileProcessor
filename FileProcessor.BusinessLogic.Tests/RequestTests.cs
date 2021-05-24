@@ -51,6 +51,16 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public void VoucherRequest_CanBeCreated_IsCreated()
+        {
+            VoucherRequest voucherRequest = new VoucherRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);
+
+            voucherRequest.FileId.ShouldBe(TestData.FileId);
+            voucherRequest.FileName.ShouldBe(TestData.FileName);
+            voucherRequest.FileProfileId.ShouldBe(TestData.FileProfileId);
+        }
+
+        [Fact]
         public void ProcessTransactionForFileLineRequest_CanBeCreated_IsCreated()
         {
             ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =

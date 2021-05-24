@@ -39,8 +39,8 @@
             }
 
             // Now extract the required data
-            String customerAccountNumber = splitLine[1];
-            String topupAmount = splitLine[2];
+            String customerAccountNumber = splitLine[1].Trim();
+            String topupAmount = splitLine[2].Trim();
 
             // Create the metadata
             return new Dictionary<String, String>

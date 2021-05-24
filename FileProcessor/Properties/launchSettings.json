@@ -1,11 +1,11 @@
 {
-  "profiles": {
-    "FileProcessor": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": "true"
-    }
+"profiles": {
+  "FileProcessor": {
+    "commandName": "Project",
+    "environmentVariables": {
+      "ASPNETCORE_ENVIRONMENT": "Development"
+    },
+    "dotnetRunMessages": "true"
   }
+}
 }

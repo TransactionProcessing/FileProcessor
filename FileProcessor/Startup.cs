@@ -122,14 +122,12 @@ namespace FileProcessor
                     Name = x.GetValue<String>("Name"),
                     FileProfileId = x.GetValue<Guid>("Id"),
                     RequestType = x.GetValue<String>("RequestType"),
-                    HasHeaderRow = x.GetValue<Boolean>("HasHeaderRow"),
-                    HasTrailerRow = x.GetValue<Boolean>("HasTrailerRow"),
                     ListeningDirectory = x.GetValue<String>("ListeningDirectory"),
                     OperatorName = x.GetValue<String>("OperatorName"),
                     LineTerminator = x.GetValue<String>("LineTerminator")
             }).Select(f =>
                           {
-                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator, f.HasHeaderRow, f.HasTrailerRow);
+                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator);
                           });
             services.AddSingleton<List<FileProfile>>(fileProfiles.ToList());
 
