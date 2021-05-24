@@ -40,6 +40,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     public class FileRequestHandler : IRequestHandler<UploadFileRequest,Guid>,
                                       IRequestHandler<ProcessUploadedFileRequest>,
                                       IRequestHandler<SafaricomTopupRequest>,
+                                      IRequestHandler<VoucherRequest>,
                                       IRequestHandler<ProcessTransactionForFileLineRequest>
     {
         /// <summary>
@@ -382,6 +383,14 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             transactionMetadata.Add("FileId", request.FileId.ToString());
             transactionMetadata.Add("FileLineNumber", request.LineNumber.ToString());
 
+            String operatorName = fileProfile.OperatorName;
+            if (transactionMetadata.ContainsKey("OperatorName"))
+            {
+                // extract the value
+                operatorName = transactionMetadata["OperatorName"];
+                transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
+            }
+
             this.TokenResponse = await this.GetToken(cancellationToken);
 
             Interlocked.Increment(ref FileRequestHandler.TransactionNumber);
@@ -399,7 +408,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 throw new NotFoundException($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
             }
 
-            ContractResponse? contract = contracts.SingleOrDefault(c => c.OperatorName == fileProfile.OperatorName);
+            ContractResponse? contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
 
             if (contract == null)
             {
@@ -528,6 +537,78 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             }
 
             return this.TokenResponse;
+        }
+
+        public async Task<Unit> Handle(VoucherRequest request,
+                                       CancellationToken cancellationToken)
+        {
+            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
+
+            if (fileAggregate.IsCreated == false)
+                return new Unit();
+
+            IFileInfo file = this.FileSystem.FileInfo.FromFileName(request.FileName);
+
+            if (file.Exists == false)
+            {
+                throw new FileNotFoundException($"File {file.FullName} not found");
+            }
+
+            FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(request.FileProfileId, cancellationToken);
+
+            if (fileProfile == null)
+            {
+                throw new NotFoundException($"No file profile found with Id {request.FileProfileId}");
+            }
+
+            String inProgressFolder = $"{fileProfile.ListeningDirectory}/inprogress/";
+            if (this.FileSystem.Directory.Exists(inProgressFolder) == false)
+            {
+                throw new DirectoryNotFoundException($"Directory {inProgressFolder} not found");
+            }
+            String inProgressFilePath = $"{fileProfile.ListeningDirectory}/inprogress/{file.Name}";
+            file.MoveTo(inProgressFilePath, true);
+
+            IFileInfo inProgressFile = this.FileSystem.FileInfo.FromFileName(inProgressFilePath);
+
+            // TODO: Check the processed/failed directories exist
+            if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
+            {
+                throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
+            }
+
+            if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
+            {
+                throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
+            }
+            String fileContent = null;
+            //Open file for Read\Write
+            using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+            {
+                //Create object of StreamReader by passing FileStream object on which it needs to operates on
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    //Use ReadToEnd method to read all the content from file
+                    fileContent = await sr.ReadToEndAsync();
+                }
+            }
+
+            if (String.IsNullOrEmpty(fileContent) == false)
+            {
+                String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
+
+                foreach (String fileLine in fileLines)
+                {
+                    fileAggregate.AddFileLine(fileLine);
+                }
+
+                await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
+            }
+
+            // TODO: Move file now
+            inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
+
+            return new Unit();
         }
     }
 }

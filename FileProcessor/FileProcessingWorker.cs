@@ -178,6 +178,9 @@
                 case "SafaricomTopupRequest":
                     request = new SafaricomTopupRequest(Guid.Parse(fields[1]), fileName, fileProfile.FileProfileId);
                     break;
+                case "VoucherRequest":
+                    request = new VoucherRequest(Guid.Parse(fields[1]), fileName, fileProfile.FileProfileId);
+                    break;
             }
 
             return request;

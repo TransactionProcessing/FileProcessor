@@ -55,4 +55,71 @@ namespace FileProcessor.BusinessLogic.Tests
                                                });
         }
     }
+
+    public class VoucherFileFormatHandlerTests
+    {
+        [Theory]
+        [InlineData("H,20210430", true)]
+        [InlineData("D,IssuerName,07777777705 ,100", false)]
+        [InlineData("D,IssuerName,1@2.com ,100", false)]
+        [InlineData("T,1", true)]
+        public void VoucherFileFormatHandler_FileLineCanBeIgnored_ResultIsAsExpected(String fileLine, Boolean isIgnored)
+        {
+            VoucherFileFormatHandler voucherFileFormatHandler = new VoucherFileFormatHandler();
+
+            voucherFileFormatHandler.FileLineCanBeIgnored(fileLine).ShouldBe(isIgnored);
+        }
+
+        [Fact]
+        public void VoucherFileFormatHandler_ParseFileLine_EmailAddress_LineIsParsed()
+        {
+            VoucherFileFormatHandler voucherFileFormatHandler = new VoucherFileFormatHandler();
+
+            Dictionary<String, String> transactionMetaData = voucherFileFormatHandler.ParseFileLine(TestData.VoucherDetailLineWithEmailAddress);
+
+            transactionMetaData.TryGetValue("OperatorName", out String operatorName);
+            transactionMetaData.TryGetValue("Amount", out String amount);
+            transactionMetaData.TryGetValue("RecipientEmail", out String recipientEmail);
+
+            operatorName.ShouldNotBeNullOrEmpty();
+            operatorName.ShouldBe(TestData.VoucherOperatorIdentifier);
+            amount.ShouldNotBeNullOrEmpty();
+            amount.ShouldBe(TestData.VoucherDetailLineAmount);
+            recipientEmail.ShouldNotBeNullOrEmpty();
+            recipientEmail.ShouldBe(TestData.VoucherRecipientEmail);
+        }
+
+        [Fact]
+        public void VoucherFileFormatHandler_ParseFileLine_MobileNumber_LineIsParsed()
+        {
+            VoucherFileFormatHandler voucherFileFormatHandler = new VoucherFileFormatHandler();
+
+            Dictionary<String, String> transactionMetaData = voucherFileFormatHandler.ParseFileLine(TestData.VoucherDetailLineWithMobileNumber);
+
+            transactionMetaData.TryGetValue("OperatorName", out String operatorName);
+            transactionMetaData.TryGetValue("Amount", out String amount);
+            transactionMetaData.TryGetValue("RecipientMobile", out String recipientMobile);
+
+            operatorName.ShouldNotBeNullOrEmpty();
+            operatorName.ShouldBe(TestData.VoucherOperatorIdentifier);
+            amount.ShouldNotBeNullOrEmpty();
+            amount.ShouldBe(TestData.VoucherDetailLineAmount);
+            recipientMobile.ShouldNotBeNullOrEmpty();
+            recipientMobile.ShouldBe(TestData.VoucherRecipientMobile);
+        }
+
+        [Theory]
+        [InlineData("1,2,3,4")]
+        [InlineData("D,1,2")]
+        [InlineData("D,1,2,3,4")]
+        public void VoucherFileFormatHandler_ParseFileLine_InvalidLineData_ErrorIsThrown(String lineData)
+        {
+            VoucherFileFormatHandler voucherFileFormatHandler = new VoucherFileFormatHandler();
+
+            Should.Throw<InvalidDataException>(() =>
+                                               {
+                                                   voucherFileFormatHandler.ParseFileLine(lineData);
+                                               });
+        }
+    }
 }

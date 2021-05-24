@@ -54,20 +54,6 @@
         public String FailedDirectory { get; init; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance has header row.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance has header row; otherwise, <c>false</c>.
-        /// </value>
-        public Boolean HasHeaderRow { get; init; }
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance has trailer row.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if this instance has trailer row; otherwise, <c>false</c>.
-        /// </value>
-        public Boolean HasTrailerRow { get; init; }
-        /// <summary>
         /// Gets or sets the file format handler.
         /// </summary>
         /// <value>
@@ -98,9 +84,8 @@
         /// <param name="listeningDirectory">The listening directory.</param>
         /// <param name="requestType">Type of the request.</param>
         /// <param name="operatorName">Name of the operator.</param>
-        /// <param name="hasHeaderRow">if set to <c>true</c> [has header row].</param>
-        /// <param name="hasTrailerRow">if set to <c>true</c> [has trailer row].</param>
-        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator, Boolean hasHeaderRow = false, Boolean hasTrailerRow = false)
+        /// <param name="lineTerminator">The line terminator.</param>
+        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator)
         {
             this.FileProfileId = fileProfileId;
             this.Name = name;
@@ -109,8 +94,6 @@
             this.FailedDirectory = $"{listeningDirectory}/failed";
             this.RequestType = requestType;
             this.OperatorName = operatorName;
-            this.HasHeaderRow = hasHeaderRow;
-            this.HasTrailerRow = hasTrailerRow;
             this.LineTerminator = lineTerminator;
         }
     }

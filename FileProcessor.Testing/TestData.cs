@@ -54,6 +54,8 @@ namespace FileProcessor.Testing
 
         public static String SafaricomDetailLineAmount = "100";
 
+        public static String VoucherDetailLineAmount = "10";
+
         public static String SafaricomDetailLineCustomerAccountNumber = "07777771234";
 
         public static FileAddedToImportLogEvent FileAddedToImportLogEvent =>
@@ -69,7 +71,11 @@ namespace FileProcessor.Testing
 
         public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
 
-        public static String SafaricomDetailLine = $"D,{TestData.SafaricomDetailLineCustomerAccountNumber},{TestData.SafaricomDetailLineAmount}";
+        public static String SafaricomDetailLine => $"D,{TestData.SafaricomDetailLineCustomerAccountNumber},{TestData.SafaricomDetailLineAmount}";
+
+        public static String VoucherDetailLineWithEmailAddress => $"D,{TestData.VoucherOperatorIdentifier}, {TestData.VoucherRecipientEmail},{TestData.VoucherDetailLineAmount}";
+
+        public static String VoucherDetailLineWithMobileNumber => $"D,{TestData.VoucherOperatorIdentifier},{TestData.VoucherRecipientMobile},{TestData.VoucherDetailLineAmount}";
 
         public static FileProfile FileProfileNull => null;
 
@@ -79,9 +85,7 @@ namespace FileProcessor.Testing
                             TestData.SafaricomListeningDirectory,
                             TestData.SafaricomRequestType,
                             TestData.OperatorIdentifier,
-                            TestData.SafaricomLineTerminator,
-                            TestData.SafaricomHasHeaderRow,
-                            TestData.SafaricomHasTrailerRow);
+                            TestData.SafaricomLineTerminator);
 
         public static List<FileProfile> FileProfiles => new List<FileProfile>
                                                        {
@@ -92,13 +96,10 @@ namespace FileProcessor.Testing
 
         public static String SafaricomListeningDirectory = "/home/txnproc/bulkfiles/safaricom";
 
-        public static String SafaricomRequestType = "ProcessSafaricomFileRequest";
+        public static String SafaricomRequestType = "SafaricomTopupRequest";
 
         public static String SafaricomLineTerminator = "\n";
-        public static Boolean SafaricomHasHeaderRow = true;
-
-        public static Boolean SafaricomHasTrailerRow = true;
-
+        
         public static Decimal AvailableBalance = 1000.00m;
 
         public static String MerchantName = "Test Merchant 1";
@@ -108,6 +109,8 @@ namespace FileProcessor.Testing
         public static String DeviceIdentifier = "testdevice1";
 
         public static String OperatorIdentifier = "Safaricom";
+
+        public static String VoucherOperatorIdentifier = "Healthcare Centre 1";
 
         public static String OperatorIdentifierNotFile = "Other Operator";
 
@@ -145,6 +148,10 @@ namespace FileProcessor.Testing
 
         public static DateTime ProcessingCompletedDateTime = new DateTime(2021, 5, 7);
 
+        public static String VoucherRecipientEmail = "voucherrecipient1@myemail.com";
+
+        public static String VoucherRecipientMobile = "07777777705";
+
         public static List<ContractResponse> GetEmptyMerchantContractsResponse => new List<ContractResponse>();
 
         public static Dictionary<String, String> TransactionMetadata =>
@@ -152,6 +159,14 @@ namespace FileProcessor.Testing
             {
                 {"Amount", "100"},
                 {"CustomerAccountNumber", "123456789"}
+            };
+
+        public static Dictionary<String, String> TransactionMetadataWithOperatorName =>
+            new Dictionary<String, String>
+            {
+                {"Amount", "100"},
+                {"CustomerAccountNumber", "123456789"},
+                {"OperatorName", TestData.OperatorIdentifier}
             };
 
         public static FileImportLogAggregate GetEmptyFileImportLogAggregate()
@@ -377,5 +392,22 @@ namespace FileProcessor.Testing
             EstateId = TestData.EstateId,
             MerchantId = TestData.MerchantId
         };
+
+        public static FileProfile FileProfileVoucher =>
+            new FileProfile(TestData.VoucherFileProfileId,
+                            TestData.VoucherProfileName,
+                            TestData.VoucherListeningDirectory,
+                            TestData.VoucherRequestType,
+                            TestData.VoucherOperatorIdentifier,
+                            TestData.VoucherLineTerminator);
+
+        public static Guid VoucherFileProfileId = Guid.Parse("079F1FF5-F51E-4BE0-AF4F-2D4862E6D34F");
+        public static String VoucherProfileName = "Safaricom Profile";
+
+        public static String VoucherListeningDirectory = "/home/txnproc/bulkfiles/voucher";
+
+        public static String VoucherRequestType = "VoucherRequest";
+
+        public static String VoucherLineTerminator = "\n";
     }
 }
