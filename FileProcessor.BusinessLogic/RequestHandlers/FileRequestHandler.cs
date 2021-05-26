@@ -408,11 +408,20 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 throw new NotFoundException($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
             }
 
-            ContractResponse? contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
+            ContractResponse? contract = null;
+            if (fileProfile.OperatorName == "Voucher")
+            {
+                contract = contracts.SingleOrDefault(c => c.Description.Contains(operatorName));
+            }
+            else
+            {
+                contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
+            }
+            
 
             if (contract == null)
             {
-                throw new NotFoundException($"No merchant contract for operator Id {fileProfile.OperatorName} found for Merchant Id {merchant.MerchantId}");
+                throw new NotFoundException($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
             }
 
             ContractProduct? product = contract.Products.SingleOrDefault(p => p.Value == null); // TODO: Is this enough or should the name be used and stored in file profile??
@@ -436,7 +445,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 ProductId = product.ProductId,
                 AdditionalTransactionMetadata = transactionMetadata,
             };
-
+            
             SerialisedMessage serialisedRequestMessage = new SerialisedMessage
             {
                 Metadata = new Dictionary<String, String>

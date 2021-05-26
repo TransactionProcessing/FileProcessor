@@ -85,7 +85,7 @@
         /// <param name="requestType">Type of the request.</param>
         /// <param name="operatorName">Name of the operator.</param>
         /// <param name="lineTerminator">The line terminator.</param>
-        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator)
+        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator, String fileFormatHandler)
         {
             this.FileProfileId = fileProfileId;
             this.Name = name;
@@ -95,6 +95,7 @@
             this.RequestType = requestType;
             this.OperatorName = operatorName;
             this.LineTerminator = lineTerminator;
+            this.FileFormatHandler = fileFormatHandler;
         }
     }
 }

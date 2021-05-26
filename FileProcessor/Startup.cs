@@ -124,10 +124,12 @@ namespace FileProcessor
                     RequestType = x.GetValue<String>("RequestType"),
                     ListeningDirectory = x.GetValue<String>("ListeningDirectory"),
                     OperatorName = x.GetValue<String>("OperatorName"),
-                    LineTerminator = x.GetValue<String>("LineTerminator")
+                    LineTerminator = x.GetValue<String>("LineTerminator"),
+                    FileFormatHandler = x.GetValue<String>("FileFormatHandler")
+
             }).Select(f =>
                           {
-                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator);
+                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator, f.FileFormatHandler);
                           });
             services.AddSingleton<List<FileProfile>>(fileProfiles.ToList());
 
@@ -207,6 +209,7 @@ namespace FileProcessor
             services.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
+            services.AddSingleton<IRequestHandler<VoucherRequest, Unit>, FileRequestHandler>();
             services.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();
 
             Dictionary<String, String[]> eventHandlersConfiguration = new Dictionary<String, String[]>();
@@ -233,8 +236,12 @@ namespace FileProcessor
 
             services.AddSingleton<Func<String, IFileFormatHandler>>(container => (fileFormatHandlerName) =>
                                                                                  {
-                                                                                     // TODO: Expand this
-                                                                                     return new SafaricomFileFormatHandler();
+                                                                                     if (fileFormatHandlerName == "SafaricomFileFormatHandler")
+                                                                                        return new SafaricomFileFormatHandler();
+                                                                                     if (fileFormatHandlerName == "VoucherFileFormatHandler")
+                                                                                         return new VoucherFileFormatHandler();
+
+                                                                                     return null;
                                                                                  });
 
         }

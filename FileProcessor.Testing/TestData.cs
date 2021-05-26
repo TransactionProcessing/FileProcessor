@@ -85,7 +85,8 @@ namespace FileProcessor.Testing
                             TestData.SafaricomListeningDirectory,
                             TestData.SafaricomRequestType,
                             TestData.OperatorIdentifier,
-                            TestData.SafaricomLineTerminator);
+                            TestData.SafaricomLineTerminator,
+                            TestData.SafaricomFileFormatHandler);
 
         public static List<FileProfile> FileProfiles => new List<FileProfile>
                                                        {
@@ -399,7 +400,8 @@ namespace FileProcessor.Testing
                             TestData.VoucherListeningDirectory,
                             TestData.VoucherRequestType,
                             TestData.VoucherOperatorIdentifier,
-                            TestData.VoucherLineTerminator);
+                            TestData.VoucherLineTerminator,
+                            TestData.VoucherFileFormatHandler);
 
         public static Guid VoucherFileProfileId = Guid.Parse("079F1FF5-F51E-4BE0-AF4F-2D4862E6D34F");
         public static String VoucherProfileName = "Safaricom Profile";
@@ -409,5 +411,9 @@ namespace FileProcessor.Testing
         public static String VoucherRequestType = "VoucherRequest";
 
         public static String VoucherLineTerminator = "\n";
+
+        public static String SafaricomFileFormatHandler = "SafaricomFileFormatHandler";
+
+        public static String VoucherFileFormatHandler = "VoucherFileFormatHandler";
     }
 }

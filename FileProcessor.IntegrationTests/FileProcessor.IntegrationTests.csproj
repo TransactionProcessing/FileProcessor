@@ -39,12 +39,19 @@
     <Compile Update="Features\ProcessTopupCSV.feature.cs">
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Update="Features\ProcessVoucherCSV.feature.cs">
+      <DesignTime>True</DesignTime>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <SpecFlowFeatureFiles Update="Features\ProcessTopupCSV.feature">
       <Generator>SpecFlowSingleFileGenerator</Generator>
       <LastGenOutput>ProcessTopupCSV.feature.cs</LastGenOutput>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\ProcessVoucherCSV.feature">
+      <Generator>SpecFlowSingleFileGenerator</Generator>
+      <LastGenOutput>ProcessVoucherCSV.feature.cs</LastGenOutput>
     </SpecFlowFeatureFiles>
   </ItemGroup>
 
