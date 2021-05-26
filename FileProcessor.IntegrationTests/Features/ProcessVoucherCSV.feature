@@ -127,12 +127,11 @@ Scenario: Process 2 Voucher Files
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 4 transaction should be returned
 
 @PRTest
-Scenario: Process Duplicate Safaricom Topup File with 1 detail row
+Scenario: Process Duplicate Voucher Topup File with 1 detail row
 	Given I have a voucher topup file with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
 	| H       | 20210508   |                              |         |
 	| D       | Hospital 1 | 07777777775                  | 10      |
-	| D       | Hospital 1 | testrecipient1@recipient.com | 10      |
 	| T       | 1          |                              |         |
 	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
@@ -144,7 +143,6 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	| Column1 | Column2    | Column3                      | Column4 |
 	| H       | 20210508   |                              |         |
 	| D       | Hospital 1 | 07777777775                  | 10      |
-	| D       | Hospital 1 | testrecipient1@recipient.com | 10      |
 	| T       | 1          |                              |         |
 	And I upload this file for processing an error should be returned indicating the file is a duplicate
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
