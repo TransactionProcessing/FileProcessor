@@ -21,6 +21,7 @@ namespace FileProcessor.IntegrationTests.Common
     using EstateReporting.Database;
     using EventStore.Client;
     using Microsoft.Data.SqlClient;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
     using SecurityService.Client;
     using Shared.IntegrationTesting;
     using Shared.Logger;
@@ -327,7 +328,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateManagementApiPort = estateManagementContainer.ToHostExposedEndpoint("5000/tcp").Port;
             this.EstateReportingApiPort = estateReportingContainer.ToHostExposedEndpoint("5005/tcp").Port;
             this.SecurityServicePort = securityServiceContainer.ToHostExposedEndpoint("5001/tcp").Port;
-            this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5008/tcp").Port;
+            this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5009/tcp").Port;
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementApiPort}";
@@ -344,7 +345,7 @@ namespace FileProcessor.IntegrationTests.Common
             await this.LoadEventStoreProjections().ConfigureAwait(false);
         }
 
-        public const Int32 FileProcessorDockerPort = 5008;
+        public const Int32 FileProcessorDockerPort = 5009;
 
         private IContainerService SetupFileProcessorContainer(String containerName, ILogger logger, String imageName,
                                                               INetworkService networkService,
@@ -369,7 +370,17 @@ namespace FileProcessor.IntegrationTests.Common
             environmentVariables.Add($"AppSettings:EstateManagementApi=http://{estateManamgementContainerName}:{DockerHelper.EstateManagementDockerPort}");
             environmentVariables.Add($"AppSettings:ClientId={clientDetails.clientId}");
             environmentVariables.Add($"AppSettings:ClientSecret={clientDetails.clientSecret}");
-            
+
+            var ciEnvVar = Environment.GetEnvironmentVariable("CI");
+            if ((String.IsNullOrEmpty(ciEnvVar) == false) && String.Compare(ciEnvVar, Boolean.TrueString, StringComparison.InvariantCultureIgnoreCase) == 0)
+            {
+                // we are running in CI 
+                environmentVariables.Add($"AppSettings:TemporaryFileLocation={"/home/runner/bulkfiles/temporary"}");
+                
+                environmentVariables.Add($"AppSettings:FileProfiles[0]:ListeningDirectory={"/home/runner/bulkfiles/safaricom"}");
+                environmentVariables.Add($"AppSettings:FileProfiles[1]:ListeningDirectory={"/home/runner/bulkfiles/voucher"}");
+            }
+
             if (additionalEnvironmentVariables != null)
             {
                 environmentVariables.AddRange(additionalEnvironmentVariables);
