@@ -345,7 +345,7 @@ namespace FileProcessor.IntegrationTests.Common
             await this.LoadEventStoreProjections().ConfigureAwait(false);
         }
 
-        public const Int32 FileProcessorDockerPort = 5008;
+        public const Int32 FileProcessorDockerPort = 5009;
 
         private IContainerService SetupFileProcessorContainer(String containerName, ILogger logger, String imageName,
                                                               INetworkService networkService,
