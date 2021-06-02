@@ -376,10 +376,9 @@ namespace FileProcessor.IntegrationTests.Common
             {
                 // we are running in CI 
                 environmentVariables.Add($"AppSettings:TemporaryFileLocation={"/home/runner/bulkfiles/temporary"}");
-
-                String fileProfileConfig =
-                    "[\r\n      {\r\n        \"Id\": \"B2A59ABF-293D-4A6B-B81B-7007503C3476\",\r\n        \"Name\": \"Safaricom Topup\",\r\n        \"ListeningDirectory\": \"/home/runner/bulkfiles/safaricom\",\r\n        \"RequestType\": \"SafaricomTopupRequest\",\r\n        \"OperatorName\": \"Safaricom\",\r\n        \"LineTerminator\": \"\\n\",\r\n        \"FileFormatHandler\": \"SafaricomFileFormatHandler\"\r\n      },\r\n      {\r\n        \"Id\": \"8806EDBC-3ED6-406B-9E5F-A9078356BE99\",\r\n        \"Name\": \"Voucher Issue\",\r\n        \"ListeningDirectory\": \"/home/runner/bulkfiles/voucher\",\r\n        \"RequestType\": \"VoucherRequest\",\r\n        \"OperatorName\": \"Voucher\",\r\n        \"LineTerminator\": \"\\n\",\r\n        \"FileFormatHandler\": \"VoucherFileFormatHandler\"\r\n      }\r\n    ]";
-                environmentVariables.Add($"AppSettings:FileProfiles={fileProfileConfig}");
+                
+                environmentVariables.Add($"AppSettings:FileProfiles[0]:ListeningDirectory={"/home/runner/bulkfiles/safaricom"}");
+                environmentVariables.Add($"AppSettings:FileProfiles[1]:ListeningDirectory={"/home/runner/bulkfiles/voucher"}");
             }
 
             if (additionalEnvironmentVariables != null)
