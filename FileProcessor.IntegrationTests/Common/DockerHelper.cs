@@ -328,7 +328,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateManagementApiPort = estateManagementContainer.ToHostExposedEndpoint("5000/tcp").Port;
             this.EstateReportingApiPort = estateReportingContainer.ToHostExposedEndpoint("5005/tcp").Port;
             this.SecurityServicePort = securityServiceContainer.ToHostExposedEndpoint("5001/tcp").Port;
-            this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5008/tcp").Port;
+            this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5009/tcp").Port;
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementApiPort}";
