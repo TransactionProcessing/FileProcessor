@@ -206,6 +206,16 @@ namespace FileProcessor.Testing
             return fileAggregate;
         }
 
+        public static FileAggregate GetFileAggregateWithBlankLine()
+        {
+            FileAggregate fileAggregate = new FileAggregate();
+
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(String.Empty);
+
+            return fileAggregate;
+        }
+
         public static FileAggregate GetFileAggregateWithLinesAlreadyProcessed()
         {
             FileAggregate fileAggregate = new FileAggregate();

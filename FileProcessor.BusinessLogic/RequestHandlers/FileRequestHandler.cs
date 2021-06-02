@@ -369,19 +369,19 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             }
 
             // Determine if we need to actually process this file line
-            if (this.FileLineCanBeIgnored(request.FileLine, fileProfile.FileFormatHandler))
+            if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
             { 
                 // Write something to aggregate to say line was explicity ignored
-                fileAggregate.RecordFileLineAsIgnored(request.LineNumber);
+                fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
                 return new Unit();
             }
 
             // need to now parse the line (based on the file format), this builds the metadata
-            Dictionary<String, String> transactionMetadata = this.ParseFileLine(request.FileLine, fileProfile.FileFormatHandler);
+            Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
 
             // Add the file data to the request metadata
             transactionMetadata.Add("FileId", request.FileId.ToString());
-            transactionMetadata.Add("FileLineNumber", request.LineNumber.ToString());
+            transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
 
             String operatorName = fileProfile.OperatorName;
             if (transactionMetadata.ContainsKey("OperatorName"))
@@ -493,6 +493,10 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         private Boolean FileLineCanBeIgnored(String domainEventFileLine,
                                                  String fileProfileFileFormatHandler)
         {
+            // Ignore empty files
+            if (String.IsNullOrEmpty(domainEventFileLine))
+                return true;
+
             IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfileFileFormatHandler);
 
             return fileFormatHandler.FileLineCanBeIgnored(domainEventFileLine);
