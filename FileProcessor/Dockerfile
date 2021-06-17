@@ -13,8 +13,8 @@ WORKDIR "/src/FileProcessor"
 RUN dotnet build "FileProcessor.csproj" -c Release -o /app/build
 
 # Sort out certificate stuff here
-RUN openssl x509 -inform DER -in /src/EstateManagement/aspnetapp-root-cert.cer -out /src/EstateManagement/aspnetapp-root-cert.crt
-RUN cp /src/EstateManagement/aspnetapp-root-cert.crt /usr/local/share/ca-certificates/
+RUN openssl x509 -inform DER -in /src/FileProcessor/aspnetapp-root-cert.cer -out /src/FileProcessor/aspnetapp-root-cert.crt
+RUN cp /src/FileProcessor/aspnetapp-root-cert.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
 FROM build AS publish
