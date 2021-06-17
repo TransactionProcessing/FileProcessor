@@ -374,8 +374,8 @@ namespace FileProcessor.IntegrationTests.Common
             logger.LogInformation("About to Start File Processor Container");
             List<String> environmentVariables = new List<String>();
             environmentVariables.Add($"EventStoreSettings:ConnectionString={eventStoreAddress}:{DockerHelper.EventStoreHttpDockerPort}");
-            environmentVariables.Add($"AppSettings:SecurityService=httpa://{securityServiceContainerName}:{securityServicePort}");
-            environmentVariables.Add($"SecurityConfiguration:Authority=httpa://{securityServiceContainerName}:{securityServicePort}");
+            environmentVariables.Add($"AppSettings:SecurityService=https://{securityServiceContainerName}:{securityServicePort}");
+            environmentVariables.Add($"SecurityConfiguration:Authority=https://{securityServiceContainerName}:{securityServicePort}");
             environmentVariables.Add($"urls=http://*:{DockerHelper.FileProcessorDockerPort}");
             environmentVariables.Add($"AppSettings:TransactionProcessorApi=http://{transactionProcessorContainerName}:{DockerHelper.TransactionProcessorDockerPort}");
             environmentVariables.Add($"AppSettings:EstateManagementApi=http://{estateManamgementContainerName}:{DockerHelper.EstateManagementDockerPort}");
