@@ -332,11 +332,22 @@ namespace FileProcessor.IntegrationTests.Common
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementApiPort}";
-            String SecurityServiceBaseAddressResolver(String api) => $"http://127.0.0.1:{this.SecurityServicePort}";
+            String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String EstateReportingBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateReportingApiPort}";
-            
-            HttpClient httpClient = new HttpClient();
+
+            HttpClientHandler clientHandler = new HttpClientHandler
+                                              {
+                                                  ServerCertificateCustomValidationCallback = (message,
+                                                                                               certificate2,
+                                                                                               arg3,
+                                                                                               arg4) =>
+                                                                                              {
+                                                                                                  return true;
+                                                                                              }
+
+                                              };
+            HttpClient httpClient = new HttpClient(clientHandler);
             this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
@@ -363,8 +374,8 @@ namespace FileProcessor.IntegrationTests.Common
             logger.LogInformation("About to Start File Processor Container");
             List<String> environmentVariables = new List<String>();
             environmentVariables.Add($"EventStoreSettings:ConnectionString={eventStoreAddress}:{DockerHelper.EventStoreHttpDockerPort}");
-            environmentVariables.Add($"AppSettings:SecurityService=http://{securityServiceContainerName}:{securityServicePort}");
-            environmentVariables.Add($"SecurityConfiguration:Authority=http://{securityServiceContainerName}:{securityServicePort}");
+            environmentVariables.Add($"AppSettings:SecurityService=httpa://{securityServiceContainerName}:{securityServicePort}");
+            environmentVariables.Add($"SecurityConfiguration:Authority=httpa://{securityServiceContainerName}:{securityServicePort}");
             environmentVariables.Add($"urls=http://*:{DockerHelper.FileProcessorDockerPort}");
             environmentVariables.Add($"AppSettings:TransactionProcessorApi=http://{transactionProcessorContainerName}:{DockerHelper.TransactionProcessorDockerPort}");
             environmentVariables.Add($"AppSettings:EstateManagementApi=http://{estateManamgementContainerName}:{DockerHelper.EstateManagementDockerPort}");
