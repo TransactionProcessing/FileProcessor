@@ -127,6 +127,7 @@ namespace FileProcessor.IntegrationTests.Features
                           {
                               Content = formData
                           };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
 
             var response = await client.SendAsync(request);
 

@@ -32,10 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Steps\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
   </ItemGroup>
 
@@ -57,6 +53,10 @@
       <Generator>SpecFlowSingleFileGenerator</Generator>
       <LastGenOutput>ProcessVoucherCSV.feature.cs</LastGenOutput>
     </SpecFlowFeatureFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Steps\" />
   </ItemGroup>
 
 </Project>
