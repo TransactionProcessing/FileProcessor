@@ -1,15 +1,7 @@
 ﻿namespace FIleProcessor.Models
 {
     using System;
-    using System.Collections.Generic;
 
-    public class FileImportLog
-    {
-        public Guid EstateId { get; set; }
-        public DateTime FileImportLogDateTime { get; set; }
-        public Guid FileImportLogId { get; set; }
-        public List<ImportLogFile> Files { get; set; }
-    }
     public class ImportLogFile
     {
         /// <summary>

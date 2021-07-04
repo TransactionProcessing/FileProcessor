@@ -6,6 +6,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="EstateManagement.Client" Version="1.0.10.2" />
+		<PackageReference Include="EstateReporting.Database" Version="1.0.14.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.7" />
 		<PackageReference Include="SecurityService.Client" Version="1.0.6.2" />
 		<PackageReference Include="Shared" Version="1.0.5" />
 		<PackageReference Include="Shared.DomainDrivenDesign" Version="1.0.5" />
@@ -16,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
 	  <ProjectReference Include="..\FileProcessor.FileAggregate\FileProcessor.FileAggregate.csproj" />
 	  <ProjectReference Include="..\FileProcessor.FileImportLogAggregate\FileProcessor.FileImportLogAggregate.csproj" />
 	</ItemGroup>
