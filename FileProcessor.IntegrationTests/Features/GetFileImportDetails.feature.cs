@@ -362,12 +362,14 @@ namespace FileProcessor.IntegrationTests.Features
         [Xunit.SkippableFactAttribute(DisplayName="Get File Import Log Details")]
         [Xunit.TraitAttribute("FeatureTitle", "GetFileImportDetails")]
         [Xunit.TraitAttribute("Description", "Get File Import Log Details")]
+        [Xunit.TraitAttribute("Category", "PRTest")]
         public virtual void GetFileImportLogDetails()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "PRTest"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get File Import Log Details", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 72
+#line 73
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -406,7 +408,7 @@ this.FeatureBackground();
                             "T",
                             "1",
                             ""});
-#line 73
+#line 74
  testRunner.Given("I have a safaricom topup file with the following contents", ((string)(null)), table14, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
@@ -419,7 +421,7 @@ this.FeatureBackground();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 78
+#line 79
  testRunner.And("I upload this file for processing", ((string)(null)), table15, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
@@ -438,7 +440,7 @@ this.FeatureBackground();
                             "T",
                             "1",
                             ""});
-#line 82
+#line 83
  testRunner.Given("I have a safaricom topup file with the following contents", ((string)(null)), table16, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
@@ -451,7 +453,7 @@ this.FeatureBackground();
                             "Test Merchant 2",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 87
+#line 88
  testRunner.And("I upload this file for processing", ((string)(null)), table17, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
@@ -460,7 +462,7 @@ this.FeatureBackground();
                 table18.AddRow(new string[] {
                             "Today",
                             "2"});
-#line 91
+#line 92
  testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following data is returned", ((string)(null)), table18, "When ");
 #line hidden
             }
