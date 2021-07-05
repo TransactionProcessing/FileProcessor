@@ -116,6 +116,7 @@ namespace FileProcessor.IntegrationTests.Features
                           {
                               Content = formData
                           };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
 
             var response = await client.SendAsync(request);
 
@@ -130,7 +131,7 @@ namespace FileProcessor.IntegrationTests.Features
             var estate = this.TestingContext.GetEstateDetails(estateName);
             Guid estateId = estate.EstateId;
             var merchantId = estate.GetMerchantId(merchantName);
-            String accessToken = estate.AccessToken;
+            String accessToken = this.TestingContext.AccessToken;
 
             await Retry.For(async () =>
                             {

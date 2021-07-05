@@ -5,6 +5,7 @@ namespace FileProcessor.Testing
     using System.Collections.Generic;
     using BusinessLogic.Managers;
     using EstateManagement.DataTransferObjects.Responses;
+    using EstateReporting.Database.Entities;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
     using FileAggregate;
@@ -13,6 +14,8 @@ namespace FileProcessor.Testing
     using Newtonsoft.Json;
     using SecurityService.DataTransferObjects.Responses;
     using TransactionProcessor.DataTransferObjects;
+    using ContractProduct = EstateManagement.DataTransferObjects.Responses.ContractProduct;
+    using FileImportLog = EstateReporting.Database.Entities.FileImportLog;
 
     public class TestData
     {
@@ -142,6 +145,8 @@ namespace FileProcessor.Testing
         public static String ContractProductWithNullValueDisplayText = "Custom";
 
         public static Guid FileImportLogId = Guid.Parse("5F1149F8-0313-45E4-BE3A-3D7B07EEB414");
+        public static Guid FileImportLogId1 = Guid.Parse("7EF0D557-2148-4DED-83F5-2521E8422391");
+        public static Guid FileImportLogId2 = Guid.Parse("13931CB7-241A-472A-A8E9-213565BF2A2A");
 
         public static DateTime ImportLogDateTime = new DateTime(2021,5,7);
 
@@ -425,5 +430,88 @@ namespace FileProcessor.Testing
         public static String SafaricomFileFormatHandler = "SafaricomFileFormatHandler";
 
         public static String VoucherFileFormatHandler = "VoucherFileFormatHandler";
+
+        public static DateTime ImportLogStartDate = new DateTime(2021,7,1);
+        public static DateTime ImportLogEndDate = new DateTime(2021,7,2);
+
+        public static List<FileImportLog> FileImportLogs =>
+            new List<FileImportLog>
+            {
+                TestData.FileImportLog1,
+                TestData.FileImportLog2
+            };
+
+       
+        public static FileImportLog FileImportLog1 => new FileImportLog
+                                                      {
+                                                          FileImportLogId = TestData.FileImportLogId1,
+                                                          ImportLogDateTime = TestData.ImportLogStartDate,
+                                                          EstateId = TestData.EstateId
+                                                      };
+
+        public static List<FileImportLogFile> FileImportLog1Files => new List<FileImportLogFile>
+                                                                     {
+                                                           new FileImportLogFile
+                                                           {
+                                                               FileImportLogId = TestData.FileImportLogId1,
+                                                               MerchantId = TestData.MerchantId,
+                                                               EstateId = TestData.EstateId,
+                                                               FileId = Guid.NewGuid(),
+                                                               FilePath = "/home/txnproc/file1.csv",
+                                                               FileProfileId = TestData.FileProfileId,
+                                                               OriginalFileName = "Testfile1.csv",
+                                                               UserId = TestData.UserId,
+                                                               FileUploadedDateTime = TestData.FileUploadedDateTime
+                                                           },
+                                                           new FileImportLogFile
+                                                           {
+                                                               FileImportLogId = TestData.FileImportLogId1,
+                                                               MerchantId = TestData.MerchantId,
+                                                               EstateId = TestData.EstateId,
+                                                               FileId = Guid.NewGuid(),
+                                                               FilePath = "/home/txnproc/file2.csv",
+                                                               FileProfileId = TestData.FileProfileId,
+                                                               OriginalFileName = "Testfile2.csv",
+                                                               UserId = TestData.UserId,
+                                                               FileUploadedDateTime = TestData.FileUploadedDateTime
+                                                           },
+
+                                                                     };
+
+        public static FileImportLog FileImportLog2 => new FileImportLog
+                                                      {
+                                                          FileImportLogId = TestData.FileImportLogId2,
+                                                          ImportLogDateTime = TestData.ImportLogEndDate,
+                                                          EstateId = TestData.EstateId
+                                                      };
+
+        public static List<FileImportLogFile> FileImportLog2Files => new List<FileImportLogFile>
+                                                                     {
+                                                           new FileImportLogFile
+                                                           {
+                                                               FileImportLogId = TestData.FileImportLogId2,
+                                                               MerchantId = TestData.MerchantId,
+                                                               EstateId = TestData.EstateId,
+                                                               FileId = Guid.NewGuid(),
+                                                               FilePath = "/home/txnproc/file3.csv",
+                                                               FileProfileId = TestData.FileProfileId,
+                                                               OriginalFileName = "Testfile3.csv",
+                                                               UserId = TestData.UserId,
+                                                               FileUploadedDateTime = TestData.FileUploadedDateTime
+                                                           },
+                                                           new FileImportLogFile
+                                                           {
+                                                               FileImportLogId = TestData.FileImportLogId2,
+                                                               MerchantId = TestData.MerchantId,
+                                                               EstateId = TestData.EstateId,
+                                                               FileId = Guid.NewGuid(),
+                                                               FilePath = "/home/txnproc/file4.csv",
+                                                               FileProfileId = TestData.FileProfileId,
+                                                               OriginalFileName = "Testfile4.csv",
+                                                               UserId = TestData.UserId,
+                                                               FileUploadedDateTime = TestData.FileUploadedDateTime
+                                                           },
+
+                                                                     };
     }
 }

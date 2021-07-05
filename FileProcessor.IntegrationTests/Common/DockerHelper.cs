@@ -43,6 +43,8 @@ namespace FileProcessor.IntegrationTests.Common
         /// </summary>
         public ISecurityServiceClient SecurityServiceClient;
 
+        public HttpClient FileProcessorClient;
+
         /// <summary>
         /// The test identifier
         /// </summary>
@@ -303,13 +305,20 @@ namespace FileProcessor.IntegrationTests.Common
             IContainerService fileProcessorContainer = SetupFileProcessorContainer(this.FileProcessorContainerName,
                                                                                    this.Logger,
                                                                                    "fileprocessor",
-                                                                                   testNetwork,
+                                                                                   new List<INetworkService>
+                                                                                   {
+                                                                                       testNetwork,
+                                                                                       Setup.DatabaseServerNetwork
+                                                                                   },
                                                                                    traceFolder,
                                                                                    dockerCredentials,
                                                                                    this.SecurityServiceContainerName,
                                                                                    this.EstateManagementContainerName,
                                                                                    this.TransactionProcessorContainerName,
                                                                                    eventStoreAddress,
+                                                                                   (Setup.SqlServerContainerName,
+                                                                                       "sa",
+                                                                                       "thisisalongpassword123!"),
                                                                                    ("serviceClient", "Secret1"));
 
             this.Containers.AddRange(new List<IContainerService>
@@ -352,6 +361,8 @@ namespace FileProcessor.IntegrationTests.Common
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             //this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
+            this.FileProcessorClient = new HttpClient();
+            this.FileProcessorClient.BaseAddress = new Uri(FileProcessorBaseAddressResolver(null));
 
             await this.LoadEventStoreProjections().ConfigureAwait(false);
         }
@@ -359,13 +370,15 @@ namespace FileProcessor.IntegrationTests.Common
         public const Int32 FileProcessorDockerPort = 5009;
 
         private IContainerService SetupFileProcessorContainer(String containerName, ILogger logger, String imageName,
-                                                              INetworkService networkService,
+                                                              List<INetworkService> networkService,
                                                               String hostFolder,
                                                               (String URL, String UserName, String Password)? dockerCredentials,
                                                               String securityServiceContainerName,
                                                               String estateManamgementContainerName,
                                                               String transactionProcessorContainerName,
                                                               String eventStoreAddress,
+                                                              (String sqlServerContainerName, String sqlServerUserName, String sqlServerPassword)
+                                                                  sqlServerDetails,
                                                               (String clientId, String clientSecret) clientDetails,
                                                               Boolean forceLatestImage = false,
                                                               Int32 securityServicePort = DockerHelper.SecurityServiceDockerPort,
@@ -381,7 +394,8 @@ namespace FileProcessor.IntegrationTests.Common
             environmentVariables.Add($"AppSettings:EstateManagementApi=http://{estateManamgementContainerName}:{DockerHelper.EstateManagementDockerPort}");
             environmentVariables.Add($"AppSettings:ClientId={clientDetails.clientId}");
             environmentVariables.Add($"AppSettings:ClientSecret={clientDetails.clientSecret}");
-
+            environmentVariables
+                .Add($"ConnectionStrings:EstateReportingReadModel=\"server={sqlServerDetails.sqlServerContainerName};user id={sqlServerDetails.sqlServerUserName};password={sqlServerDetails.sqlServerPassword};database=EstateReportingReadModel\"");
             var ciEnvVar = Environment.GetEnvironmentVariable("CI");
             if ((String.IsNullOrEmpty(ciEnvVar) == false) && String.Compare(ciEnvVar, Boolean.TrueString, StringComparison.InvariantCultureIgnoreCase) == 0)
             {
@@ -400,10 +414,7 @@ namespace FileProcessor.IntegrationTests.Common
             ContainerBuilder fileProcessorContainer = new Builder().UseContainer().WithName(containerName).WithEnvironment(environmentVariables.ToArray())
                                                                              .UseImage(imageName, forceLatestImage)
                                                                              .ExposePort(DockerHelper.FileProcessorDockerPort)
-                                                                             .UseNetwork(new List<INetworkService>
-                                                                                         {
-                                                                                             networkService
-                                                                                         }.ToArray());
+                                                                             .UseNetwork(networkService.ToArray());
 
             if (String.IsNullOrEmpty(hostFolder) == false)
             {
@@ -437,6 +448,9 @@ namespace FileProcessor.IntegrationTests.Common
             await client.CreateAsync("$ce-MerchantAggregate", "Reporting", settings);
             await client.CreateAsync("$ce-ContractAggregate", "Reporting", settings);
             await client.CreateAsync("$ce-TransactionAggregate", "Reporting", settings);
+            await client.CreateAsync("$ce-FileImportLogAggregate", "Reporting", settings);
+            await client.CreateAsync("$ce-FileAggregate", "Reporting", settings);
+
             await client.CreateAsync("$et-TransactionHasBeenCompletedEvent", "TransactionProcessor", settings);
             await client.CreateAsync("$ce-FileImportLogAggregate", "FileProcessor", settings);
             await client.CreateAsync("$ce-FileAggregate", "FileProcessor", settings);

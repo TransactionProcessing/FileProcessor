@@ -10,6 +10,7 @@
     using BusinessLogic.Managers;
     using DataTransferObjects;
     using MediatR;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Shared.General;
@@ -21,7 +22,7 @@
     [ExcludeFromCodeCoverage]
     [Route(FileController.ControllerRoute)]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class FileController : ControllerBase
     {
         #region Fields

@@ -20,7 +20,9 @@ namespace FileProcessor
     using BusinessLogic.Managers;
     using BusinessLogic.RequestHandlers;
     using BusinessLogic.Requests;
+    using Common;
     using EstateManagement.Client;
+    using EstateReporting.Database;
     using EventStore.Client;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
@@ -36,6 +38,7 @@ namespace FileProcessor
     using NLog.Extensions.Logging;
     using SecurityService.Client;
     using Shared.DomainDrivenDesign.EventSourcing;
+    using Shared.EntityFramework;
     using Shared.EntityFramework.ConnectionStringConfiguration;
     using Shared.EventStore.Aggregate;
     using Shared.EventStore.EventHandling;
@@ -134,8 +137,12 @@ namespace FileProcessor
             services.AddSingleton<List<FileProfile>>(fileProfiles.ToList());
 
 
-            services.AddTransient<IMediator, Mediator>();
+            services.AddSingleton<IMediator, Mediator>();
             services.AddSingleton<IFileProcessorManager, FileProcessorManager>();
+            services.AddSingleton<BusinessLogic.Common.IModelFactory, BusinessLogic.Common.ModelFactory>();
+            services.AddSingleton<Common.IModelFactory, Common.ModelFactory>();
+            services.AddSingleton<IDbContextFactory<EstateReportingContext>, DbContextFactory<EstateReportingContext>>();
+            services.AddSingleton<Func<String, EstateReportingContext>>(cont => (connectionString) => { return new EstateReportingContext(connectionString); });
 
             Boolean useConnectionStringConfig = Boolean.Parse(ConfigurationReader.GetValue("AppSettings", "UseConnectionStringConfig"));
 
@@ -159,7 +166,7 @@ namespace FileProcessor
             }
 
             services.AddSingleton<IFileSystem, FileSystem>();
-            services.AddTransient<IEventStoreContext, EventStoreContext>();
+            services.AddSingleton<IEventStoreContext, EventStoreContext>();
 
             services.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
             services.AddSingleton<IEstateClient, EstateClient>();
