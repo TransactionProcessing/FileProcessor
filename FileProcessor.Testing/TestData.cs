@@ -16,6 +16,7 @@ namespace FileProcessor.Testing
     using TransactionProcessor.DataTransferObjects;
     using ContractProduct = EstateManagement.DataTransferObjects.Responses.ContractProduct;
     using FileImportLog = EstateReporting.Database.Entities.FileImportLog;
+    using FileLine = EstateReporting.Database.Entities.FileLine;
 
     public class TestData
     {
@@ -441,7 +442,86 @@ namespace FileProcessor.Testing
                 TestData.FileImportLog2
             };
 
-       
+        public static List<FIleProcessor.Models.FileImportLog> FileImportLogModels =>
+            new List<FIleProcessor.Models.FileImportLog>
+            {
+                TestData.FileImportLogModel1,
+                TestData.FileImportLogModel2
+            };
+
+        public static FIleProcessor.Models.FileImportLog FileImportLogModel1 =>
+            new FIleProcessor.Models.FileImportLog
+            {
+                Files = TestData.FileImportLogModel1Files,
+                FileImportLogId = TestData.FileImportLogId1,
+                EstateId = TestData.EstateId,
+                FileImportLogDateTime = TestData.ImportLogStartDate
+            };
+
+        public static List<ImportLogFile> FileImportLogModel1Files =>
+            new List<ImportLogFile>()
+            {
+                new ImportLogFile
+                {
+                    MerchantId = TestData.MerchantId,
+                    EstateId = TestData.EstateId,
+                    FileId = Guid.NewGuid(),
+                    FilePath = "/home/txnproc/file1.csv",
+                    FileProfileId = TestData.FileProfileId,
+                    OriginalFileName = "Testfile1.csv",
+                    UserId = TestData.UserId,
+                    UploadedDateTime = TestData.FileUploadedDateTime
+                },
+                new ImportLogFile
+                {
+                    MerchantId = TestData.MerchantId,
+                    EstateId = TestData.EstateId,
+                    FileId = Guid.NewGuid(),
+                    FilePath = "/home/txnproc/file2.csv",
+                    FileProfileId = TestData.FileProfileId,
+                    OriginalFileName = "Testfile2.csv",
+                    UserId = TestData.UserId,
+                    UploadedDateTime = TestData.FileUploadedDateTime
+                }
+            };
+
+        public static FIleProcessor.Models.FileImportLog FileImportLogModel2 =>
+            new FIleProcessor.Models.FileImportLog
+            {
+                Files = FileImportLogModel2Files,
+                FileImportLogId = TestData.FileImportLogId2,
+                EstateId = TestData.EstateId,
+                FileImportLogDateTime = TestData.ImportLogEndDate
+            };
+
+        public static List<ImportLogFile> FileImportLogModel2Files =>
+            new List<ImportLogFile>()
+            {
+                new ImportLogFile
+                {
+                    MerchantId = TestData.MerchantId,
+                    EstateId = TestData.EstateId,
+                    FileId = Guid.NewGuid(),
+                    FilePath = "/home/txnproc/file3.csv",
+                    FileProfileId = TestData.FileProfileId,
+                    OriginalFileName = "Testfile3.csv",
+                    UserId = TestData.UserId,
+                    UploadedDateTime = TestData.FileUploadedDateTime
+                },
+                new ImportLogFile
+                {
+                    MerchantId = TestData.MerchantId,
+                    EstateId = TestData.EstateId,
+                    FileId = Guid.NewGuid(),
+                    FilePath = "/home/txnproc/file2.csv",
+                    FileProfileId = TestData.FileProfileId,
+                    OriginalFileName = "Testfile2.csv",
+                    UserId = TestData.UserId,
+                    UploadedDateTime = TestData.FileUploadedDateTime
+                }
+            };
+
+
         public static FileImportLog FileImportLog1 => new FileImportLog
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId1,
@@ -477,7 +557,7 @@ namespace FileProcessor.Testing
                                                            },
 
                                                                      };
-
+        
         public static FileImportLog FileImportLog2 => new FileImportLog
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId2,

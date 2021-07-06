@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace FileProcessor
 {
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.IO.Abstractions;
     using System.Net.Http;
@@ -52,6 +53,7 @@ namespace FileProcessor
     using TransactionProcessor.Client;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
 
+    [ExcludeFromCodeCoverage]
     public class Startup
     {
         /// <summary>

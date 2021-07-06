@@ -20,6 +20,15 @@
         List<FileImportLogModel> ConvertFrom(List<FileImportLog> importLogs,
                                              List<FileImportLogFile> importLogFilesList);
 
+        /// <summary>
+        /// Converts from.
+        /// </summary>
+        /// <param name="importLog">The import log.</param>
+        /// <param name="importLogFilesList">The import log files list.</param>
+        /// <returns></returns>
+        FileImportLogModel ConvertFrom(FileImportLog importLog,
+                                       List<FileImportLogFile> importLogFilesList);
+
         #endregion
     }
 }

@@ -13,6 +13,7 @@
     using FIleProcessor.Models;
     using Microsoft.EntityFrameworkCore;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileLine = EstateReporting.Database.Entities.FileLine;
 
     /// <summary>
     /// 
@@ -105,6 +106,36 @@
                 importLogFileQuery = importLogFileQuery.Where(i => i.MerchantId == merchantId.Value).ToList();
             }
             
+            return this.ModelFactory.ConvertFrom(importLogQuery, importLogFileQuery);
+        }
+
+        /// <summary>
+        /// Gets the file import log files.
+        /// </summary>
+        /// <param name="fileImportLogId">The file import log identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="merchantId">The merchant identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<FileImportLog> GetFileImportLog(Guid fileImportLogId, 
+                                                                     Guid estateId, 
+                                                                     Guid? merchantId,
+                                                                     CancellationToken cancellationToken)
+        {
+            EstateReportingContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+
+            EstateReporting.Database.Entities.FileImportLog importLogQuery =
+                await context.FileImportLogs.AsAsyncEnumerable().SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
+
+            List<FileImportLogFile> importLogFileQuery = await context.FileImportLogFiles.AsAsyncEnumerable()
+                                                                      .Where(fi => fi.FileImportLogId == fileImportLogId)
+                                                                      .ToListAsync(cancellationToken);
+
+            if (merchantId.HasValue)
+            {
+                importLogFileQuery = importLogFileQuery.Where(i => i.MerchantId == merchantId.Value).ToList();
+            }
+
             return this.ModelFactory.ConvertFrom(importLogQuery, importLogFileQuery);
         }
 

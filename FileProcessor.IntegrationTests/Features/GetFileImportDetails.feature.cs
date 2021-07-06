@@ -21,7 +21,6 @@ namespace FileProcessor.IntegrationTests.Features
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [Xunit.TraitAttribute("Category", "base")]
     [Xunit.TraitAttribute("Category", "shared")]
-    [Xunit.TraitAttribute("Category", "processtopupcsv")]
     [Xunit.TraitAttribute("Category", "getfileimportdetails")]
     public partial class GetFileImportDetailsFeature : object, Xunit.IClassFixture<GetFileImportDetailsFeature.FixtureData>, System.IDisposable
     {
@@ -31,7 +30,6 @@ namespace FileProcessor.IntegrationTests.Features
         private string[] _featureTags = new string[] {
                 "base",
                 "shared",
-                "processtopupcsv",
                 "getfileimportdetails"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
@@ -51,7 +49,6 @@ namespace FileProcessor.IntegrationTests.Features
             TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "GetFileImportDetails", null, ProgrammingLanguage.CSharp, new string[] {
                         "base",
                         "shared",
-                        "processtopupcsv",
                         "getfileimportdetails"});
             testRunner.OnFeatureStart(featureInfo);
         }
@@ -409,7 +406,7 @@ this.FeatureBackground();
                             "1",
                             ""});
 #line 74
- testRunner.Given("I have a safaricom topup file with the following contents", ((string)(null)), table14, "Given ");
+ testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table14, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
@@ -441,7 +438,7 @@ this.FeatureBackground();
                             "1",
                             ""});
 #line 83
- testRunner.Given("I have a safaricom topup file with the following contents", ((string)(null)), table16, "Given ");
+ testRunner.Given("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table16, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
@@ -457,13 +454,75 @@ this.FeatureBackground();
  testRunner.And("I upload this file for processing", ((string)(null)), table17, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Column1",
+                            "Column2",
+                            "Column3",
+                            "Column4"});
+                table18.AddRow(new string[] {
+                            "H",
+                            "20210508",
+                            "",
+                            ""});
+                table18.AddRow(new string[] {
+                            "D",
+                            "Hospital 1",
+                            "07777777775",
+                            "10"});
+                table18.AddRow(new string[] {
+                            "D",
+                            "Hospital 1",
+                            "testrecipient1@recipient.com",
+                            "10"});
+                table18.AddRow(new string[] {
+                            "T",
+                            "1",
+                            "",
+                            ""});
+#line 92
+ testRunner.Given("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table18, "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
+                            "EstateName",
+                            "MerchantName",
+                            "FileProfileId",
+                            "UserId"});
+                table19.AddRow(new string[] {
+                            "Test Estate 1",
+                            "Test Merchant 1",
+                            "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
+#line 98
+ testRunner.And("I upload this file for processing", ((string)(null)), table19, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
                             "ImportLogDate",
                             "FileCount"});
-                table18.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "Today",
+                            "3"});
+#line 102
+ testRunner.When("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
+                        "ng data is returned", ((string)(null)), table20, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MerchantName",
+                            "OriginalFileName",
+                            "NumberOfLines"});
+                table21.AddRow(new string[] {
+                            "Test Merchant 1",
+                            "SafarcomTopup1.txt",
+                            "1"});
+                table21.AddRow(new string[] {
+                            "Test Merchant 2",
+                            "SafarcomTopup2.txt",
+                            "1"});
+                table21.AddRow(new string[] {
+                            "Test Merchant 2",
+                            "VoucherIssue1.txt",
                             "2"});
-#line 92
- testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following data is returned", ((string)(null)), table18, "When ");
+#line 106
+ testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
+                        "s returned", ((string)(null)), table21, "When ");
 #line hidden
             }
             this.ScenarioCleanup();

@@ -40,6 +40,17 @@
         /// <returns></returns>
         Task<List<FileImportLog>> GetFileImportLogs(Guid estateId, DateTime startDateTime, DateTime endDateTime, Guid? merchantId, CancellationToken cancellationToken);
 
+
+        /// <summary>
+        /// Gets the file import log files.
+        /// </summary>
+        /// <param name="fileImportLogId">The file import log identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="merchantId">The merchant identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<FileImportLog> GetFileImportLog(Guid fileImportLogId, Guid estateId, Guid? merchantId, CancellationToken cancellationToken);
+
         #endregion
     }
 }

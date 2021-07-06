@@ -9,6 +9,7 @@ namespace FileProcessor.IntegrationTests.Common
 {
     using Shared.Logger;
     using Shouldly;
+    using System.IO;
     using TechTalk.SpecFlow;
 
     public class TestingContext
@@ -172,5 +173,41 @@ namespace FileProcessor.IntegrationTests.Common
         }
 
         #endregion
+
+        public void GenerateFile(String fileName,
+                                 Table table)
+        {
+            StringBuilder fileBuilder = new StringBuilder();
+
+            Int32 currentRow = 1;
+            foreach (var row in table.Rows)
+            {
+                StringBuilder rowBuilder = new StringBuilder();
+                foreach (String rowValue in row.Values)
+                {
+                    rowBuilder.Append($"{rowValue},");
+                }
+                // remove the trailing comma
+                rowBuilder.Remove(rowBuilder.Length - 1, 1);
+                if (currentRow < table.Rows.Count)
+                {
+                    rowBuilder.Append("\n");
+                }
+
+                fileBuilder.Append(rowBuilder.ToString());
+                currentRow++;
+            }
+
+            Directory.CreateDirectory("/home/runner/specflow");
+            Guid fileNameId = Guid.NewGuid();
+            String filepath = $"/home/runner/specflow/{fileName}";
+            // Should have the whole file here
+            using (StreamWriter sw = new StreamWriter(filepath))
+            {
+                sw.WriteAsync(fileBuilder.ToString());
+            }
+
+            this.UploadFile = filepath;
+        }
     }
 }

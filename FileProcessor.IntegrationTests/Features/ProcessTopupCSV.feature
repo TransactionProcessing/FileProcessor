@@ -1,4 +1,4 @@
-﻿@base @shared @processtopupcsv
+﻿@base @shared
 Feature: Process Topup CSV Files
 
 Background: 
@@ -65,7 +65,7 @@ Background:
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
 	
 Scenario: Process Safaricom Topup File with 1 detail row
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -76,9 +76,8 @@ Scenario: Process Safaricom Topup File with 1 detail row
 
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
-@PRTest
 Scenario: Process Safaricom Topup File with 2 detail rows
-Given I have a safaricom topup file with the following contents
+Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -91,7 +90,7 @@ Given I have a safaricom topup file with the following contents
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
 Scenario: Process 2 Safaricom Topup Files
-	Given I have a safaricom topup file with the following contents
+Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -100,7 +99,7 @@ Scenario: Process 2 Safaricom Topup Files
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777776 | 150     |
@@ -114,10 +113,11 @@ Scenario: Process 2 Safaricom Topup Files
 
 @PRTest
 Scenario: Process Duplicate Safaricom Topup File with 1 detail row
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
+	| D       | 07777777776 | 200     |
 	| T       | 1           |         |
 	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
@@ -125,10 +125,11 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
+	| D       | 07777777776 | 200     |
 	| T       | 1           |         |
 	And I upload this file for processing an error should be returned indicating the file is a duplicate
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
