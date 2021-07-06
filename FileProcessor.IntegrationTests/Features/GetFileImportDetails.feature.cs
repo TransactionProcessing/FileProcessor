@@ -506,20 +506,16 @@ this.FeatureBackground();
 #line hidden
                 TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
                             "MerchantName",
-                            "OriginalFileName",
-                            "NumberOfLines"});
+                            "OriginalFileName"});
                 table21.AddRow(new string[] {
                             "Test Merchant 1",
-                            "SafarcomTopup1.txt",
-                            "1"});
+                            "SafarcomTopup1.txt"});
                 table21.AddRow(new string[] {
                             "Test Merchant 2",
-                            "SafarcomTopup2.txt",
-                            "1"});
+                            "SafarcomTopup2.txt"});
                 table21.AddRow(new string[] {
                             "Test Merchant 2",
-                            "VoucherIssue1.txt",
-                            "2"});
+                            "VoucherIssue1.txt"});
 #line 106
  testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
                         "s returned", ((string)(null)), table21, "When ");

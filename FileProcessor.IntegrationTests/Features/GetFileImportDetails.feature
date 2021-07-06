@@ -107,7 +107,7 @@ Scenario: Get File Import Log Details
 	| MerchantName    | OriginalFileName   | 
 	| Test Merchant 1 | SafarcomTopup1.txt | 
 	| Test Merchant 2 | SafarcomTopup2.txt | 
-	| Test Merchant 2 | VoucherIssue1.txt  | 
+	| Test Merchant 1 | VoucherIssue1.txt  | 
 
 	
 	
