@@ -1,4 +1,4 @@
-﻿@base @shared  @processtopupcsv @getfileimportdetails
+﻿@base @shared  @getfileimportdetails
 Feature: GetFileImportDetails
 
 Background: 
@@ -71,7 +71,7 @@ Background:
 
 @PRTest
 Scenario: Get File Import Log Details
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -80,7 +80,7 @@ Scenario: Get File Import Log Details
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	Given I have a safaricom topup file with the following contents
+	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 150     |
@@ -89,7 +89,25 @@ Scenario: Get File Import Log Details
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 2 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	When I get the 'Test Estate 1' import log for 'Today' the following data is returned
+	Given I have a file named 'VoucherIssue1.txt' with the following contents
+	| Column1 | Column2    | Column3                      | Column4 |
+	| H       | 20210508   |                              |         |
+	| D       | Hospital 1 | 07777777775                  | 10      |
+	| D       | Hospital 1 | testrecipient1@recipient.com | 10      |
+	| T       | 1          |                              |         |
+	And I upload this file for processing
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
+	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+
+	When I get the 'Test Estate 1' import logs between 'Yesterday' and 'Today' the following data is returned
 	| ImportLogDate | FileCount |
-	| Today         | 2         |
+	| Today         | 3         |
+
+	When I get the 'Test Estate 1' import log for 'Today' the following file information is returned
+	| MerchantName    | OriginalFileName   | 
+	| Test Merchant 1 | SafarcomTopup1.txt | 
+	| Test Merchant 2 | SafarcomTopup2.txt | 
+	| Test Merchant 1 | VoucherIssue1.txt  | 
+
+	
 	

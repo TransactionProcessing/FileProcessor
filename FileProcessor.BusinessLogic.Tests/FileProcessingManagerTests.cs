@@ -67,7 +67,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
 
-            this.VerifyImportLogs(importLogs);
+            this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
         }
 
         [Fact]
@@ -88,57 +88,87 @@ namespace FileProcessor.BusinessLogic.Tests
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
 
-            this.VerifyImportLogs(importLogs, TestData.MerchantId);
+            this.VerifyImportLogs(TestData.FileImportLogs,importLogs, TestData.MerchantId);
         }
 
-        private void VerifyImportLogs(List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
+        [Fact]
+        public async Task FileProcessingManager_GetFileImportLog_NoMerchantId_ImportLogReturned()
+        {
+            var fileProfiles = TestData.FileProfiles;
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            context.SaveChanges();
+
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+
+            var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
+
+            this.VerifyImportLog(TestData.FileImportLogs.First(), importLog);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFileImportLog_WithMerchantId_ImportLogReturned()
+        {
+            var fileProfiles = TestData.FileProfiles;
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            context.SaveChanges();
+
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+
+            var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
+
+            this.VerifyImportLog(TestData.FileImportLogs.First(),importLog, TestData.MerchantId);
+        }
+
+        private void VerifyImportLogs(List<FileImportLog> source,  List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
         {
             importLogs.ShouldNotBeNull();
             importLogs.ShouldNotBeEmpty();
             importLogs.Count.ShouldBe(TestData.FileImportLogs.Count);
-            foreach (FileImportLog fileImportLog in TestData.FileImportLogs)
+            foreach (FileImportLog fileImportLog in source)
             {
                 var importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
-                importLog.ShouldNotBeNull();
-                importLog.FileImportLogDateTime.ShouldBe(fileImportLog.ImportLogDateTime);
-                importLog.Files.Count.ShouldBe(importLog.Files.Count);
-
-                List<ImportLogFile> filesToVerify = importLog.Files;
-                if (merchantId.HasValue)
-                {
-                    filesToVerify = filesToVerify.Where(f => f.MerchantId == merchantId.Value).ToList();
-                }
-
-                foreach (ImportLogFile importLogFile in filesToVerify)
-                {
-                    var file = importLog.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
-                    file.ShouldNotBeNull();
-                    file.MerchantId.ShouldBe(importLogFile.MerchantId);
-                    file.FilePath.ShouldBe(importLogFile.FilePath);
-                    file.FileProfileId.ShouldBe(importLogFile.FileProfileId);
-                    file.OriginalFileName.ShouldBe(importLogFile.OriginalFileName);
-                    file.UserId.ShouldBe(importLogFile.UserId);
-                }
+                VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
 
-        //[Fact]
-        //public async Task FileProcessingManager_GetFileImportLogs_WithMerchantId_ImportLogsReturned()
-        //{
-        //    var fileProfiles = TestData.FileProfiles;
-        //    var contextFactory = this.CreateMockContextFactory();
-        //    IModelFactory modelFactory = new ModelFactory();
-        //    FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+        private void VerifyImportLog(FileImportLog source, FIleProcessor.Models.FileImportLog importLog, Guid? merchantId = null)
+        {
+            importLog.ShouldNotBeNull();
+            importLog.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
+            importLog.Files.Count.ShouldBe(importLog.Files.Count);
 
-        //    var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
+            List<ImportLogFile> filesToVerify = importLog.Files;
+            if (merchantId.HasValue)
+            {
+                filesToVerify = filesToVerify.Where(f => f.MerchantId == merchantId.Value).ToList();
+            }
 
-        //    importLogs.ShouldNotBeNull();
-        //    importLogs.ShouldNotBeEmpty();
-        //    importLogs.Count.ShouldBe(2);
-
-
-        //}
-
+            foreach (ImportLogFile importLogFile in filesToVerify)
+            {
+                var file = importLog.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
+                file.ShouldNotBeNull();
+                file.MerchantId.ShouldBe(importLogFile.MerchantId);
+                file.FilePath.ShouldBe(importLogFile.FilePath);
+                file.FileProfileId.ShouldBe(importLogFile.FileProfileId);
+                file.OriginalFileName.ShouldBe(importLogFile.OriginalFileName);
+                file.UserId.ShouldBe(importLogFile.UserId);
+            }
+        }
+        
         private Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingContext>> CreateMockContextFactory()
         {
             return new Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingContext>>();

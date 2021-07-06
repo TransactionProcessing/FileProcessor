@@ -5,6 +5,7 @@
     using EstateReporting.Database.Entities;
     using FIleProcessor.Models;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileLine = EstateReporting.Database.Entities.FileLine;
 
     /// <summary>
     /// 
@@ -27,16 +28,16 @@
 
             foreach (EstateReporting.Database.Entities.FileImportLog fileImportLog in importLogs)
             {
-                var model = new FileImportLog();
+                FileImportLog model = new FileImportLog();
 
                 model.FileImportLogId = fileImportLog.FileImportLogId;
                 model.FileImportLogDateTime = fileImportLog.ImportLogDateTime;
                 model.EstateId = fileImportLog.EstateId;
                 model.Files = new List<ImportLogFile>();
 
-                var currentImportLogFiles = importLogFilesList.Where(fi => fi.FileImportLogId == fileImportLog.FileImportLogId);
+                IEnumerable<FileImportLogFile> currentImportLogFiles = importLogFilesList.Where(fi => fi.FileImportLogId == fileImportLog.FileImportLogId);
 
-                foreach (var importLogFile in currentImportLogFiles)
+                foreach (FileImportLogFile importLogFile in currentImportLogFiles)
                 {
                     model.Files.Add(new ImportLogFile
                                     {
@@ -54,6 +55,42 @@
             }
 
             return models;
+        }
+
+        /// <summary>
+        /// Converts from.
+        /// </summary>
+        /// <param name="importLog">The import log.</param>
+        /// <param name="importLogFilesList">The import log files list.</param>
+        /// <returns></returns>
+        public FileImportLog ConvertFrom(EstateReporting.Database.Entities.FileImportLog importLog,
+                                         List<FileImportLogFile> importLogFilesList)
+        {
+            FileImportLog model = new FileImportLog();
+
+            model.FileImportLogId = importLog.FileImportLogId;
+            model.FileImportLogDateTime = importLog.ImportLogDateTime;
+            model.EstateId = importLog.EstateId;
+            model.Files = new List<ImportLogFile>();
+
+            IEnumerable<FileImportLogFile> currentImportLogFiles = importLogFilesList.Where(fi => fi.FileImportLogId == importLog.FileImportLogId);
+
+            foreach (FileImportLogFile importLogFile in currentImportLogFiles)
+            {
+                model.Files.Add(new ImportLogFile
+                                {
+                                    MerchantId = importLogFile.MerchantId,
+                                    EstateId = importLogFile.EstateId,
+                                    FileId = importLogFile.FileId,
+                                    FilePath = importLogFile.FilePath,
+                                    FileProfileId = importLogFile.FileProfileId,
+                                    OriginalFileName = importLogFile.OriginalFileName,
+                                    UserId = importLogFile.UserId,
+                                    UploadedDateTime = importLogFile.FileUploadedDateTime
+                                });
+            }
+
+            return model;
         }
 
         #endregion

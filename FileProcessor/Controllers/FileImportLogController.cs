@@ -63,8 +63,7 @@
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         [HttpGet]
-        [Route("{estateId}")]
-        public async Task<IActionResult> GetImportLogs([FromRoute] Guid estateId,
+        public async Task<IActionResult> GetImportLogs([FromQuery] Guid estateId,
                                                        [FromQuery] DateTime startDateTime,
                                                        [FromQuery] DateTime endDateTime,
                                                        [FromQuery] Guid? merchantId,
@@ -75,13 +74,25 @@
             return this.Ok(this.ModelFactory.ConvertFrom(fileImportLogs));
         }
 
+        [HttpGet]
+        [Route("{fileImportLogId}")]
+        public async Task<IActionResult> GetImportLog([FromRoute] Guid fileImportLogId,
+                                                           [FromQuery] Guid estateId,
+                                                           [FromQuery] Guid? merchantId,
+                                                           CancellationToken cancellationToken)
+        {
+            FileImportLog fileImportLog = await this.Manager.GetFileImportLog(fileImportLogId, estateId, merchantId, cancellationToken);
+
+            return this.Ok(this.ModelFactory.ConvertFrom(fileImportLog));
+        }
+
         #endregion
 
-        #region Others
+            #region Others
 
-        /// <summary>
-        /// The controller name
-        /// </summary>
+            /// <summary>
+            /// The controller name
+            /// </summary>
         public const String ControllerName = "fileImportLogs";
 
         /// <summary>
