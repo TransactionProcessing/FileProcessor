@@ -86,6 +86,9 @@ namespace FileProcessor.IntegrationTests.Features
 
             var response = await client.SendAsync(request);
 
+            // Now we need to wait some time to let the file be processed
+            await Task.Delay(TimeSpan.FromMinutes(1));
+
             return response;
         }
 
