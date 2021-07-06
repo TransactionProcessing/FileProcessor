@@ -199,7 +199,6 @@ namespace FileProcessor.IntegrationTests.Common
             }
 
             Directory.CreateDirectory("/home/runner/specflow");
-            Guid fileNameId = Guid.NewGuid();
             String filepath = $"/home/runner/specflow/{fileName}";
             // Should have the whole file here
             using (StreamWriter sw = new StreamWriter(filepath))

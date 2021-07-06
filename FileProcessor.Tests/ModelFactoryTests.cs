@@ -17,12 +17,6 @@ namespace FileProcessor.Tests
 
     public class ModelFactoryTests
     {
-        /*
-        FileImportLogList ConvertFrom(List<FileImportLog> importLogs);
-        
-        FileImportLogResponse ConvertFrom(FileImportLog fileImportLog);
-         */
-
         [Fact]
         public void ModelFactory_ConvertFrom_FileImportLogList_IsConverted()
         {

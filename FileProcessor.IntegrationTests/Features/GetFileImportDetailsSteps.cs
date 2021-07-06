@@ -113,7 +113,6 @@ namespace FileProcessor.IntegrationTests.Features
                 //| MerchantName    | OriginalFileName | NumberOfLines |
                 var merchantName = SpecflowTableHelper.GetStringRowValue(tableRow, "MerchantName");
                 var originalFileName = SpecflowTableHelper.GetStringRowValue(tableRow, "OriginalFileName");
-                var numberOfLines = SpecflowTableHelper.GetIntValue(tableRow, "NumberOfLines");
 
                 var merchantId = this.TestingContext.GetEstateDetails(estateName).GetMerchantId(merchantName);
 
