@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using DataTransferObjects.Responses;
 
     public class EstateDetails
     {
@@ -50,8 +51,7 @@
             this.Merchants = new Dictionary<String, Guid>();
             this.Operators = new Dictionary<String, Guid>();
             this.MerchantUsers = new Dictionary<String, Dictionary<String, String>>();
-            //this.TransactionResponses = new Dictionary<(Guid merchantId, String transactionNumber), SerialisedMessage>();
-            //this.ReconciliationResponses = new Dictionary<Guid, SerialisedMessage>();
+            this.FileImportLogFiles = new List<FileImportLogFile>();
             this.Contracts = new List<Contract>();
         }
 
@@ -99,25 +99,20 @@
         /// </value>
         public String EstateUser { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the transaction responses.
-        /// </summary>
-        /// <value>
-        /// The transaction responses.
-        /// </value>
-        //private Dictionary<(Guid merchantId, String transactionNumber), SerialisedMessage> TransactionResponses { get; }
-
-        /// <summary>
-        /// Gets the reconciliation responses.
-        /// </summary>
-        /// <value>
-        /// The reconciliation responses.
-        /// </value>
-        //private Dictionary<Guid, SerialisedMessage> ReconciliationResponses { get; }
-
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// The file import log files
+        /// </summary>
+        private List<FileImportLogFile> FileImportLogFiles;
+
+        public void AddFileImportLogFile(FileImportLogFile fileImportLogFile)
+        {
+            this.FileImportLogFiles.Add(fileImportLogFile);
+
+        }
 
         /// <summary>
         /// Adds the contract.
@@ -211,25 +206,6 @@
             this.Operators.Add(operatorName, operatorId);
         }
 
-        ///// <summary>
-        ///// Adds the transaction response.
-        ///// </summary>
-        ///// <param name="merchantId">The merchant identifier.</param>
-        ///// <param name="transactionNumber">The transaction number.</param>
-        ///// <param name="transactionResponse">The transaction response.</param>
-        //public void AddTransactionResponse(Guid merchantId,
-        //                                   String transactionNumber,
-        //                                   SerialisedMessage transactionResponse)
-        //{
-        //    this.TransactionResponses.Add((merchantId, transactionNumber), transactionResponse);
-        //}
-
-        //public void AddReconciliationResponse(Guid merchantId,
-        //                                   SerialisedMessage reconciliationResponse)
-        //{
-        //    this.ReconciliationResponses.Add(merchantId, reconciliationResponse);
-        //}
-
         /// <summary>
         /// Creates the specified estate identifier.
         /// </summary>
@@ -291,28 +267,15 @@
             return this.Operators.Single(o => o.Key == operatorName).Value;
         }
 
-        ///// <summary>
-        ///// Gets the transaction response.
-        ///// </summary>
-        ///// <param name="merchantId">The merchant identifier.</param>
-        ///// <param name="transactionNumber">The transaction number.</param>
-        ///// <returns></returns>
-        //public SerialisedMessage GetTransactionResponse(Guid merchantId,
-        //                                                String transactionNumber)
-        //{
-        //    KeyValuePair<(Guid merchantId, String transactionNumber), SerialisedMessage> transactionResponse =
-        //        this.TransactionResponses.Where(t => t.Key.merchantId == merchantId && t.Key.transactionNumber == transactionNumber).SingleOrDefault();
-
-        //    return transactionResponse.Value;
-        //}
-
-        //public SerialisedMessage GetReconciliationResponse(Guid merchantId)
-        //{
-        //    KeyValuePair<Guid, SerialisedMessage> reconciliationResponse =
-        //        this.ReconciliationResponses.Where(t => t.Key == merchantId).SingleOrDefault();
-
-        //    return reconciliationResponse.Value;
-        //}
+        /// <summary>
+        /// Gets the file identifier.
+        /// </summary>
+        /// <param name="originalFileName">Name of the original file.</param>
+        /// <returns></returns>
+        public Guid GetFileId(String originalFileName)
+        {
+            return this.FileImportLogFiles.Single(o => o.OriginalFileName == originalFileName).FileId;
+        }
 
         /// <summary>
         /// Sets the estate user.

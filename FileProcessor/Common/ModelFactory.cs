@@ -4,8 +4,12 @@
     using System.Linq;
     using DataTransferObjects.Responses;
     using FIleProcessor.Models;
+    using FileDetails = FIleProcessor.Models.FileDetails;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileLine = FIleProcessor.Models.FileLine;
     using FileImportLogResponse = DataTransferObjects.Responses.FileImportLog;
+    using FileDetailsResponse = DataTransferObjects.Responses.FileDetails;
+    using FileLineResponse = DataTransferObjects.Responses.FileLine;
 
     /// <summary>
     /// 
@@ -57,6 +61,67 @@
             }
 
             return fileImportLogResponse;
+        }
+
+        public FileDetailsResponse ConvertFrom(FileDetails fileDetails)
+        {
+            FileDetailsResponse fileDetailsResponse = new FileDetailsResponse
+                                                      {
+                EstateId = fileDetails.EstateId,
+                FileId = fileDetails.FileId,
+                FileImportLogId = fileDetails.FileImportLogId,
+                UserId = fileDetails.UserId,
+                MerchantId = fileDetails.MerchantId,
+                FileProfileId = fileDetails.FileProfileId,
+                FileLocation = fileDetails.FileLocation,
+                ProcessingCompleted = fileDetails.ProcessingCompleted,
+                FileLines = new List<FileLineResponse>()
+            };
+
+            foreach (FileLine fileDetailsFileLine in fileDetails.FileLines)
+            {
+                fileDetailsResponse.FileLines.Add(new FileLineResponse
+                                                  {
+                                                      LineData = fileDetailsFileLine.LineData,
+                                                      LineNumber = fileDetailsFileLine.LineNumber,
+                                                      ProcessingResult = this.TranslateProcessingResult(fileDetailsFileLine.ProcessingResult),
+                                                      TransactionId = fileDetailsFileLine.TransactionId
+                                                  });
+            }
+
+            fileDetailsResponse.ProcessingSummary = new FileProcessingSummary
+                                                    {
+                                                        FailedLines = fileDetails.ProcessingSummary.FailedLines,
+                                                        IgnoredLines = fileDetails.ProcessingSummary.IgnoredLines,
+                                                        NotProcessedLines = fileDetails.ProcessingSummary.NotProcessedLines,
+                                                        SuccessfullyProcessedLines = fileDetails.ProcessingSummary.SuccessfullyProcessedLines,
+                                                        TotalLines = fileDetails.ProcessingSummary.TotalLines
+                                                    };
+
+            return fileDetailsResponse;
+        }
+
+
+        /// <summary>
+        /// Translates the processing result.
+        /// </summary>
+        /// <param name="processingResult">The processing result.</param>
+        /// <returns></returns>
+        private FileLineProcessingResult TranslateProcessingResult(ProcessingResult processingResult)
+        {
+            switch(processingResult)
+            {
+                case ProcessingResult.Failed:
+                    return FileLineProcessingResult.Failed;
+                case ProcessingResult.Ignored:
+                    return FileLineProcessingResult.Ignored;
+                case ProcessingResult.NotProcessed:
+                    return FileLineProcessingResult.NotProcessed;
+                case ProcessingResult.Successful:
+                    return FileLineProcessingResult.Successful;
+                default:
+                    return FileLineProcessingResult.Unknown;
+            }
         }
 
         /// <summary>

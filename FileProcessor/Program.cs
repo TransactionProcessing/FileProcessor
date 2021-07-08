@@ -11,6 +11,7 @@ namespace FileProcessor
 {
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.IO.Abstractions;
     using System.Net.Http;
     using BusinessLogic.Managers;
     using EventStore.Client;
@@ -60,7 +61,8 @@ namespace FileProcessor
                                                                                                 IFileProcessorManager fileProcessorManager =
                                                                                                     provider.GetRequiredService<IFileProcessorManager>();
                                                                                                 IMediator mediator = provider.GetRequiredService<IMediator>();
-                                                                                                FileProcessingWorker worker = new FileProcessingWorker(fileProcessorManager,mediator);
+                                                                                                IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
+                                                                                                FileProcessingWorker worker = new FileProcessingWorker(fileProcessorManager,mediator, fileSystem);
                                                                                                 worker.TraceGenerated += Worker_TraceGenerated;
                                                                                                 return worker;
                                                                                             });

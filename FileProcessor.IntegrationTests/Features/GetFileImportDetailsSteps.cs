@@ -13,8 +13,10 @@ namespace FileProcessor.IntegrationTests.Features
     using Common;
     using DataTransferObjects.Responses;
     using Newtonsoft.Json;
+    using Shared.IntegrationTesting;
     using Shouldly;
     using TechTalk.SpecFlow;
+    using SpecflowTableHelper = Common.SpecflowTableHelper;
 
     [Binding]
     [Scope(Tag = "getfileimportdetails")]
@@ -46,6 +48,28 @@ namespace FileProcessor.IntegrationTests.Features
 
                 importLog.ShouldNotBeNull();
             }
+        }
+
+        private async Task<FileDetails> GetFile(String estateName, Guid fileId)
+        {
+            var estateDetails = this.TestingContext.GetEstateDetails(estateName);
+
+            String requestUri =
+                $"{this.TestingContext.DockerHelper.FileProcessorClient.BaseAddress}api/files/{fileId}?estateId={estateDetails.EstateId}";
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
+
+            var responseMessage = await this.TestingContext.DockerHelper.FileProcessorClient.SendAsync(requestMessage);
+
+            responseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            content.ShouldNotBeNull();
+            content.ShouldNotBeEmpty();
+
+            var fileDetails = JsonConvert.DeserializeObject<FileDetails>(content);
+            fileDetails.ShouldNotBeNull();
+
+            return fileDetails;
         }
 
         private async Task<FileImportLogList> GetFileImportLogList(String estateName,
@@ -102,6 +126,7 @@ namespace FileProcessor.IntegrationTests.Features
         [When(@"I get the '(.*)' import log for '(.*)' the following file information is returned")]
         public async Task WhenIGetTheImportLogForTheFollowingFileInformationIsReturned(string estateName, string startDate, Table table)
         {
+            EstateDetails estateDetails = this.TestingContext.GetEstateDetails(estateName);
             FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, startDate);
 
             importLogList.FileImportLogs.ShouldHaveSingleItem();
@@ -120,6 +145,58 @@ namespace FileProcessor.IntegrationTests.Features
 
                 file.ShouldNotBeNull();
 
+                estateDetails.AddFileImportLogFile(file);
+            }
+        }
+
+        [When(@"I get the file '(.*)' for Estate '(.*)' the following file information is returned")]
+        public async Task WhenIGetTheFileForEstateTheFollowingFileInformationIsReturned(string fileName, string estateName, Table table)
+        {
+            EstateDetails estateDetails = this.TestingContext.GetEstateDetails(estateName);
+
+            Guid fileId = estateDetails.GetFileId(fileName);
+            
+            TableRow tableRow = table.Rows.First();
+            Boolean processingCompleted = SpecflowTableHelper.GetBooleanValue(tableRow, "ProcessingCompleted");
+            Int32 numberOfLines = SpecflowTableHelper.GetIntValue(tableRow, "NumberOfLines");
+            Int32 totaLines = SpecflowTableHelper.GetIntValue(tableRow, "TotaLines");
+            Int32 successfulLines = SpecflowTableHelper.GetIntValue(tableRow, "SuccessfulLines");
+            Int32 ignoredLines = SpecflowTableHelper.GetIntValue(tableRow, "IgnoredLines");
+            Int32 failedLines = SpecflowTableHelper.GetIntValue(tableRow, "FailedLines");
+            Int32 notProcessedLines = SpecflowTableHelper.GetIntValue(tableRow, "NotProcessedLines");
+
+            await Retry.For(async () =>
+                            {
+                                var fileDetails = await this.GetFile(estateName, fileId);
+                                fileDetails.ProcessingCompleted.ShouldBe(processingCompleted);
+                                fileDetails.FileLines.Count.ShouldBe(numberOfLines);
+                                fileDetails.ProcessingSummary.TotalLines.ShouldBe(totaLines);
+                                fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(successfulLines);
+                                fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(ignoredLines);
+                                fileDetails.ProcessingSummary.FailedLines.ShouldBe(failedLines);
+                                fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(notProcessedLines);
+                            }, TimeSpan.FromMinutes(4), TimeSpan.FromSeconds(30));
+            }
+
+        [When(@"I get the file '(.*)' for Estate '(.*)' the following file lines are returned")]
+        public async Task WhenIGetTheFileForEstateTheFollowingFileLinesAreReturned(string fileName, string estateName, Table table)
+        {
+            EstateDetails estateDetails = this.TestingContext.GetEstateDetails(estateName);
+
+            Guid fileId = estateDetails.GetFileId(fileName);
+
+            var fileDetails = await this.GetFile(estateName, fileId);
+
+            foreach (TableRow tableRow in table.Rows)
+            {
+                var lineNumber = SpecflowTableHelper.GetIntValue(tableRow, "LineNumber");
+                var lineData = SpecflowTableHelper.GetStringRowValue(tableRow, "Data");
+                var processingResult = SpecflowTableHelper.GetEnumValue<FileLineProcessingResult>(tableRow, "Result");
+
+                var lineToVerify = fileDetails.FileLines.SingleOrDefault(fl => fl.LineNumber == lineNumber);
+                lineToVerify.ShouldNotBeNull();
+                lineToVerify.LineData.ShouldBe(lineData);
+                lineToVerify.ProcessingResult.ShouldBe(processingResult);
             }
         }
 

@@ -13,7 +13,9 @@ namespace FileProcessor.Tests
     using Shouldly;
     using Testing;
     using Xunit;
+    using FileDetails = FIleProcessor.Models.FileDetails;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileLine = FIleProcessor.Models.FileLine;
 
     public class ModelFactoryTests
     {
@@ -69,6 +71,58 @@ namespace FileProcessor.Tests
             var result = modelFactory.ConvertFrom(importLog);
 
             this.VerifyFileImportLog(importLog, result);
+        }
+
+        [Fact]
+        public void ModelFactory_ConvertFrom_FileDetails_IsConverted()
+        {
+            ModelFactory modelFactory = new ModelFactory();
+            FileDetails fileDetails = TestData.FileDetailsModel;
+
+            var result = modelFactory.ConvertFrom(fileDetails);
+
+            this.VerifyFileDetails(fileDetails, result);
+        }
+
+        private void VerifyFileDetails(FileDetails source,
+                                       DataTransferObjects.Responses.FileDetails fileDetails)
+        {
+            fileDetails.FileImportLogId.ShouldBe(source.FileImportLogId);
+            fileDetails.EstateId.ShouldBe(source.EstateId);
+            fileDetails.FileId.ShouldBe(source.FileId);
+            fileDetails.FileLocation.ShouldBe(source.FileLocation);
+            fileDetails.FileProfileId.ShouldBe(source.FileProfileId);
+            fileDetails.MerchantId.ShouldBe(source.MerchantId);
+            fileDetails.UserId.ShouldBe(source.UserId);
+            fileDetails.ProcessingCompleted.ShouldBe(source.ProcessingCompleted);
+
+            if (source.ProcessingSummary != null)
+            {
+                fileDetails.ProcessingSummary.ShouldNotBeNull();
+                fileDetails.ProcessingSummary.FailedLines.ShouldBe(source.ProcessingSummary.FailedLines);
+                fileDetails.ProcessingSummary.TotalLines.ShouldBe(source.ProcessingSummary.TotalLines);
+                fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(source.ProcessingSummary.IgnoredLines);
+                fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(source.ProcessingSummary.NotProcessedLines);
+                fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(source.ProcessingSummary.SuccessfullyProcessedLines);
+            }
+
+            foreach (FileLine sourceFileLine in source.FileLines)
+            {
+                DataTransferObjects.Responses.FileLine? fileLineToVerify = fileDetails.FileLines.SingleOrDefault(l => l.LineNumber == sourceFileLine.LineNumber);
+
+                fileLineToVerify.ShouldNotBeNull();
+                fileLineToVerify.LineData.ShouldBe(sourceFileLine.LineData);
+                fileLineToVerify.TransactionId.ShouldBe(sourceFileLine.TransactionId);
+
+                if (sourceFileLine.ProcessingResult == ProcessingResult.Failed)
+                    fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.Failed);
+                if (sourceFileLine.ProcessingResult == ProcessingResult.Successful)
+                    fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.Successful);
+                if (sourceFileLine.ProcessingResult == ProcessingResult.Ignored)
+                    fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.Ignored);
+                if (sourceFileLine.ProcessingResult == ProcessingResult.NotProcessed)
+                    fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.NotProcessed);
+            }
         }
 
         private void VerifyFileImportLogList(List<FIleProcessor.Models.FileImportLog> source, FileImportLogList fileImportLogList)

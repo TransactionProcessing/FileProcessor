@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.IO.Abstractions;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -42,6 +43,8 @@
         /// </summary>
         private readonly IMediator Mediator;
 
+        private readonly IFileSystem FileSystem;
+
         #endregion
 
         #region Constructors
@@ -52,10 +55,12 @@
         /// <param name="fileProcessorManager">The file processor manager.</param>
         /// <param name="mediator">The mediator.</param>
         public FileProcessingWorker(IFileProcessorManager fileProcessorManager,
-                                    IMediator mediator)
+                                    IMediator mediator,
+                                    IFileSystem fileSystem)
         {
             this.FileProcessorManager = fileProcessorManager;
             this.Mediator = mediator;
+            this.FileSystem = fileSystem;
         }
 
         #endregion
@@ -136,7 +141,18 @@
                         foreach (String file in files)
                         {
                             this.LogInformation($"File {file} detected");
-                            var request = this.CreateProcessFileRequest(fileProfile, file);
+
+                            IFileInfo fileInfo = this.FileSystem.FileInfo.FromFileName(file);
+
+                            String inProgressFolder = $"{fileProfile.ListeningDirectory}/inprogress/";
+                            if (this.FileSystem.Directory.Exists(inProgressFolder) == false)
+                            {
+                                throw new DirectoryNotFoundException($"Directory {inProgressFolder} not found");
+                            }
+                            String inProgressFilePath = $"{fileProfile.ListeningDirectory}/inprogress/{fileInfo.Name}";
+                            fileInfo.MoveTo(inProgressFilePath, true);
+
+                            var request = this.CreateProcessFileRequest(fileProfile, inProgressFilePath);
                             fileProcessingTasks.Add(this.Mediator.Send(request));
                         }
                     }

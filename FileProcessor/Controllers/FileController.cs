@@ -8,7 +8,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using BusinessLogic.Managers;
+    using Common;
     using DataTransferObjects;
+    using FIleProcessor.Models;
     using MediatR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -32,17 +34,27 @@
         /// </summary>
         private readonly IMediator Mediator;
 
+        /// <summary>
+        /// The manager
+        /// </summary>
+        private readonly IFileProcessorManager Manager;
+
+        private readonly IModelFactory ModelFactory;
+
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileController"/> class.
+        /// Initializes a new instance of the <see cref="FileController" /> class.
         /// </summary>
         /// <param name="mediator">The mediator.</param>
-        public FileController(IMediator mediator)
+        /// <param name="manager">The manager.</param>
+        public FileController(IMediator mediator, IFileProcessorManager manager, IModelFactory modelFactory)
         {
             this.Mediator = mediator;
+            this.Manager = manager;
+            this.ModelFactory = modelFactory;
         }
 
         #endregion
@@ -83,6 +95,24 @@
             Guid fileId = await this.Mediator.Send(uploadFileRequest, cancellationToken);
 
             return this.Accepted(fileId);
+        }
+
+        /// <summary>
+        /// Gets the file.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("{fileId}")]
+        public async Task<IActionResult> GetFile([FromRoute] Guid fileId,
+                                                 [FromQuery] Guid estateId,
+                                                 CancellationToken cancellationToken)
+        {
+            FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
+
+            return this.Ok(this.ModelFactory.ConvertFrom(fileDetailsModel));
         }
 
         #endregion

@@ -245,32 +245,22 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
             if (fileAggregate.IsCreated == false)
                 return new Unit();
-
-            IFileInfo file = this.FileSystem.FileInfo.FromFileName(request.FileName);
-
-            if (file.Exists == false)
-            {
-                throw new FileNotFoundException($"File {file.FullName} not found");
-            }
-
+            
             FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(request.FileProfileId, cancellationToken);
 
             if (fileProfile == null)
             {
                 throw new NotFoundException($"No file profile found with Id {request.FileProfileId}");
             }
+            
+            IFileInfo inProgressFile = this.FileSystem.FileInfo.FromFileName(request.FileName);
 
-            String inProgressFolder = $"{fileProfile.ListeningDirectory}/inprogress/";
-            if (this.FileSystem.Directory.Exists(inProgressFolder) == false)
+            if (inProgressFile.Exists == false)
             {
-                throw new DirectoryNotFoundException($"Directory {inProgressFolder} not found");
+                throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
             }
-            String inProgressFilePath = $"{fileProfile.ListeningDirectory}/inprogress/{file.Name}";
-            file.MoveTo(inProgressFilePath, true);
-            
-            IFileInfo inProgressFile = this.FileSystem.FileInfo.FromFileName(inProgressFilePath);
-            
-            // TODO: Check the processed/failed directories exist
+
+            // Check the processed/failed directories exist
             if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
             {
                 throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
@@ -373,6 +363,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             { 
                 // Write something to aggregate to say line was explicity ignored
                 fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
+                await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
                 return new Unit();
             }
 
