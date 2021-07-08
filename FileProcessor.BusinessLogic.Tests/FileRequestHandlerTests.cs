@@ -447,50 +447,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 await fileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
             });
         }
-
-        [Fact]
-        public async Task FileRequestHandler_SafaricomTopupRequest_InProgressDirectoryNotFound_RequestIsHandled()
-        {
-            Mock<IFileProcessorManager> fileProcessorManager = new Mock<IFileProcessorManager>();
-            fileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
-            Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> fileImportLogAggregateRepository =
-                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
-
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-            Mock<ITransactionProcessorClient> transactionProcessorClient = new Mock<ITransactionProcessorClient>();
-            Mock<IEstateClient> estateClient = new Mock<IEstateClient>();
-            Mock<ISecurityServiceClient> securityServiceClient = new Mock<ISecurityServiceClient>();
-            Mock<IFileFormatHandler> fileFormatHandler = new Mock<IFileFormatHandler>();
-            Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
-            {
-                return fileFormatHandler.Object;
-            };
-
-            MockFileSystem fileSystem = new MockFileSystem();
-            fileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
-            fileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
-
-            FileRequestHandler fileRequestHandler = new FileRequestHandler(fileProcessorManager.Object,
-                                                                           fileImportLogAggregateRepository.Object,
-                                                                           fileAggregateRepository.Object,
-                                                                           transactionProcessorClient.Object,
-                                                                           estateClient.Object,
-                                                                           securityServiceClient.Object,
-                                                                           fileFormatHandlerResolver,
-                                                                           fileSystem);
-            SafaricomTopupRequest safaricomTopupRequest =
-                new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-            Should.Throw<DirectoryNotFoundException>(async () =>
-            {
-                await fileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
-            });
-        }
-
+        
         [Fact]
         public async Task FileRequestHandler_SafaricomTopupRequest_ProcessedDirectoryNotFound_RequestIsHandled()
         {
