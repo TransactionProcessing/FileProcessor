@@ -402,8 +402,8 @@ namespace FileProcessor.IntegrationTests.Common
                 // we are running in CI 
                 environmentVariables.Add($"AppSettings:TemporaryFileLocation={"/home/runner/bulkfiles/temporary"}");
                 
-                environmentVariables.Add($"AppSettings:FileProfiles[0]:ListeningDirectory={"/home/runner/bulkfiles/safaricom"}");
-                environmentVariables.Add($"AppSettings:FileProfiles[1]:ListeningDirectory={"/home/runner/bulkfiles/voucher"}");
+                environmentVariables.Add($"AppSettings:FileProfiles:0:ListeningDirectory={"/home/runner/bulkfiles/safaricom"}");
+                environmentVariables.Add($"AppSettings:FileProfiles:1:ListeningDirectory={"/home/runner/bulkfiles/voucher"}");
             }
 
             if (additionalEnvironmentVariables != null)
