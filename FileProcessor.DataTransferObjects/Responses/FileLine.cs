@@ -1,10 +1,8 @@
-﻿namespace FIleProcessor.Models
+﻿namespace FileProcessor.DataTransferObjects.Responses
 {
     using System;
+    using Newtonsoft.Json;
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FileLine
     {
         #region Properties
@@ -15,6 +13,7 @@
         /// <value>
         /// The line data.
         /// </value>
+        [JsonProperty("line_data")]
         public String LineData { get; set; }
 
         /// <summary>
@@ -23,6 +22,7 @@
         /// <value>
         /// The line number.
         /// </value>
+        [JsonProperty("line_number")]
         public Int32 LineNumber { get; set; }
 
         /// <summary>
@@ -31,15 +31,16 @@
         /// <value>
         ///   <c>true</c> if ignored; otherwise, <c>false</c>.
         /// </value>
-        public ProcessingResult ProcessingResult { get; set; }
+        [JsonProperty("processing_result")]
+        public FileLineProcessingResult ProcessingResult { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction identifier.
         /// </summary>
         /// <value>
         /// The transaction identifier.
-        /// 1011934
         /// </value>
+        [JsonProperty("transaction_id")]
         public Guid TransactionId { get; set; }
 
         #endregion

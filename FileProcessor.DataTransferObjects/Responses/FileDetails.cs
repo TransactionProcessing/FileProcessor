@@ -1,13 +1,9 @@
-﻿using System;
-
-namespace FIleProcessor.Models
+﻿namespace FileProcessor.DataTransferObjects.Responses
 {
+    using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
+    using Newtonsoft.Json;
 
-    /// <summary>
-    /// 
-    /// </summary>
     public class FileDetails
     {
         /// <summary>
@@ -16,6 +12,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file identifier.
         /// </value>
+        [JsonProperty("file_id")]
         public Guid FileId { get; set; }
 
         /// <summary>
@@ -24,6 +21,7 @@ namespace FIleProcessor.Models
         /// <value>
         ///   <c>true</c> if [processing completed]; otherwise, <c>false</c>.
         /// </value>
+        [JsonProperty("processing_completed")]
         public Boolean ProcessingCompleted { get; set; }
 
         /// <summary>
@@ -32,6 +30,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The estate identifier.
         /// </value>
+        [JsonProperty("estate_id")]
         public Guid EstateId { get; set; }
 
         /// <summary>
@@ -40,6 +39,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The user identifier.
         /// </value>
+        [JsonProperty("user_id")]
         public Guid UserId { get; set; }
 
         /// <summary>
@@ -48,6 +48,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The merchant identifier.
         /// </value>
+        [JsonProperty("merchant_id")]
         public Guid MerchantId { get; set; }
 
         /// <summary>
@@ -56,6 +57,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file profile identifier.
         /// </value>
+        [JsonProperty("file_profile_id")]
         public Guid FileProfileId { get; set; }
 
         /// <summary>
@@ -64,6 +66,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file import log identifier.
         /// </value>
+        [JsonProperty("file_import_log_id")]
         public Guid FileImportLogId { get; set; }
 
         /// <summary>
@@ -72,6 +75,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file location.
         /// </value>
+        [JsonProperty("file_location")]
         public String FileLocation { get; set; }
 
         /// <summary>
@@ -80,6 +84,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The file lines.
         /// </value>
+        [JsonProperty("file_lines")]
         public List<FileLine> FileLines { get; set; }
 
         /// <summary>
@@ -88,6 +93,7 @@ namespace FIleProcessor.Models
         /// <value>
         /// The processing summary.
         /// </value>
-        public ProcessingSummary ProcessingSummary { get; set; }
+        [JsonProperty("processing_summary")]
+        public FileProcessingSummary ProcessingSummary { get; set; }
     }
 }

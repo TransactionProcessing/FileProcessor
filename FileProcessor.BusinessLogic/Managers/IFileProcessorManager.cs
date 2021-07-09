@@ -51,6 +51,17 @@
         /// <returns></returns>
         Task<FileImportLog> GetFileImportLog(Guid fileImportLogId, Guid estateId, Guid? merchantId, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Gets the file.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<FileDetails> GetFile(Guid fileId,
+                                  Guid estateId,
+                                  CancellationToken cancellationToken);
+
         #endregion
     }
 }

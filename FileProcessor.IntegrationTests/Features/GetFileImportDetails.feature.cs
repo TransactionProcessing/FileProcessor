@@ -431,7 +431,7 @@ this.FeatureBackground();
                             ""});
                 table16.AddRow(new string[] {
                             "D",
-                            "07777777775",
+                            "07777777776",
                             "150"});
                 table16.AddRow(new string[] {
                             "T",
@@ -519,6 +519,130 @@ this.FeatureBackground();
 #line 106
  testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
                         "s returned", ((string)(null)), table21, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table22 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ProcessingCompleted",
+                            "NumberOfLines",
+                            "TotaLines",
+                            "SuccessfulLines",
+                            "IgnoredLines",
+                            "FailedLines",
+                            "NotProcessedLines"});
+                table22.AddRow(new string[] {
+                            "True",
+                            "3",
+                            "3",
+                            "1",
+                            "2",
+                            "0",
+                            "0"});
+#line 112
+ testRunner.When("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
+                        " information is returned", ((string)(null)), table22, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
+                            "LineNumber",
+                            "Data",
+                            "Result"});
+                table23.AddRow(new string[] {
+                            "1",
+                            "H,20210508,",
+                            "Ignored"});
+                table23.AddRow(new string[] {
+                            "2",
+                            "D,07777777775,100",
+                            "Successful"});
+                table23.AddRow(new string[] {
+                            "3",
+                            "T,1,",
+                            "Ignored"});
+#line 116
+ testRunner.When("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
+                        " lines are returned", ((string)(null)), table23, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ProcessingCompleted",
+                            "NumberOfLines",
+                            "TotaLines",
+                            "SuccessfulLines",
+                            "IgnoredLines",
+                            "FailedLines",
+                            "NotProcessedLines"});
+                table24.AddRow(new string[] {
+                            "True",
+                            "3",
+                            "3",
+                            "1",
+                            "2",
+                            "0",
+                            "0"});
+#line 122
+ testRunner.When("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
+                        " information is returned", ((string)(null)), table24, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table25 = new TechTalk.SpecFlow.Table(new string[] {
+                            "LineNumber",
+                            "Data",
+                            "Result"});
+                table25.AddRow(new string[] {
+                            "1",
+                            "H,20210508,",
+                            "Ignored"});
+                table25.AddRow(new string[] {
+                            "2",
+                            "D,07777777776,150",
+                            "Successful"});
+                table25.AddRow(new string[] {
+                            "3",
+                            "T,1,",
+                            "Ignored"});
+#line 126
+ testRunner.When("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
+                        " lines are returned", ((string)(null)), table25, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table26 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ProcessingCompleted",
+                            "NumberOfLines",
+                            "TotaLines",
+                            "SuccessfulLines",
+                            "IgnoredLines",
+                            "FailedLines",
+                            "NotProcessedLines"});
+                table26.AddRow(new string[] {
+                            "True",
+                            "4",
+                            "4",
+                            "2",
+                            "2",
+                            "0",
+                            "0"});
+#line 132
+ testRunner.When("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
+                        "information is returned", ((string)(null)), table26, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
+                            "LineNumber",
+                            "Data",
+                            "Result"});
+                table27.AddRow(new string[] {
+                            "1",
+                            "H,20210508,,",
+                            "Ignored"});
+                table27.AddRow(new string[] {
+                            "2",
+                            "D,Hospital 1,07777777775,10",
+                            "Successful"});
+                table27.AddRow(new string[] {
+                            "3",
+                            "D,Hospital 1,testrecipient1@recipient.com,10",
+                            "Successful"});
+                table27.AddRow(new string[] {
+                            "4",
+                            "T,1,,",
+                            "Ignored"});
+#line 136
+ testRunner.When("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
+                        "lines are returned", ((string)(null)), table27, "When ");
 #line hidden
             }
             this.ScenarioCleanup();

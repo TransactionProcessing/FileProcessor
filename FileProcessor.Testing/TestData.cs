@@ -75,6 +75,16 @@ namespace FileProcessor.Testing
 
         public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
 
+        public static String GetSafaricomDetailLine(String customerAccountNumber, String amount)
+        {
+            return $"D,{customerAccountNumber},{amount}";
+        }
+
+        public static String GetVoucherDetailLine(String voucherOperatorIdentifier, String recipient, String amount)
+        {
+            return $"D,{voucherOperatorIdentifier},{recipient},{amount}";
+        }
+
         public static String SafaricomDetailLine => $"D,{TestData.SafaricomDetailLineCustomerAccountNumber},{TestData.SafaricomDetailLineAmount}";
 
         public static String VoucherDetailLineWithEmailAddress => $"D,{TestData.VoucherOperatorIdentifier}, {TestData.VoucherRecipientEmail},{TestData.VoucherDetailLineAmount}";
@@ -434,6 +444,92 @@ namespace FileProcessor.Testing
 
         public static DateTime ImportLogStartDate = new DateTime(2021,7,1);
         public static DateTime ImportLogEndDate = new DateTime(2021,7,2);
+
+        public static FileDetails FileDetailsModel => new FileDetails
+                                                      {
+                                                          EstateId = TestData.EstateId,
+                                                          FileId = TestData.FileId,
+                                                          FileImportLogId = TestData.FileImportLogId,
+                                                          FileLocation = TestData.FileLocation,
+                                                          FileProfileId = TestData.FileProfileId,
+                                                          MerchantId = TestData.MerchantId,
+                                                          ProcessingCompleted = true,
+                                                          UserId = TestData.UserId,
+                                                          ProcessingSummary = new ProcessingSummary
+                                                                              {
+                                                                                  FailedLines = 1,
+                                                                                  TotalLines = 8,
+                                                                                  IgnoredLines = 2,
+                                                                                  NotProcessedLines = 1,
+                                                                                  SuccessfullyProcessedLines = 4
+                                                                              },
+                                                          FileLines = new List<FIleProcessor.Models.FileLine>
+                                                                      {
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Ignored,
+                                                                              LineNumber = 1,
+                                                                              LineData = "H",
+                                                                              TransactionId = Guid.Empty
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Successful,
+                                                                              LineNumber = 2,
+                                                                              LineData = TestData.GetSafaricomDetailLine("2","200"),
+                                                                              TransactionId = Guid.NewGuid()
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Successful,
+                                                                              LineNumber = 3,
+                                                                              LineData = TestData.GetSafaricomDetailLine("3","300"),
+                                                                              TransactionId = Guid.NewGuid()
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Successful,
+                                                                              LineNumber = 4,
+                                                                              LineData = TestData.GetSafaricomDetailLine("4","400"),
+                                                                              TransactionId = Guid.NewGuid()
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Successful,
+                                                                              LineNumber = 5,
+                                                                              LineData = TestData.GetSafaricomDetailLine("5","500"),
+                                                                              TransactionId = Guid.NewGuid()
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Failed,
+                                                                              LineNumber = 6,
+                                                                              LineData = TestData.GetSafaricomDetailLine("6","600"),
+                                                                              TransactionId = Guid.Empty
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.NotProcessed,
+                                                                              LineNumber = 7,
+                                                                              LineData = TestData.GetSafaricomDetailLine("7","700"),
+                                                                              TransactionId = Guid.Empty
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = (ProcessingResult)99, // Invalid status
+                                                                              LineNumber = 8,
+                                                                              LineData = TestData.GetSafaricomDetailLine("8","800"),
+                                                                              TransactionId = Guid.Empty
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = ProcessingResult.Ignored,
+                                                                              LineNumber = 9,
+                                                                              LineData = "T",
+                                                                              TransactionId = Guid.Empty
+                                                                          }
+                                                                      }
+                                                      };
 
         public static List<FileImportLog> FileImportLogs =>
             new List<FileImportLog>

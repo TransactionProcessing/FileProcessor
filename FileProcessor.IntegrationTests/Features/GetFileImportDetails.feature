@@ -83,7 +83,7 @@ Scenario: Get File Import Log Details
 	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
-	| D       | 07777777775 | 150     |
+	| D       | 07777777776 | 150     |
 	| T       | 1           |         |
 	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
@@ -108,6 +108,39 @@ Scenario: Get File Import Log Details
 	| Test Merchant 1 | SafarcomTopup1.txt | 
 	| Test Merchant 2 | SafarcomTopup2.txt | 
 	| Test Merchant 1 | VoucherIssue1.txt  | 
+
+	When I get the file 'SafarcomTopup1.txt' for Estate 'Test Estate 1' the following file information is returned
+	| ProcessingCompleted | NumberOfLines | TotaLines | SuccessfulLines | IgnoredLines | FailedLines | NotProcessedLines |
+	| True                | 3             | 3         | 1               | 2            | 0           | 0                 |
+
+	When I get the file 'SafarcomTopup1.txt' for Estate 'Test Estate 1' the following file lines are returned
+	| LineNumber | Data               | Result     |
+	| 1          | H,20210508,        | Ignored    |
+	| 2          | D,07777777775,100 | Successful |
+	| 3          | T,1,               | Ignored    |
+
+	When I get the file 'SafarcomTopup2.txt' for Estate 'Test Estate 1' the following file information is returned
+	| ProcessingCompleted | NumberOfLines | TotaLines | SuccessfulLines | IgnoredLines | FailedLines | NotProcessedLines |
+	| True                | 3             | 3         | 1               | 2            | 0           | 0                 |
+
+	When I get the file 'SafarcomTopup2.txt' for Estate 'Test Estate 1' the following file lines are returned
+	| LineNumber | Data               | Result     |
+	| 1          | H,20210508,        | Ignored    |
+	| 2          | D,07777777776,150 | Successful |
+	| 3          | T,1,               | Ignored    |
+
+	When I get the file 'VoucherIssue1.txt' for Estate 'Test Estate 1' the following file information is returned
+	| ProcessingCompleted | NumberOfLines | TotaLines | SuccessfulLines | IgnoredLines | FailedLines | NotProcessedLines |
+	| True                | 4             | 4         | 2               | 2            | 0           | 0                 |
+
+	When I get the file 'VoucherIssue1.txt' for Estate 'Test Estate 1' the following file lines are returned
+	| LineNumber | Data                                         | Result     |
+	| 1          | H,20210508,,                                 | Ignored    |
+	| 2          | D,Hospital 1,07777777775,10                  | Successful |
+	| 3          | D,Hospital 1,testrecipient1@recipient.com,10 | Successful |
+	| 4          | T,1,,                                        | Ignored    |
+
+	
 
 	
 	

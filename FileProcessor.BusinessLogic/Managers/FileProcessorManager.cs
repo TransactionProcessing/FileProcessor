@@ -10,8 +10,12 @@
     using EstateReporting.Database;
     using EstateReporting.Database.Entities;
     using EstateReporting.Database.ViewEntities;
+    using FileAggregate;
     using FIleProcessor.Models;
     using Microsoft.EntityFrameworkCore;
+    using Shared.DomainDrivenDesign.EventSourcing;
+    using Shared.EventStore.Aggregate;
+    using Shared.Exceptions;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
     using FileLine = EstateReporting.Database.Entities.FileLine;
 
@@ -32,6 +36,8 @@
 
         private readonly IModelFactory ModelFactory;
 
+        private readonly IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> FileAggregateRepository;
+
         #endregion
 
         #region Constructors
@@ -44,11 +50,13 @@
         /// <param name="modelFactory">The model factory.</param>
         public FileProcessorManager(List<FileProfile> fileProfiles,
                                     Shared.EntityFramework.IDbContextFactory<EstateReportingContext> dbContextFactory,
-                                    IModelFactory modelFactory)
+                                    IModelFactory modelFactory,
+                                    IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> fileAggregateRepository)
         {
             this.FileProfiles = fileProfiles;
             this.DbContextFactory = dbContextFactory;
             this.ModelFactory = modelFactory;
+            this.FileAggregateRepository = fileAggregateRepository;
         }
 
         #endregion
@@ -137,6 +145,27 @@
             }
 
             return this.ModelFactory.ConvertFrom(importLogQuery, importLogFileQuery);
+        }
+
+        /// <summary>
+        /// Gets the file.
+        /// </summary>
+        /// <param name="fileId">The file identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async Task<FileDetails> GetFile(Guid fileId,
+                                               Guid estateId,
+                                               CancellationToken cancellationToken)
+        {
+            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
+
+            if (fileAggregate.IsCreated == false)
+            {
+                throw new NotFoundException($"File with Id [{fileId}] not found");
+            }
+
+            return fileAggregate.GetFile();
         }
 
         #endregion

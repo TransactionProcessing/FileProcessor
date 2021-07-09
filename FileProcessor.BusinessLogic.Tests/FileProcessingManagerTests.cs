@@ -10,16 +10,21 @@ namespace FileProcessor.BusinessLogic.Tests
     using Common;
     using EstateReporting.Database;
     using EstateReporting.Database.Entities;
+    using FileAggregate;
     using FIleProcessor.Models;
     using Managers;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Moq;
+    using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EntityFramework;
+    using Shared.EventStore.Aggregate;
+    using Shared.Exceptions;
     using Shouldly;
     using Testing;
     using Xunit;
     using FileImportLog = EstateReporting.Database.Entities.FileImportLog;
+    using FileLine = FIleProcessor.Models.FileLine;
 
     public class FileProcessingManagerTests
     {
@@ -29,7 +34,9 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var contextFactory = this.CreateMockContextFactory();
             Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object,modelFactory.Object);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object,modelFactory.Object, fileAggregateRepository.Object);
 
             var allFileProfiles = await manager.GetAllFileProfiles(CancellationToken.None);
             allFileProfiles.ShouldNotBeNull();
@@ -42,7 +49,9 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var contextFactory = this.CreateMockContextFactory();
             Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory.Object);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory.Object, fileAggregateRepository.Object);
 
             var fileProfile = await manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
             fileProfile.ShouldNotBeNull();
@@ -63,7 +72,9 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
 
@@ -84,7 +95,9 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
 
@@ -105,7 +118,9 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
 
@@ -126,11 +141,83 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory);
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(),importLog, TestData.MerchantId);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileReturned()
+        {
+            var fileProfiles = TestData.FileProfiles;
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+             var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+
+             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileNotFound_ErrorThrown()
+        {
+            var fileProfiles = TestData.FileProfiles;
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+            Should.Throw<NotFoundException>(async () =>
+                                            {
+                                                await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+                                            });
+        }
+
+
+        private void VerifyFile(FileAggregate source, FileDetails fileDetails)
+        {
+            var fileModel = source.GetFile();
+
+            fileDetails.FileId.ShouldBe(fileModel.FileId);
+            fileDetails.FileImportLogId.ShouldBe(fileModel.FileImportLogId);
+            fileDetails.FileLocation.ShouldBe(fileModel.FileLocation);
+            fileDetails.FileProfileId.ShouldBe(fileModel.FileProfileId);
+            fileDetails.MerchantId.ShouldBe(fileModel.MerchantId);
+            fileDetails.ProcessingCompleted.ShouldBe(fileModel.ProcessingCompleted);
+            fileDetails.UserId.ShouldBe(fileModel.UserId);
+            fileDetails.EstateId.ShouldBe(fileModel.EstateId);
+
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(fileModel.ProcessingSummary.FailedLines);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(fileModel.ProcessingSummary.IgnoredLines);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(fileModel.ProcessingSummary.NotProcessedLines);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(fileModel.ProcessingSummary.SuccessfullyProcessedLines);
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(fileModel.ProcessingSummary.TotalLines);
+
+            foreach (FileLine fileModelFileLine in fileModel.FileLines)
+            {
+                FileLine? fileLineToVerify = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == fileModelFileLine.LineNumber);
+                fileLineToVerify.ShouldNotBeNull();
+                fileLineToVerify.LineData.ShouldBe(fileModelFileLine.LineData);
+                fileLineToVerify.TransactionId.ShouldBe(fileModelFileLine.TransactionId);
+                fileLineToVerify.ProcessingResult.ShouldBe(fileModelFileLine.ProcessingResult);
+            }
         }
 
         private void VerifyImportLogs(List<FileImportLog> source,  List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
