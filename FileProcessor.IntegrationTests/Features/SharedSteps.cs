@@ -12,6 +12,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Net.Http.Headers;
     using System.Threading;
     using Common;
+    using DataTransferObjects;
     using Shared.IntegrationTesting;
     using Shouldly;
     using TechTalk.SpecFlow;
@@ -41,21 +42,21 @@ namespace FileProcessor.IntegrationTests.Features
         [Given(@"I upload this file for processing")]
         public async Task GivenIUploadThisFileForProcessing(Table table)
         {
-            var response = await this.UploadFile(table);
+            var fileId = await this.UploadFile(table);
 
-            response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
+            fileId.ShouldNotBe(Guid.Empty);
         }
 
         [Given(@"I upload this file for processing an error should be returned indicating the file is a duplicate")]
         public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(Table table)
         {
-            var response = await this.UploadFile(table);
-            response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-            var responseContent = await response.Content.ReadAsStringAsync(CancellationToken.None);
-            responseContent.ShouldContain("Duplicate file", Case.Insensitive);
+            Should.Throw<Exception>(async () =>
+                                    {
+                                        await this.UploadFile(table);
+                                    });
         }
 
-        private async Task<HttpResponseMessage> UploadFile(Table table)
+        private async Task<Guid> UploadFile(Table table)
         {
             var row = table.Rows.First();
             String merchantName = SpecflowTableHelper.GetStringRowValue(row, "MerchantName");
@@ -66,30 +67,26 @@ namespace FileProcessor.IntegrationTests.Features
             Guid estateId = estate.EstateId;
             var merchantId = estate.GetMerchantId(merchantName);
             String filePath = this.TestingContext.UploadFile;
+            var fileData = await File.ReadAllBytesAsync(filePath);
 
-            var client = new HttpClient();
-            var formData = new MultipartFormDataContent();
-
-            var fileContent = new ByteArrayContent(await File.ReadAllBytesAsync(filePath));
-            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-            formData.Add(fileContent, "file", Path.GetFileName(filePath));
-            formData.Add(new StringContent(estateId.ToString()), "request.EstateId");
-            formData.Add(new StringContent(merchantId.ToString()), "request.MerchantId");
-            formData.Add(new StringContent(fileProfileId), "request.FileProfileId");
-            formData.Add(new StringContent(userId), "request.UserId");
-
-            var request = new HttpRequestMessage(HttpMethod.Post, $"http://127.0.0.1:{this.TestingContext.DockerHelper.FileProcessorPort}/api/files")
-            {
-                Content = formData
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
-
-            var response = await client.SendAsync(request);
+            UploadFileRequest uploadFileRequest = new UploadFileRequest
+                                                  {
+                                                      EstateId = estateId,
+                                                      FileProfileId = Guid.Parse(fileProfileId),
+                                                      MerchantId = merchantId,
+                                                      UserId = Guid.Parse(userId)
+                                                  };
+            
+            var fileId = await this.TestingContext.DockerHelper.FileProcessorClient.UploadFile(this.TestingContext.AccessToken,
+                                                                            Path.GetFileName(filePath),
+                                                                            fileData,
+                                                                            uploadFileRequest,
+                                                                            CancellationToken.None);
 
             // Now we need to wait some time to let the file be processed
             await Task.Delay(TimeSpan.FromMinutes(1));
 
-            return response;
+            return fileId;
         }
 
 

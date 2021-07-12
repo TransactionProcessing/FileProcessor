@@ -198,7 +198,7 @@
             Guid response = Guid.Empty;
             try
             {
-                String requestUri = this.BuildRequestUrl("api/files");
+                String requestUri = this.BuildRequestUrl("/api/files");
 
                 HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
                 MultipartFormDataContent formData = new MultipartFormDataContent();
