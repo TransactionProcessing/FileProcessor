@@ -11,6 +11,7 @@ namespace FileProcessor.IntegrationTests.Common
     using System.Net;
     using System.Net.Http;
     using System.Threading;
+    using Client;
     using Ductus.FluentDocker.Builders;
     using Ductus.FluentDocker.Common;
     using Ductus.FluentDocker.Model.Builders;
@@ -43,7 +44,10 @@ namespace FileProcessor.IntegrationTests.Common
         /// </summary>
         public ISecurityServiceClient SecurityServiceClient;
 
-        public HttpClient FileProcessorClient;
+        /// <summary>
+        /// The file processor client
+        /// </summary>
+        public IFileProcessorClient FileProcessorClient;
 
         /// <summary>
         /// The test identifier
@@ -360,9 +364,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
-            //this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
-            this.FileProcessorClient = new HttpClient();
-            this.FileProcessorClient.BaseAddress = new Uri(FileProcessorBaseAddressResolver(null));
+            this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
 
             await this.LoadEventStoreProjections().ConfigureAwait(false);
         }
