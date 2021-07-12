@@ -8,7 +8,6 @@
 
   <ItemGroup>
 	  <PackageReference Include="EstateReporting.Client" Version="1.0.13.1" />
-	  <PackageReference Include="FileProcessor.Client" Version="0.0.3-build18" />
 	  <PackageReference Include="Grpc.Net.Client" Version="2.35.0" />
 	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.7" />
 	  <PackageReference Include="EstateReporting.Database" Version="1.0.13.1" />
@@ -54,6 +53,11 @@
 
   <ItemGroup>
     <Folder Include="Steps\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileProcessor.Client\FileProcessor.Client.csproj" />
+    <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
   </ItemGroup>
 
 </Project>
