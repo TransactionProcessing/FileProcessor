@@ -1,182 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FileProcessor.Client
+﻿namespace FileProcessor.Client
 {
-    using System.Net.Http;
-    using System.Net.Http.Headers;
+    using System;
     using System.Threading;
-    using ClientProxyBase;
+    using System.Threading.Tasks;
     using DataTransferObjects;
     using DataTransferObjects.Responses;
-    using Newtonsoft.Json;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IFileProcessorClient
     {
-        //GetImportLogs
-        // GET api/fileImportLogs?estateId={estateId}&startDateTime={startDateTime}&endDateTime={endDateTime}&merchantId={merchantId}
-        //GetImportLog
-        // GET api/fileImportLogs/{fileImportLogId}?estateId={estateId}&merchantId={merchantId}
+        #region Methods
 
-        Task<FileImportLogList> GetFileImportLogs(String accessToken, 
+        /// <summary>
+        /// Gets the file.
+        /// </summary>
+        /// <param name="accessToken">The access token.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="fileId">The file identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<FileDetails> GetFile(String accessToken,
+                                  Guid estateId,
+                                  Guid fileId,
+                                  CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the file import log.
+        /// </summary>
+        /// <param name="accessToken">The access token.</param>
+        /// <param name="fileImportLogId">The file import log identifier.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="merchantId">The merchant identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<FileImportLog> GetFileImportLog(String accessToken,
+                                             Guid fileImportLogId,
+                                             Guid estateId,
+                                             Guid? merchantId,
+                                             CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the file import logs.
+        /// </summary>
+        /// <param name="accessToken">The access token.</param>
+        /// <param name="estateId">The estate identifier.</param>
+        /// <param name="startDateTime">The start date time.</param>
+        /// <param name="endDateTime">The end date time.</param>
+        /// <param name="merchantId">The merchant identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        Task<FileImportLogList> GetFileImportLogs(String accessToken,
                                                   Guid estateId,
                                                   DateTime startDateTime,
                                                   DateTime endDateTime,
                                                   Guid? merchantId,
                                                   CancellationToken cancellationToken);
 
-        Task<FileImportLog> GetFileImportLog(String accessToken, 
-                                              Guid fileImportLogId, 
-                                              Guid estateId,
-                                              Guid? merchantId,
-                                              CancellationToken cancellationToken);
-
-        Task UploadFile(String accessToken, UploadFileRequest uploadFileRequest, CancellationToken cancellation);
-
-        Task<FileDetails> GetFile(String accessToken, Guid fileId, CancellationToken cancellationToken);
-    }
-
-    public class FileProcessorClient : ClientProxyBase, IFileProcessorClient
-    {
-        private readonly Func<String, String> BaseAddressResolver;
-
-        public async Task<FileImportLogList> GetFileImportLogs(String accessToken,
-                                                               Guid estateId,
-                                                               DateTime startDateTime,
-                                                               DateTime endDateTime,
-                                                               Guid? merchantId,
-                                                               CancellationToken cancellationToken)
-        {
-            FileImportLogList response = null;
-
-            String requestUri = this.BuildRequestUrl($"/api/fileImportLogs?estateId={estateId}&startDateTime={startDateTime.Date:yyyy-MM-dd}&endDateTime={endDateTime.Date:yyyy-MM-dd}");
-
-            if (merchantId.HasValue)
-            {
-                requestUri += $"&merchantId={merchantId}";
-            }
-
-            try
-            {
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                String content = await this.HandleResponse(httpResponse, cancellationToken);
-
-                // call was successful so now deserialise the body to the response object
-                response = JsonConvert.DeserializeObject<FileImportLogList>(content);
-            }
-            catch (Exception ex)
-            {
-                // An exception has occurred, add some additional information to the message
-                Exception exception = new Exception($"Error getting list of file import logs.", ex);
-
-                throw exception;
-            }
-
-            return response;
-        }
-
-        public async Task<FileImportLog> GetFileImportLog(String accessToken,
-                                                           Guid fileImportLogId,
-                                                           Guid estateId,
-                                                           Guid? merchantId,
-                                                           CancellationToken cancellationToken)
-        {
-            FileImportLog response = null;
-
-            String requestUri = this.BuildRequestUrl($"/api/fileImportLogs/{fileImportLogId}?estateId={estateId}");
-
-            if (merchantId.HasValue)
-            {
-                requestUri += $"&merchantId={merchantId}";
-            }
-
-            try
-            {
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                String content = await this.HandleResponse(httpResponse, cancellationToken);
-
-                // call was successful so now deserialise the body to the response object
-                response = JsonConvert.DeserializeObject<FileImportLog>(content);
-            }
-            catch (Exception ex)
-            {
-                // An exception has occurred, add some additional information to the message
-                Exception exception = new Exception($"Error getting file import log.", ex);
-
-                throw exception;
-            }
-
-            return response;
-        }
-
-        public async Task UploadFile(String accessToken,
-                                     UploadFileRequest uploadFileRequest,
-                                     CancellationToken cancellation)
-        {
-        }
-
-        public async Task<FileDetails> GetFile(String accessToken,
-                                               Guid fileId,
-                                               CancellationToken cancellationToken)
-        {
-            FileImportLog response = null;
-
-            String requestUri = this.BuildRequestUrl($"/api/fileImportLogs/{fileImportLogId}?estateId={estateId}");
-
-            if (merchantId.HasValue)
-            {
-                requestUri += $"&merchantId={merchantId}";
-            }
-
-            try
-            {
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                String content = await this.HandleResponse(httpResponse, cancellationToken);
-
-                // call was successful so now deserialise the body to the response object
-                response = JsonConvert.DeserializeObject<FileImportLog>(content);
-            }
-            catch (Exception ex)
-            {
-                // An exception has occurred, add some additional information to the message
-                Exception exception = new Exception($"Error getting file import log.", ex);
-
-                throw exception;
-            }
-        }
-
         /// <summary>
-        /// Builds the request URL.
+        /// Uploads the file.
         /// </summary>
-        /// <param name="route">The route.</param>
+        /// <param name="accessToken">The access token.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="fileData">The file data.</param>
+        /// <param name="uploadFileRequest">The upload file request.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        private String BuildRequestUrl(String route)
-        {
-            String baseAddress = this.BaseAddressResolver("FileProcessorApi");
+        Task<Guid> UploadFile(String accessToken,
+                              String fileName,
+                              Byte[] fileData,
+                              UploadFileRequest uploadFileRequest,
+                              CancellationToken cancellationToken);
 
-            String requestUri = $"{baseAddress}{route}";
-
-            return requestUri;
-        }
-
-        public FileProcessorClient(Func<String, String> baseAddressResolver, HttpClient httpClient) : base(httpClient)
-        {
-            this.BaseAddressResolver = baseAddressResolver;
-
-            // Add the API version header
-            this.HttpClient.DefaultRequestHeaders.Add("api-version", "1.0");
-        }
+        #endregion
     }
 }
