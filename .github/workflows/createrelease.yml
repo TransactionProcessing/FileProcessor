@@ -102,7 +102,7 @@ jobs:
         
     - name: Build and Publish Nuget Packages
       run: |
-      dotnet pack "FileProcessor.File.DomainEvents\FileProcessor.File.DomainEvents.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
+        dotnet pack "FileProcessor.File.DomainEvents\FileProcessor.File.DomainEvents.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
         dotnet nuget push Nugets/FileProcessor.File.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.MYGET_APIKEY }} --source https://www.myget.org/F/transactionprocessing/api/v2/package
         dotnet pack "FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
         dotnet nuget push Nugets/FileProcessor.FileImportLog.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.MYGET_APIKEY }} --source https://www.myget.org/F/transactionprocessing/api/v2/package
