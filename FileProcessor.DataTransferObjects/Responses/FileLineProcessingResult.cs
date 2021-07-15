@@ -25,6 +25,11 @@
         /// <summary>
         /// The ignored
         /// </summary>
-        Ignored
+        Ignored,
+
+        /// <summary>
+        /// The rejected
+        /// </summary>
+        Rejected
     }
 }

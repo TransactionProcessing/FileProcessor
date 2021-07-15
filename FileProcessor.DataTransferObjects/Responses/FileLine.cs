@@ -43,6 +43,15 @@
         [JsonProperty("transaction_id")]
         public Guid TransactionId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the rejection reason.
+        /// </summary>
+        /// <value>
+        /// The rejection reason.
+        /// </value>
+        [JsonProperty("rejection_reason")]
+        public String RejectionReason { get; set; }
+
         #endregion
     }
 }
