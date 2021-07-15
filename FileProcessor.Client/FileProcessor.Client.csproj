@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+	  <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeP2PAssets</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClientProxyBase" Version="1.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All" />
+  </ItemGroup>
+
+	<Target Name="IncludeP2PAssets">
+		<ItemGroup>
+			<BuildOutputInPackage Include="$(OutputPath)FileProcessor.DataTransferObjects.dll" />
+		</ItemGroup>
+	</Target>		
+</Project>

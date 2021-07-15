@@ -10,6 +10,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading;
     using Common;
     using DataTransferObjects.Responses;
     using Newtonsoft.Json;
@@ -36,7 +37,7 @@ namespace FileProcessor.IntegrationTests.Features
         [When(@"I get the '(.*)' import logs between '(.*)' and '(.*)' the following data is returned")]
         public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(string estateName, string startDate, string endDate, Table table)
         {
-            FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, endDate);
+            FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, endDate, CancellationToken.None);
 
             foreach (TableRow tableRow in table.Rows)
             {
@@ -50,76 +51,53 @@ namespace FileProcessor.IntegrationTests.Features
             }
         }
 
-        private async Task<FileDetails> GetFile(String estateName, Guid fileId)
+        private async Task<FileDetails> GetFile(String estateName, Guid fileId, CancellationToken cancellationToken)
         {
             var estateDetails = this.TestingContext.GetEstateDetails(estateName);
-
-            String requestUri =
-                $"{this.TestingContext.DockerHelper.FileProcessorClient.BaseAddress}api/files/{fileId}?estateId={estateDetails.EstateId}";
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
-
-            var responseMessage = await this.TestingContext.DockerHelper.FileProcessorClient.SendAsync(requestMessage);
-
-            responseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
-            var content = await responseMessage.Content.ReadAsStringAsync();
-            content.ShouldNotBeNull();
-            content.ShouldNotBeEmpty();
-
-            var fileDetails = JsonConvert.DeserializeObject<FileDetails>(content);
+            
+            var fileDetails = await this.TestingContext.DockerHelper.FileProcessorClient.GetFile(this.TestingContext.AccessToken, estateDetails.EstateId, fileId, cancellationToken);
             fileDetails.ShouldNotBeNull();
-
+            
             return fileDetails;
         }
 
         private async Task<FileImportLogList> GetFileImportLogList(String estateName,
                                                                String startDate,
-                                                               String endDate)
+                                                               String endDate, 
+                                                               CancellationToken cancellationToken)
         {
             var queryStartDate = SpecflowTableHelper.GetDateForDateString(startDate, DateTime.Now);
             var queryEndDate = SpecflowTableHelper.GetDateForDateString(endDate, DateTime.Now);
             var estateDetails = this.TestingContext.GetEstateDetails(estateName);
 
-            String requestUri =
-                $"{this.TestingContext.DockerHelper.FileProcessorClient.BaseAddress}api/fileImportLogs?estateId={estateDetails.EstateId}&startDate={queryStartDate.Date:yyyy-MM-dd}&endDate={queryEndDate.Date:yyyy-MM-dd}";
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
-
-            var responseMessage = await this.TestingContext.DockerHelper.FileProcessorClient.SendAsync(requestMessage);
-
-            responseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
-            var content = await responseMessage.Content.ReadAsStringAsync();
-            content.ShouldNotBeNull();
-            content.ShouldNotBeEmpty();
-
-            var importLogList = JsonConvert.DeserializeObject<FileImportLogList>(content);
+            var importLogList = await this.TestingContext.DockerHelper.FileProcessorClient.GetFileImportLogs(this.TestingContext.AccessToken,
+                                                                                                             estateDetails.EstateId,
+                                                                                                             queryStartDate,
+                                                                                                             queryEndDate,
+                                                                                                             null,
+                                                                                                             cancellationToken);
             importLogList.ShouldNotBeNull();
             importLogList.FileImportLogs.ShouldNotBeNull();
             importLogList.FileImportLogs.ShouldNotBeEmpty();
+
             return importLogList;
         }
 
         private async Task<FileImportLog> GetFileImportLog(String estateName,
-                                                               Guid fileImportLogId)
+                                                               Guid fileImportLogId,
+                                                               CancellationToken cancellationToken)
         {
             var estateDetails = this.TestingContext.GetEstateDetails(estateName);
 
-            String requestUri =
-                $"{this.TestingContext.DockerHelper.FileProcessorClient.BaseAddress}api/fileImportLogs/{fileImportLogId}?estateId={estateDetails.EstateId}";
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.TestingContext.AccessToken);
-
-            var responseMessage = await this.TestingContext.DockerHelper.FileProcessorClient.SendAsync(requestMessage);
-
-            responseMessage.StatusCode.ShouldBe(HttpStatusCode.OK);
-            var content = await responseMessage.Content.ReadAsStringAsync();
-            content.ShouldNotBeNull();
-            content.ShouldNotBeEmpty();
-
-            var fileImportLog = JsonConvert.DeserializeObject<FileImportLog>(content);
+            var fileImportLog = await this.TestingContext.DockerHelper.FileProcessorClient.GetFileImportLog(this.TestingContext.AccessToken,
+                                                                                                            fileImportLogId,
+                                                                                                            estateDetails.EstateId,
+                                                                                                            null,
+                                                                                                            cancellationToken);
             fileImportLog.ShouldNotBeNull();
             fileImportLog.Files.ShouldNotBeNull();
             fileImportLog.Files.ShouldNotBeEmpty();
+
             return fileImportLog;
         }
 
@@ -127,11 +105,11 @@ namespace FileProcessor.IntegrationTests.Features
         public async Task WhenIGetTheImportLogForTheFollowingFileInformationIsReturned(string estateName, string startDate, Table table)
         {
             EstateDetails estateDetails = this.TestingContext.GetEstateDetails(estateName);
-            FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, startDate);
+            FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, startDate, CancellationToken.None);
 
             importLogList.FileImportLogs.ShouldHaveSingleItem();
 
-            var fileImportLog = await this.GetFileImportLog(estateName, importLogList.FileImportLogs.Single().FileImportLogId);
+            var fileImportLog = await this.GetFileImportLog(estateName, importLogList.FileImportLogs.Single().FileImportLogId, CancellationToken.None);
 
             foreach (TableRow tableRow in table.Rows)
             {
@@ -167,7 +145,7 @@ namespace FileProcessor.IntegrationTests.Features
 
             await Retry.For(async () =>
                             {
-                                var fileDetails = await this.GetFile(estateName, fileId);
+                                var fileDetails = await this.GetFile(estateName, fileId, CancellationToken.None);
                                 fileDetails.ProcessingCompleted.ShouldBe(processingCompleted);
                                 fileDetails.FileLines.Count.ShouldBe(numberOfLines);
                                 fileDetails.ProcessingSummary.TotalLines.ShouldBe(totaLines);
@@ -185,7 +163,7 @@ namespace FileProcessor.IntegrationTests.Features
 
             Guid fileId = estateDetails.GetFileId(fileName);
 
-            var fileDetails = await this.GetFile(estateName, fileId);
+            var fileDetails = await this.GetFile(estateName, fileId, CancellationToken.None);
 
             foreach (TableRow tableRow in table.Rows)
             {
