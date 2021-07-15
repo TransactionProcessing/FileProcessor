@@ -287,5 +287,71 @@ namespace FileProcessor.FileAggregate.Tests
                 fileAggregate.RecordFileLineAsIgnored(TestData.NotFoundLineNumber);
             });
         }
+
+
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsRejected_FileLineUpdatedAsRejected()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(TestData.FileLine);
+            fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
+
+            FileDetails fileDetails = fileAggregate.GetFile();
+            fileDetails.FileLines.ShouldNotBeNull();
+            fileDetails.FileLines.ShouldNotBeEmpty();
+            fileDetails.FileLines.ShouldHaveSingleItem();
+            fileDetails.FileLines.Single().LineNumber.ShouldBe(1);
+            fileDetails.FileLines.Single().LineData.ShouldBe(TestData.FileLine);
+            fileDetails.FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.Rejected);
+            fileDetails.FileLines.Single().RejectedReason.ShouldBe(TestData.RejectionReason);
+            fileDetails.ProcessingCompleted.ShouldBeTrue();
+            fileDetails.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.ProcessingSummary.TotalLines.ShouldBe(1);
+            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.FailedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(0);
+            fileDetails.ProcessingSummary.RejectedLines.ShouldBe(1);
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsRejected_FileNotCreated_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+
+            Should.Throw<InvalidOperationException>(() =>
+            {
+                fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
+            });
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsRejected_FileHasNoLine_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+
+            Should.Throw<InvalidOperationException>(() =>
+            {
+                fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
+            });
+        }
+
+        [Fact]
+        public void FileAggregate_RecordFileLineAsRejected_LineNotFound_ErrorThrown()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(TestData.FileLine);
+            Should.Throw<NotFoundException>(() =>
+            {
+                fileAggregate.RecordFileLineAsRejected(TestData.NotFoundLineNumber, TestData.RejectionReason);
+            });
+        }
     }
 }

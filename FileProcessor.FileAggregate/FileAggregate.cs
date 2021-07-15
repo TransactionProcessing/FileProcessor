@@ -162,7 +162,8 @@ namespace FileProcessor.FileAggregate
                                                FailedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Failed),
                                                IgnoredLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Ignored),
                                                NotProcessedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.NotProcessed),
-                                               SuccessfullyProcessedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Successful)
+                                               SuccessfullyProcessedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Successful),
+                                               RejectedLines = this.FileLines.Count(x => x.ProcessingResult == ProcessingResult.Rejected)
                        }
                    };
         }
@@ -189,6 +190,14 @@ namespace FileProcessor.FileAggregate
             // find the line 
             FileLine fileLine = this.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.ProcessingResult = ProcessingResult.Ignored;
+        }
+
+        private void PlayEvent(FileLineProcessingRejectedEvent domainEvent)
+        {
+            // find the line 
+            FileLine fileLine = this.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
+            fileLine.ProcessingResult = ProcessingResult.Rejected;
+            fileLine.RejectedReason = domainEvent.Reason;
         }
 
         /// <summary>
@@ -287,6 +296,33 @@ namespace FileProcessor.FileAggregate
                 new FileLineProcessingIgnoredEvent(this.AggregateId, this.EstateId, lineNumber);
 
             this.ApplyAndAppend(fileLineProcessingIgnoredEvent);
+
+            this.CompletedChecks();
+        }
+
+        /// <summary>
+        /// Records the file line as rejected.
+        /// </summary>
+        /// <param name="lineNumber">The line number.</param>
+        /// <param name="reason">The reason.</param>
+        /// <exception cref="InvalidOperationException">File has no lines to mark as rejected</exception>
+        /// <exception cref="NotFoundException">File line with number {lineNumber} not found to mark as rejected</exception>
+        public void RecordFileLineAsRejected(Int32 lineNumber, String reason)
+        {
+            if (this.FileLines.Any() == false)
+            {
+                throw new InvalidOperationException("File has no lines to mark as rejected");
+            }
+
+            if (this.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
+            {
+                throw new NotFoundException($"File line with number {lineNumber} not found to mark as rejected");
+            }
+
+            FileLineProcessingRejectedEvent fileLineProcessingRejectedEvent =
+                new FileLineProcessingRejectedEvent(this.AggregateId, this.EstateId, lineNumber, reason);
+
+            this.ApplyAndAppend(fileLineProcessingRejectedEvent);
 
             this.CompletedChecks();
         }

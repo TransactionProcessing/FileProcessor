@@ -26,6 +26,14 @@
         public Int32 IgnoredLines { get; set; }
 
         /// <summary>
+        /// Gets or sets the rejected lines.
+        /// </summary>
+        /// <value>
+        /// The rejectedt lines.
+        /// </value>
+        public Int32 RejectedLines { get; set; }
+
+        /// <summary>
         /// Gets or sets the not processed lines.
         /// </summary>
         /// <value>

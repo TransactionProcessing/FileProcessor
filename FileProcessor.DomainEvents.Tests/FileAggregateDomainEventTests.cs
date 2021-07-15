@@ -81,6 +81,18 @@ namespace FileProcessor.DomainEvents.Tests
         }
 
         [Fact]
+        public void FileLineProcessingRejectedEvent_CanBeCreated_IsCreated()
+        {
+            FileLineProcessingRejectedEvent fileLineProcessingRejectedEvent =
+                new FileLineProcessingRejectedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.RejectionReason);
+
+            fileLineProcessingRejectedEvent.FileId.ShouldBe(TestData.FileId);
+            fileLineProcessingRejectedEvent.LineNumber.ShouldBe(TestData.LineNumber);
+            fileLineProcessingRejectedEvent.EstateId.ShouldBe(TestData.EstateId);
+            fileLineProcessingRejectedEvent.Reason.ShouldBe(TestData.RejectionReason);
+        }
+
+        [Fact]
         public void FileProcessingCompletedEvent_CanBeCreated_IsCreated()
         {
             FileProcessingCompletedEvent fileProcessingCompletedEvent =

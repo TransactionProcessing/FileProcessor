@@ -30,6 +30,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     using Shared.Logger;
     using TransactionProcessor.Client;
     using TransactionProcessor.DataTransferObjects;
+    using Exception = System.Exception;
 
     /// <summary>
     /// 
@@ -370,6 +371,14 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             // need to now parse the line (based on the file format), this builds the metadata
             Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
 
+            if (transactionMetadata == null)
+            {
+                // Line failed to parse so record this
+                fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
+                await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
+                return new Unit();
+            }
+
             // Add the file data to the request metadata
             transactionMetadata.Add("FileId", request.FileId.ToString());
             transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
@@ -502,9 +511,17 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         private Dictionary<String, String> ParseFileLine(String domainEventFileLine,
                                                         String fileProfileFileFormatHandler)
         {
-            IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfileFileFormatHandler);
+            try
+            {
+                IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfileFileFormatHandler);
 
-            return fileFormatHandler.ParseFileLine(domainEventFileLine);
+                return fileFormatHandler.ParseFileLine(domainEventFileLine);
+            }
+            catch(InvalidDataException iex)
+            {
+                Logger.LogWarning(iex.Message);
+                return null;
+            }
         }
 
         /// <summary>

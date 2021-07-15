@@ -35,6 +35,15 @@
         public Int32 NotProcessedLines { get; set; }
 
         /// <summary>
+        /// Gets or sets the rejected lines.
+        /// </summary>
+        /// <value>
+        /// The rejected lines.
+        /// </value>
+        [JsonProperty("rejected_lines")]
+        public Int32 RejectedLines { get; set; }
+
+        /// <summary>
         /// Gets or sets the successfully processed lines.
         /// </summary>
         /// <value>

@@ -42,6 +42,14 @@
         /// </value>
         public Guid TransactionId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the rejected reason.
+        /// </summary>
+        /// <value>
+        /// The rejected reason.
+        /// </value>
+        public String RejectedReason { get; set; }
+
         #endregion
     }
 }

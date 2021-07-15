@@ -445,6 +445,8 @@ namespace FileProcessor.Testing
         public static DateTime ImportLogStartDate = new DateTime(2021,7,1);
         public static DateTime ImportLogEndDate = new DateTime(2021,7,2);
 
+        public static String RejectionReason = "Invalid Line Format";
+
         public static FileDetails FileDetailsModel => new FileDetails
                                                       {
                                                           EstateId = TestData.EstateId,
@@ -458,10 +460,11 @@ namespace FileProcessor.Testing
                                                           ProcessingSummary = new ProcessingSummary
                                                                               {
                                                                                   FailedLines = 1,
-                                                                                  TotalLines = 8,
+                                                                                  TotalLines = 10,
                                                                                   IgnoredLines = 2,
                                                                                   NotProcessedLines = 1,
-                                                                                  SuccessfullyProcessedLines = 4
+                                                                                  SuccessfullyProcessedLines = 4,
+                                                                                  RejectedLines = 1
                                                                               },
                                                           FileLines = new List<FIleProcessor.Models.FileLine>
                                                                       {
@@ -516,15 +519,22 @@ namespace FileProcessor.Testing
                                                                           },
                                                                           new FIleProcessor.Models.FileLine
                                                                           {
-                                                                              ProcessingResult = (ProcessingResult)99, // Invalid status
+                                                                              ProcessingResult = ProcessingResult.Rejected,
                                                                               LineNumber = 8,
+                                                                              LineData = TestData.GetSafaricomDetailLine("7","700"),
+                                                                              TransactionId = Guid.Empty
+                                                                          },
+                                                                          new FIleProcessor.Models.FileLine
+                                                                          {
+                                                                              ProcessingResult = (ProcessingResult)99, // Invalid status
+                                                                              LineNumber = 9,
                                                                               LineData = TestData.GetSafaricomDetailLine("8","800"),
                                                                               TransactionId = Guid.Empty
                                                                           },
                                                                           new FIleProcessor.Models.FileLine
                                                                           {
                                                                               ProcessingResult = ProcessingResult.Ignored,
-                                                                              LineNumber = 9,
+                                                                              LineNumber = 10,
                                                                               LineData = "T",
                                                                               TransactionId = Guid.Empty
                                                                           }

@@ -122,6 +122,11 @@ namespace FileProcessor.Tests
                     fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.Ignored);
                 if (sourceFileLine.ProcessingResult == ProcessingResult.NotProcessed)
                     fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.NotProcessed);
+                if (sourceFileLine.ProcessingResult == ProcessingResult.Rejected)
+                {
+                    fileLineToVerify.ProcessingResult.ShouldBe(FileLineProcessingResult.Rejected);
+                    fileLineToVerify.RejectionReason.ShouldBe(sourceFileLine.RejectedReason);
+                }
             }
         }
 

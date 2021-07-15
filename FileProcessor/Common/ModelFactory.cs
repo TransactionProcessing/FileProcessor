@@ -95,7 +95,8 @@
                                                         IgnoredLines = fileDetails.ProcessingSummary.IgnoredLines,
                                                         NotProcessedLines = fileDetails.ProcessingSummary.NotProcessedLines,
                                                         SuccessfullyProcessedLines = fileDetails.ProcessingSummary.SuccessfullyProcessedLines,
-                                                        TotalLines = fileDetails.ProcessingSummary.TotalLines
+                                                        TotalLines = fileDetails.ProcessingSummary.TotalLines,
+                                                        RejectedLines = fileDetails.ProcessingSummary.RejectedLines
                                                     };
 
             return fileDetailsResponse;
@@ -119,6 +120,8 @@
                     return FileLineProcessingResult.NotProcessed;
                 case ProcessingResult.Successful:
                     return FileLineProcessingResult.Successful;
+                case ProcessingResult.Rejected:
+                    return FileLineProcessingResult.Rejected;
                 default:
                     return FileLineProcessingResult.Unknown;
             }
