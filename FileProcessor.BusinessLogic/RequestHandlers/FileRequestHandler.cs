@@ -346,7 +346,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 throw new NotFoundException($"File Line Number {request.LineNumber} not found in File Id {request.FileId}");
             }
 
-            if (fileLine.TransactionId != Guid.Empty)
+            if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
             {
                 // Line already processed
                 return new Unit();

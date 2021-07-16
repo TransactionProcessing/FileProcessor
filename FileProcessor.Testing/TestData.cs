@@ -93,12 +93,22 @@ namespace FileProcessor.Testing
 
         public static FileProfile FileProfileNull => null;
 
+        public static FileProfile GetFileProfile(String operatorName)
+        {
+            if (operatorName == "Safaricom")
+                return FileProfileSafaricom;
+            if (operatorName == "Voucher")
+                return FileProfileVoucher;
+
+            return null;
+        }
+
         public static FileProfile FileProfileSafaricom =>
             new FileProfile(TestData.SafaricomFileProfileId,
                             TestData.SafaricomProfileName,
                             TestData.SafaricomListeningDirectory,
                             TestData.SafaricomRequestType,
-                            TestData.OperatorIdentifier,
+                            TestData.SafaricomOperatorIdentifier,
                             TestData.SafaricomLineTerminator,
                             TestData.SafaricomFileFormatHandler);
 
@@ -123,37 +133,58 @@ namespace FileProcessor.Testing
 
         public static String DeviceIdentifier = "testdevice1";
 
-        public static String OperatorIdentifier = "Safaricom";
+        public static String SafaricomOperatorIdentifier = "Safaricom";
 
-        public static String VoucherOperatorIdentifier = "Healthcare Centre 1";
+        public static String VoucherOperatorIdentifier = "Voucher";
 
         public static String OperatorIdentifierNotFile = "Other Operator";
 
-        public static Guid OperatorId = Guid.Parse("68B5745B-2D77-41F1-8310-FDAB060C0001");
+        public static Guid SafaricomOperatorId = Guid.Parse("68B5745B-2D77-41F1-8310-FDAB060C0001");
+
+        public static Guid VoucherOperatorId = Guid.Parse("70744470-37CD-4175-8869-86A225108BED");
 
         public static String MerchantNumber = "12345678";
 
         public static String TerminalNumber = "00000001";
 
-        public static Guid ContractId = Guid.Parse("835D421B-6F34-4369-AC27-6E2365B11D29");
+        public static Guid SafaricomContractId = Guid.Parse("835D421B-6F34-4369-AC27-6E2365B11D29");
+        public static Guid VoucherContractId = Guid.Parse("EFD4C87B-C6F8-4DF2-BFCA-0AE39E4B9511");
 
-        public static String ContractDescription = "Safaricom Contract";
+        public static String SafaricomContractDescription = "Safaricom Contract";
+        public static String VoucherContractDescription = "Voucher Contract";
 
-        public static String ContractProductWithValueName = "100 KES Topup";
+        public static String SafaricomContractProductWithValueName = "100 KES Topup";
 
-        public static Guid ContractWithValueProductId = Guid.Parse("7F8FF091-E127-429D-8D92-5B8597320AE1");
+        public static Guid SafaricomContractWithValueProductId = Guid.Parse("7F8FF091-E127-429D-8D92-5B8597320AE1");
 
-        public static Decimal? ContractProductWithValueValue = 100.00m;
+        public static Decimal? SafaricomContractProductWithValueValue = 100.00m;
 
-        public static String ContractProductWithValueDisplayText = "100 KES";
+        public static String SafaricomContractProductWithValueDisplayText = "100 KES";
 
-        public static String ContractProductWithNullValueName = "Custom Topup";
+        public static String SafaricomContractProductWithNullValueName = "Custom Topup";
 
-        public static Guid ContractWithNullValueProductId = Guid.Parse("435CBB20-1ADC-4646-8DEC-5341E877220D");
+        public static Guid SafarciomContractWithNullValueProductId = Guid.Parse("435CBB20-1ADC-4646-8DEC-5341E877220D");
 
-        public static Decimal? ContractProductWithNullValueValue = null;
+        public static Decimal? SafaricomContractProductWithNullValueValue = null;
 
-        public static String ContractProductWithNullValueDisplayText = "Custom";
+        public static String SafaricomContractProductWithNullValueDisplayText = "Custom";
+
+
+        public static String VoucherContractProductWithValueName = "10 KES Voucher";
+
+        public static Guid VoucherContractWithValueProductId = Guid.Parse("D564FFF0-04B0-41EC-AA58-2AD981D352B3");
+
+        public static Decimal? VoucherContractProductWithValueValue = 10.00m;
+
+        public static String VoucherContractProductWithValueDisplayText = "10 KES";
+
+        public static String VoucherContractProductWithNullValueName = "Custom Voucher";
+
+        public static Guid VoucherContractWithNullValueProductId = Guid.Parse("0B648D1A-F057-4055-90E8-3B106DB391E0");
+
+        public static Decimal? VoucherContractProductWithNullValueValue = null;
+
+        public static String VoucherContractProductWithNullValueDisplayText = "Custom";
 
         public static Guid FileImportLogId = Guid.Parse("5F1149F8-0313-45E4-BE3A-3D7B07EEB414");
         public static Guid FileImportLogId1 = Guid.Parse("7EF0D557-2148-4DED-83F5-2521E8422391");
@@ -183,7 +214,7 @@ namespace FileProcessor.Testing
             {
                 {"Amount", "100"},
                 {"CustomerAccountNumber", "123456789"},
-                {"OperatorName", TestData.OperatorIdentifier}
+                {"OperatorName", TestData.SafaricomOperatorIdentifier}
             };
 
         public static FileImportLogAggregate GetEmptyFileImportLogAggregate()
@@ -238,7 +269,14 @@ namespace FileProcessor.Testing
 
             fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine("D,1,2");
-            fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
+            fileAggregate.AddFileLine("D,1,2");
+            fileAggregate.AddFileLine("D,1,2");
+            fileAggregate.AddFileLine("D,1,2");
+            fileAggregate.RecordFileLineAsSuccessful(1, TestData.TransactionId);
+            fileAggregate.RecordFileLineAsRejected(2, TestData.RejectionReason);
+            fileAggregate.RecordFileLineAsFailed(3, TestData.TransactionId, "-1","Failed");
+            fileAggregate.RecordFileLineAsIgnored(4);
+            
             return fileAggregate;
         }
 
@@ -269,8 +307,8 @@ namespace FileProcessor.Testing
                             {
                                 new MerchantOperatorResponse
                                 {
-                                    Name = TestData.OperatorIdentifier,
-                                    OperatorId = TestData.OperatorId,
+                                    Name = TestData.SafaricomOperatorIdentifier,
+                                    OperatorId = TestData.SafaricomOperatorId,
                                     MerchantNumber = TestData.MerchantNumber,
                                     TerminalNumber = TestData.TerminalNumber
                                 }
@@ -284,32 +322,60 @@ namespace FileProcessor.Testing
             contractResponses.Add(new ContractResponse
                                   {
                                       EstateId = TestData.EstateId,
-                                      OperatorName = TestData.OperatorIdentifier,
-                                      ContractId = TestData.ContractId,
-                                      Description = TestData.ContractDescription,
-                                      OperatorId = TestData.OperatorId,
+                                      OperatorName = TestData.SafaricomOperatorIdentifier,
+                                      ContractId = TestData.SafaricomContractId,
+                                      Description = TestData.SafaricomContractDescription,
+                                      OperatorId = TestData.SafaricomOperatorId,
                                       Products = new List<ContractProduct>
                                                  {
                                                      new ContractProduct
                                                      {
-                                                         Name = TestData.ContractProductWithValueName,
-                                                         ProductId = TestData.ContractWithValueProductId,
-                                                         Value = TestData.ContractProductWithValueValue,
-                                                         DisplayText = TestData.ContractProductWithValueDisplayText,
+                                                         Name = TestData.SafaricomContractProductWithValueName,
+                                                         ProductId = TestData.SafaricomContractWithValueProductId,
+                                                         Value = TestData.SafaricomContractProductWithValueValue,
+                                                         DisplayText = TestData.SafaricomContractProductWithValueDisplayText,
                                                          TransactionFees = null
                                                      },
                                                      new ContractProduct
                                                      {
-                                                         Name = TestData.ContractProductWithNullValueName,
-                                                         ProductId = TestData.ContractWithNullValueProductId,
-                                                         Value = TestData.ContractProductWithNullValueValue,
-                                                         DisplayText = TestData.ContractProductWithNullValueDisplayText,
+                                                         Name = TestData.SafaricomContractProductWithNullValueName,
+                                                         ProductId = TestData.SafarciomContractWithNullValueProductId,
+                                                         Value = TestData.SafaricomContractProductWithNullValueValue,
+                                                         DisplayText = TestData.SafaricomContractProductWithNullValueDisplayText,
                                                          TransactionFees = null
                                                      }
 
                                                  }
                                   });
-            
+
+            contractResponses.Add(new ContractResponse
+            {
+                EstateId = TestData.EstateId,
+                OperatorName = TestData.VoucherOperatorIdentifier,
+                ContractId = TestData.VoucherContractId,
+                Description = TestData.VoucherContractDescription,
+                OperatorId = TestData.VoucherOperatorId,
+                Products = new List<ContractProduct>
+                                                 {
+                                                     new ContractProduct
+                                                     {
+                                                         Name = TestData.VoucherContractProductWithValueName,
+                                                         ProductId = TestData.VoucherContractWithValueProductId,
+                                                         Value = TestData.VoucherContractProductWithValueValue,
+                                                         DisplayText = TestData.VoucherContractProductWithValueDisplayText,
+                                                         TransactionFees = null
+                                                     },
+                                                     new ContractProduct
+                                                     {
+                                                         Name = TestData.VoucherContractProductWithNullValueName,
+                                                         ProductId = TestData.VoucherContractWithNullValueProductId,
+                                                         Value = TestData.VoucherContractProductWithNullValueValue,
+                                                         DisplayText = TestData.VoucherContractProductWithNullValueDisplayText,
+                                                         TransactionFees = null
+                                                     }
+                                                 }
+            });
+
             return contractResponses;
         }
 
@@ -321,25 +387,25 @@ namespace FileProcessor.Testing
             {
                 EstateId = TestData.EstateId,
                 OperatorName = TestData.OperatorIdentifierNotFile,
-                ContractId = TestData.ContractId,
-                Description = TestData.ContractDescription,
-                OperatorId = TestData.OperatorId,
+                ContractId = TestData.SafaricomContractId,
+                Description = TestData.SafaricomContractDescription,
+                OperatorId = TestData.SafaricomOperatorId,
                 Products = new List<ContractProduct>
                                                  {
                                                      new ContractProduct
                                                      {
-                                                         Name = TestData.ContractProductWithValueName,
-                                                         ProductId = TestData.ContractWithValueProductId,
-                                                         Value = TestData.ContractProductWithValueValue,
-                                                         DisplayText = TestData.ContractProductWithValueDisplayText,
+                                                         Name = TestData.SafaricomContractProductWithValueName,
+                                                         ProductId = TestData.SafaricomContractWithValueProductId,
+                                                         Value = TestData.SafaricomContractProductWithValueValue,
+                                                         DisplayText = TestData.SafaricomContractProductWithValueDisplayText,
                                                          TransactionFees = null
                                                      },
                                                      new ContractProduct
                                                      {
-                                                         Name = TestData.ContractProductWithNullValueName,
-                                                         ProductId = TestData.ContractWithNullValueProductId,
-                                                         Value = TestData.ContractProductWithNullValueValue,
-                                                         DisplayText = TestData.ContractProductWithNullValueDisplayText,
+                                                         Name = TestData.SafaricomContractProductWithNullValueName,
+                                                         ProductId = TestData.SafarciomContractWithNullValueProductId,
+                                                         Value = TestData.SafaricomContractProductWithNullValueValue,
+                                                         DisplayText = TestData.SafaricomContractProductWithNullValueDisplayText,
                                                          TransactionFees = null
                                                      }
 
@@ -356,18 +422,18 @@ namespace FileProcessor.Testing
             contractResponses.Add(new ContractResponse
             {
                 EstateId = TestData.EstateId,
-                OperatorName = TestData.OperatorIdentifier,
-                ContractId = TestData.ContractId,
-                Description = TestData.ContractDescription,
-                OperatorId = TestData.OperatorId,
+                OperatorName = TestData.SafaricomOperatorIdentifier,
+                ContractId = TestData.SafaricomContractId,
+                Description = TestData.SafaricomContractDescription,
+                OperatorId = TestData.SafaricomOperatorId,
                 Products = new List<ContractProduct>
                                                  {
                                                      new ContractProduct
                                                      {
-                                                         Name = TestData.ContractProductWithValueName,
-                                                         ProductId = TestData.ContractWithValueProductId,
-                                                         Value = TestData.ContractProductWithValueValue,
-                                                         DisplayText = TestData.ContractProductWithValueDisplayText,
+                                                         Name = TestData.SafaricomContractProductWithValueName,
+                                                         ProductId = TestData.SafaricomContractWithValueProductId,
+                                                         Value = TestData.SafaricomContractProductWithValueValue,
+                                                         DisplayText = TestData.SafaricomContractProductWithValueDisplayText,
                                                          TransactionFees = null
                                                      }
                                                  }
@@ -430,7 +496,7 @@ namespace FileProcessor.Testing
                             TestData.VoucherFileFormatHandler);
 
         public static Guid VoucherFileProfileId = Guid.Parse("079F1FF5-F51E-4BE0-AF4F-2D4862E6D34F");
-        public static String VoucherProfileName = "Safaricom Profile";
+        public static String VoucherProfileName = "Voucher Profile";
 
         public static String VoucherListeningDirectory = "/home/txnproc/bulkfiles/voucher";
 
