@@ -1,11 +1,23 @@
+//{
+//  "profiles": {
+//    "FileProcessor": {
+//      "commandName": "Project",
+//      "environmentVariables": {
+//        "ASPNETCORE_ENVIRONMENT": "Development"
+//      },
+//      "dotnetRunMessages": "true"
+//    }
+//  }
+//}
+
 {
-"profiles": {
-  "FileProcessor": {
-    "commandName": "Project",
-    "environmentVariables": {
-      "ASPNETCORE_ENVIRONMENT": "Development"
-    },
-    "dotnetRunMessages": "true"
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "FileProcessor": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
   }
-}
 }
