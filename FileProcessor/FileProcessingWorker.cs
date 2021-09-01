@@ -97,8 +97,22 @@
                 this.LogInformation($"Created ProcessedDirectory at [{fileProfile.ProcessedDirectory}]");
                 Directory.CreateDirectory(fileProfile.FailedDirectory);
                 this.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
-            }
 
+                String[] inprogressList = Directory.GetFiles($"{fileProfile.ListeningDirectory}//inprogress");
+
+                if (inprogressList.Any())
+                {
+                    this.LogInformation($"{inprogressList.Length} files in progress detected in [{ fileProfile.ListeningDirectory}//inprogress");
+
+                    // Now move these to the listening directory
+                    foreach (String s in inprogressList)
+                    {
+                        FileInfo fi = new FileInfo(s);
+                        fi.MoveTo($"{fileProfile.ListeningDirectory}//{fi.Name}");
+                    }
+                }
+            }
+            
             await base.StartAsync(cancellationToken);
         }
 
@@ -132,17 +146,18 @@
                 try
                 {
                     List<Task> fileProcessingTasks = new List<Task>();
-                    var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(stoppingToken);
+                    List<FileProfile> fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(stoppingToken);
+
                     foreach (FileProfile fileProfile in fileProfiles)
                     {
                         this.LogInformation($"About to look in {fileProfile.ListeningDirectory} for files");
-                        var files = Directory.GetFiles(fileProfile.ListeningDirectory).Take(1).ToList(); // Only process 1 file per file profile concurrently
-
-                        foreach (String file in files)
+                        IDirectoryInfo listeningDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName(fileProfile.ListeningDirectory);
+                        
+                        List<IFileInfo> files = listeningDirectory.GetFiles(fileProfile.ListeningDirectory).OrderBy(f => f.CreationTime).Take(1).ToList(); // Only process 1 file per file profile concurrently,
+                        
+                        foreach (IFileInfo fileInfo in files)
                         {
-                            this.LogInformation($"File {file} detected");
-
-                            IFileInfo fileInfo = this.FileSystem.FileInfo.FromFileName(file);
+                            this.LogInformation($"File {fileInfo.Name} detected");
 
                             String inProgressFolder = $"{fileProfile.ListeningDirectory}/inprogress/";
                             if (this.FileSystem.Directory.Exists(inProgressFolder) == false)
@@ -152,7 +167,7 @@
                             String inProgressFilePath = $"{fileProfile.ListeningDirectory}/inprogress/{fileInfo.Name}";
                             fileInfo.MoveTo(inProgressFilePath, true);
 
-                            var request = this.CreateProcessFileRequest(fileProfile, inProgressFilePath);
+                            IRequest request = this.CreateProcessFileRequest(fileProfile, inProgressFilePath);
                             fileProcessingTasks.Add(this.Mediator.Send(request));
                         }
                     }
