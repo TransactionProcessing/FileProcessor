@@ -85,30 +85,31 @@
             // TODO: Do we poll here for files incase they have been left from a previous run
             var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
             this.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
-            Directory.CreateDirectory(temporaryFileLocation);
+
+            this.FileSystem.Directory.CreateDirectory(temporaryFileLocation);
             this.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
             var fileProfiles = await this.FileProcessorManager.GetAllFileProfiles(cancellationToken);
 
             foreach (FileProfile fileProfile in fileProfiles)
             {
-                Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
+                this.FileSystem.Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
                 this.LogInformation($"Created in progress at [{ fileProfile.ListeningDirectory}//inprogress");
-                Directory.CreateDirectory(fileProfile.ProcessedDirectory);
+                this.FileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
                 this.LogInformation($"Created ProcessedDirectory at [{fileProfile.ProcessedDirectory}]");
-                Directory.CreateDirectory(fileProfile.FailedDirectory);
+                this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
                 this.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
 
-                String[] inprogressList = Directory.GetFiles($"{fileProfile.ListeningDirectory}//inprogress");
+                IDirectoryInfo inprogressDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName(fileProfile.ListeningDirectory);
+                var inprogressList = inprogressDirectory.GetFiles();
 
                 if (inprogressList.Any())
                 {
                     this.LogInformation($"{inprogressList.Length} files in progress detected in [{ fileProfile.ListeningDirectory}//inprogress");
 
                     // Now move these to the listening directory
-                    foreach (String s in inprogressList)
+                    foreach (IFileInfo file in inprogressList)
                     {
-                        FileInfo fi = new FileInfo(s);
-                        fi.MoveTo($"{fileProfile.ListeningDirectory}//{fi.Name}");
+                        file.MoveTo($"{fileProfile.ListeningDirectory}//{file.Name}");
                     }
                 }
             }
@@ -153,7 +154,7 @@
                         this.LogInformation($"About to look in {fileProfile.ListeningDirectory} for files");
                         IDirectoryInfo listeningDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName(fileProfile.ListeningDirectory);
                         
-                        List<IFileInfo> files = listeningDirectory.GetFiles(fileProfile.ListeningDirectory).OrderBy(f => f.CreationTime).Take(1).ToList(); // Only process 1 file per file profile concurrently,
+                        List<IFileInfo> files = listeningDirectory.GetFiles().OrderBy(f => f.CreationTime).Take(1).ToList(); // Only process 1 file per file profile concurrently,
                         
                         foreach (IFileInfo fileInfo in files)
                         {
