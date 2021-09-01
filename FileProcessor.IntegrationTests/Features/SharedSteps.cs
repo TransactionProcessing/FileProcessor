@@ -112,7 +112,7 @@ namespace FileProcessor.IntegrationTests.Features
                 t.ShouldNotBeNull();
                 t.TransactionDayResponses.ShouldHaveSingleItem();
                 t.TransactionDayResponses.Single().NumberOfTransactions.ShouldBe(numberOfTransactions);
-            }, TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(30));
+            }, TimeSpan.FromMinutes(10), TimeSpan.FromSeconds(30));
         }
     }
 }
