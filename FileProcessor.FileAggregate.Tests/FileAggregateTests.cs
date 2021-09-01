@@ -53,18 +53,23 @@ namespace FileProcessor.FileAggregate.Tests
         }
 
         [Fact]
-        public void FileAggregate_CreateFile_FileAlreadyCreated_ErrorThrown()
+        public void FileAggregate_CreateFile_FileAlreadyCreated_NoErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
                                      TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
 
-            Should.Throw<InvalidOperationException>(() =>
-                                                    {
+            Should.NotThrow(() =>
+                            {
 
-                                                        fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                                                                 TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
-                                                    });
+                                fileAggregate.CreateFile(TestData.FileImportLogId,
+                                                         TestData.EstateId,
+                                                         TestData.MerchantId,
+                                                         TestData.UserId,
+                                                         TestData.FileProfileId,
+                                                         TestData.FileLocation,
+                                                         TestData.FileUploadedDateTime);
+                            });
         }
 
         [Fact]
