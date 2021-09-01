@@ -247,9 +247,7 @@ namespace FileProcessor.FileAggregate
         public void CreateFile(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime)
         {
             if (this.IsCreated)
-            {
-                throw new InvalidOperationException($"File Id {this.AggregateId} has already been created");
-            }
+                return;
 
             FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(this.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation, fileReceivedDateTime);
 
