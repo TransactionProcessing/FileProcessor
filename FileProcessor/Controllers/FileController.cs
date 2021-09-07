@@ -88,9 +88,14 @@
                 await file.CopyToAsync(stream, cancellationToken);
             }
 
+            if (request.UploadDateTime == DateTime.MinValue)
+            {
+                request.UploadDateTime = DateTime.Now;
+            }
+
             // Create a command with the file in it
             BusinessLogic.Requests.UploadFileRequest uploadFileRequest =
-                new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId, DateTime.Now);
+                new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId, request.UploadDateTime);
 
             Guid fileId = await this.Mediator.Send(uploadFileRequest, cancellationToken);
 
