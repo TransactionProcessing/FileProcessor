@@ -124,7 +124,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Guid> Handle(UploadFileRequest request,
                                        CancellationToken cancellationToken)
         {
-            DateTime importLogDateTime = DateTime.Now;
+            DateTime importLogDateTime = request.FileUploadedDateTime;
 
             // This will now create the import log and add an event for the file being uploaded
             Guid importLogId = this.CreateGuidFromDateTime(importLogDateTime.Date);
