@@ -77,7 +77,7 @@ Scenario: Process Safaricom Topup File with 1 detail row
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
 Scenario: Process Safaricom Topup File with 2 detail rows
-Given I have a file named 'SafarcomTopup.txt' with the following contents
+	Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -90,7 +90,7 @@ Given I have a file named 'SafarcomTopup.txt' with the following contents
 	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
 Scenario: Process 2 Safaricom Topup Files
-Given I have a file named 'SafarcomTopup1.txt' with the following contents
+	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
 	| H       | 20210508    |         |
 	| D       | 07777777775 | 100     |
@@ -136,3 +136,26 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 	
 # Wrong Format??
+
+Scenario: Process Safaricom Topup File with Upload Date Time
+	Given I have a file named 'SafarcomTopup.txt' with the following contents
+	| Column1 | Column2     | Column3 |
+	| H       | 20210508    |         |
+	| D       | 07777777775 | 100     |
+	| T       | 1           |         |
+	And I upload this file for processing
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               | UploadDateTime |
+	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | Today          |
+
+	When I get the import log for estate 'Test Estate 1' the date on the import log is 'Today'
+
+	Given I have a file named 'SafarcomTopup1.txt' with the following contents
+	| Column1 | Column2     | Column3 |
+	| H       | 20210508    |         |
+	| D       | 07777777775 | 200     |
+	| T       | 1           |         |
+	And I upload this file for processing
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               | UploadDateTime |
+	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | 01/09/2021     |
+
+	When I get the import log for estate 'Test Estate 1' the date on the import log is '01/09/2021'

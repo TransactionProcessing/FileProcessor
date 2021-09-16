@@ -50,7 +50,21 @@ namespace FileProcessor.IntegrationTests.Common
                 case "TOMORROW":
                     return today.AddDays(1).Date;
                 default:
-                    return DateTime.Parse(dateString);
+                    if (dateString.Length == 10)
+                    {
+                        // We only have a date
+                        return DateTime.ParseExact(dateString, "dd/MM/yyyy", null);
+                    }
+                    else if (dateString.Length == 19)
+                    {
+                        // We have a time as well
+                        return DateTime.ParseExact(dateString, "dd/MM/yyyy hh:MM:ss", null);
+                    }
+                    else
+                    {
+                        return DateTime.MinValue;
+                    }
+                    
             }
         }
 
