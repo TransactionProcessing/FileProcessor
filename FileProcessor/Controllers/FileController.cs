@@ -15,6 +15,8 @@
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Newtonsoft.Json;
+    using NLog;
     using Shared.General;
 
     /// <summary>
@@ -83,7 +85,7 @@
 
             String fullPath = Path.Combine(temporaryFileLocation, fileName);
 
-            using(FileStream stream = new FileStream(fullPath, FileMode.Create))
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream, cancellationToken);
             }
@@ -98,6 +100,10 @@
                 new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId, request.UploadDateTime);
 
             Guid fileId = await this.Mediator.Send(uploadFileRequest, cancellationToken);
+            
+            Shared.Logger.Logger.LogDebug($"Day is {request.UploadDateTime.Day}");
+            Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
+            Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
 
             return this.Accepted(fileId);
         }

@@ -3,6 +3,7 @@
 namespace FileProcessor.DataTransferObjects
 {
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// 
@@ -52,6 +53,15 @@ namespace FileProcessor.DataTransferObjects
         /// The upload date time.
         /// </value>
         [JsonProperty("upload_date_time")]
+        [JsonConverter(typeof(CustomDateTimeConverter))]
         public DateTime UploadDateTime { get; set; }
+    }
+
+    public class CustomDateTimeConverter : IsoDateTimeConverter
+    {
+        public CustomDateTimeConverter()
+        {
+            base.DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+        }
     }
 }

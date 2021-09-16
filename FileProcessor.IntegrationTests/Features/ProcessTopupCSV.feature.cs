@@ -445,7 +445,7 @@ this.FeatureBackground();
                             "2",
                             ""});
 #line 80
-testRunner.Given("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table43, "Given ");
+ testRunner.Given("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table43, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table44 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
@@ -516,7 +516,7 @@ this.FeatureBackground();
                             "1",
                             ""});
 #line 93
-testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table45, "Given ");
+ testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table45, "Given ");
 #line hidden
                 TechTalk.SpecFlow.Table table46 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
@@ -684,6 +684,117 @@ this.FeatureBackground();
 #line 134
  testRunner.And("I upload this file for processing an error should be returned indicating the file" +
                         " is a duplicate", ((string)(null)), table52, "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Process Safaricom Topup File with Upload Date Time")]
+        [Xunit.TraitAttribute("FeatureTitle", "Process Topup CSV Files")]
+        [Xunit.TraitAttribute("Description", "Process Safaricom Topup File with Upload Date Time")]
+        public virtual void ProcessSafaricomTopupFileWithUploadDateTime()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Process Safaricom Topup File with Upload Date Time", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 140
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 4
+this.FeatureBackground();
+#line hidden
+                TechTalk.SpecFlow.Table table53 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Column1",
+                            "Column2",
+                            "Column3"});
+                table53.AddRow(new string[] {
+                            "H",
+                            "20210508",
+                            ""});
+                table53.AddRow(new string[] {
+                            "D",
+                            "07777777775",
+                            "100"});
+                table53.AddRow(new string[] {
+                            "T",
+                            "1",
+                            ""});
+#line 141
+ testRunner.Given("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table53, "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table54 = new TechTalk.SpecFlow.Table(new string[] {
+                            "EstateName",
+                            "MerchantName",
+                            "FileProfileId",
+                            "UserId",
+                            "UploadDateTime"});
+                table54.AddRow(new string[] {
+                            "Test Estate 1",
+                            "Test Merchant 1",
+                            "B2A59ABF-293D-4A6B-B81B-7007503C3476",
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476",
+                            "Today"});
+#line 146
+ testRunner.And("I upload this file for processing", ((string)(null)), table54, "And ");
+#line hidden
+#line 150
+ testRunner.When("I get the import log for estate \'Test Estate 1\' the date on the import log is \'To" +
+                        "day\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table55 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Column1",
+                            "Column2",
+                            "Column3"});
+                table55.AddRow(new string[] {
+                            "H",
+                            "20210508",
+                            ""});
+                table55.AddRow(new string[] {
+                            "D",
+                            "07777777775",
+                            "200"});
+                table55.AddRow(new string[] {
+                            "T",
+                            "1",
+                            ""});
+#line 152
+ testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table55, "Given ");
+#line hidden
+                TechTalk.SpecFlow.Table table56 = new TechTalk.SpecFlow.Table(new string[] {
+                            "EstateName",
+                            "MerchantName",
+                            "FileProfileId",
+                            "UserId",
+                            "UploadDateTime"});
+                table56.AddRow(new string[] {
+                            "Test Estate 1",
+                            "Test Merchant 1",
+                            "B2A59ABF-293D-4A6B-B81B-7007503C3476",
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476",
+                            "01/09/2021"});
+#line 157
+ testRunner.And("I upload this file for processing", ((string)(null)), table56, "And ");
+#line hidden
+#line 161
+ testRunner.When("I get the import log for estate \'Test Estate 1\' the date on the import log is \'01" +
+                        "/09/2021\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
             }
             this.ScenarioCleanup();

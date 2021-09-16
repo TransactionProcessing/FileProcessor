@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace FileProcessor
 {
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.IO;
     using System.IO.Abstractions;
     using System.Net.Http;
@@ -335,6 +336,7 @@ namespace FileProcessor
 
             services.AddControllers().AddNewtonsoftJson(options =>
             {
+                options.SerializerSettings.Culture = new CultureInfo("en-GB");
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
                 options.SerializerSettings.Formatting = Formatting.Indented;
