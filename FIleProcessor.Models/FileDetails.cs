@@ -1,30 +1,14 @@
-﻿using System;
-
-namespace FIleProcessor.Models
+﻿namespace FIleProcessor.Models
 {
+    using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// 
     /// </summary>
     public class FileDetails
     {
-        /// <summary>
-        /// Gets or sets the file identifier.
-        /// </summary>
-        /// <value>
-        /// The file identifier.
-        /// </value>
-        public Guid FileId { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [processing completed].
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [processing completed]; otherwise, <c>false</c>.
-        /// </value>
-        public Boolean ProcessingCompleted { get; set; }
+        #region Properties
 
         /// <summary>
         /// Gets or sets the estate identifier.
@@ -35,28 +19,12 @@ namespace FIleProcessor.Models
         public Guid EstateId { get; set; }
 
         /// <summary>
-        /// Gets or sets the user identifier.
+        /// Gets or sets the file identifier.
         /// </summary>
         /// <value>
-        /// The user identifier.
+        /// The file identifier.
         /// </value>
-        public Guid UserId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the merchant identifier.
-        /// </summary>
-        /// <value>
-        /// The merchant identifier.
-        /// </value>
-        public Guid MerchantId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file profile identifier.
-        /// </summary>
-        /// <value>
-        /// The file profile identifier.
-        /// </value>
-        public Guid FileProfileId { get; set; }
+        public Guid FileId { get; set; }
 
         /// <summary>
         /// Gets or sets the file import log identifier.
@@ -67,14 +35,6 @@ namespace FIleProcessor.Models
         public Guid FileImportLogId { get; set; }
 
         /// <summary>
-        /// Gets or sets the file location.
-        /// </summary>
-        /// <value>
-        /// The file location.
-        /// </value>
-        public String FileLocation { get; set; }
-
-        /// <summary>
         /// Gets or sets the file lines.
         /// </summary>
         /// <value>
@@ -83,11 +43,55 @@ namespace FIleProcessor.Models
         public List<FileLine> FileLines { get; set; }
 
         /// <summary>
+        /// Gets or sets the file location.
+        /// </summary>
+        /// <value>
+        /// The file location.
+        /// </value>
+        public String FileLocation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the file profile identifier.
+        /// </summary>
+        /// <value>
+        /// The file profile identifier.
+        /// </value>
+        public Guid FileProfileId { get; set; }
+
+        public DateTime FileReceivedDateTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the merchant identifier.
+        /// </summary>
+        /// <value>
+        /// The merchant identifier.
+        /// </value>
+        public Guid MerchantId { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [processing completed].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [processing completed]; otherwise, <c>false</c>.
+        /// </value>
+        public Boolean ProcessingCompleted { get; set; }
+
+        /// <summary>
         /// Gets or sets the processing summary.
         /// </summary>
         /// <value>
         /// The processing summary.
         /// </value>
         public ProcessingSummary ProcessingSummary { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user identifier.
+        /// </summary>
+        /// <value>
+        /// The user identifier.
+        /// </value>
+        public Guid UserId { get; set; }
+
+        #endregion
     }
 }
