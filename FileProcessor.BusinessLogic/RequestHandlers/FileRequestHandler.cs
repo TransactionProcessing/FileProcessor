@@ -430,13 +430,14 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             {
                 throw new NotFoundException($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
             }
-
+            
             // Build a transaction request message
             SaleTransactionRequest saleTransactionRequest = new SaleTransactionRequest
             {
+                
                 EstateId = fileDetails.EstateId,
                 MerchantId = fileDetails.MerchantId,
-                TransactionDateTime = DateTime.Now,
+                TransactionDateTime = fileDetails.FileReceivedDateTime,
                 TransactionNumber = FileRequestHandler.TransactionNumber.ToString(),
                 TransactionType = "Sale",
                 ContractId = contract.ContractId,
