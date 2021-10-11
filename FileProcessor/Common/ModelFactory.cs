@@ -75,6 +75,9 @@
                 FileProfileId = fileDetails.FileProfileId,
                 FileLocation = fileDetails.FileLocation,
                 ProcessingCompleted = fileDetails.ProcessingCompleted,
+                FileProfileName = fileDetails.FileProfileName,
+                MerchantName = fileDetails.MerchantName,
+                UserEmailAddress = fileDetails.UserEmailAddress,
                 FileLines = new List<FileLineResponse>()
             };
 

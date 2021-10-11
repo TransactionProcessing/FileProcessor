@@ -42,6 +42,9 @@
         [JsonProperty("user_id")]
         public Guid UserId { get; set; }
 
+        [JsonProperty("user_email_address")]
+        public String UserEmailAddress { get; set; }
+
         /// <summary>
         /// Gets or sets the merchant identifier.
         /// </summary>
@@ -51,6 +54,9 @@
         [JsonProperty("merchant_id")]
         public Guid MerchantId { get; set; }
 
+        [JsonProperty("merchant_name")]
+        public String MerchantName { get; set; }
+
         /// <summary>
         /// Gets or sets the file profile identifier.
         /// </summary>
@@ -59,6 +65,9 @@
         /// </value>
         [JsonProperty("file_profile_id")]
         public Guid FileProfileId { get; set; }
+
+        [JsonProperty("file_profile_name")]
+        public String FileProfileName { get; set; }
 
         /// <summary>
         /// Gets or sets the file import log identifier.
