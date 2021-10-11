@@ -13,6 +13,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Threading;
     using Common;
     using DataTransferObjects;
+    using Newtonsoft.Json;
     using Shared.IntegrationTesting;
     using Shouldly;
     using TechTalk.SpecFlow;
@@ -62,6 +63,7 @@ namespace FileProcessor.IntegrationTests.Features
             String merchantName = SpecflowTableHelper.GetStringRowValue(row, "MerchantName");
             String fileProfileId = SpecflowTableHelper.GetStringRowValue(row, "FileProfileId");
             String userId = SpecflowTableHelper.GetStringRowValue(row, "UserId");
+            String uploadDateTime = SpecflowTableHelper.GetStringRowValue(row, "UploadDateTime");
 
             var estate = this.TestingContext.GetEstateDetails(row);
             Guid estateId = estate.EstateId;
@@ -74,8 +76,13 @@ namespace FileProcessor.IntegrationTests.Features
                                                       EstateId = estateId,
                                                       FileProfileId = Guid.Parse(fileProfileId),
                                                       MerchantId = merchantId,
-                                                      UserId = Guid.Parse(userId)
+                                                      UserId = Guid.Parse(userId),
                                                   };
+
+            if (String.IsNullOrEmpty(uploadDateTime) == false)
+            {
+                uploadFileRequest.UploadDateTime = SpecflowTableHelper.GetDateForDateString(uploadDateTime, DateTime.Now);
+            }
             
             var fileId = await this.TestingContext.DockerHelper.FileProcessorClient.UploadFile(this.TestingContext.AccessToken,
                                                                             Path.GetFileName(filePath),
@@ -89,6 +96,26 @@ namespace FileProcessor.IntegrationTests.Features
             return fileId;
         }
 
+        [When(@"I get the import log for estate '([^']*)' the date on the import log is '([^']*)'")]
+        public async Task WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(string estateName, string expectedDateString)
+        {
+            var estate = this.TestingContext.GetEstateDetails(estateName);
+            var expectedDate = SpecflowTableHelper.GetDateForDateString(expectedDateString, DateTime.Now);
+
+            var importLogs = await this.TestingContext.DockerHelper.FileProcessorClient.GetFileImportLogs(this.TestingContext.AccessToken,
+                                                                                   estate.EstateId,
+                                                                                   DateTime.Now.AddDays(-30),
+                                                                                   DateTime.Now,
+                                                                                   null,
+                                                                                   CancellationToken.None);
+
+            foreach (var importLog in importLogs.FileImportLogs)
+            {
+                Console.WriteLine(JsonConvert.SerializeObject(importLog));
+            }
+            var i = importLogs.FileImportLogs.SingleOrDefault(x => x.ImportLogDate == expectedDate.Date);
+            i.ShouldNotBeNull();
+        }
 
         [When(@"As merchant ""(.*)"" on Estate ""(.*)"" I get my transactions (.*) transaction should be returned")]
         public async Task WhenAsMerchantOnEstateIGetMyTransactionsTransactionShouldBeReturned(string merchantName, string estateName, int numberOfTransactions)

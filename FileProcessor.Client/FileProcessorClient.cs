@@ -219,6 +219,7 @@
                 formData.Add(new StringContent(uploadFileRequest.MerchantId.ToString()), "request.MerchantId");
                 formData.Add(new StringContent(uploadFileRequest.FileProfileId.ToString()), "request.FileProfileId");
                 formData.Add(new StringContent(uploadFileRequest.UserId.ToString()), "request.UserId");
+                formData.Add(new StringContent(uploadFileRequest.UploadDateTime.ToString("yyyy-MM-dd HH:mm:ss")), "request.UploadDateTime");
 
                 httpRequest.Content = formData;
                 httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

@@ -147,6 +147,7 @@ namespace FileProcessor.FileAggregate
         {
             return new FileDetails
                    {
+                       FileReceivedDateTime = this.FileReceivedDateTime,
                        ProcessingCompleted = this.IsCompleted,
                        FileLines = this.FileLines,
                        EstateId = this.EstateId,
