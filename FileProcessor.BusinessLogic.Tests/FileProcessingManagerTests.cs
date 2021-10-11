@@ -153,7 +153,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
+            List<FileProfile> fileProfiles = new List<FileProfile>();
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
@@ -167,6 +167,99 @@ namespace FileProcessor.BusinessLogic.Tests
              var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
+             fileDetails.MerchantName.ShouldBeNull();
+             fileDetails.UserEmailAddress.ShouldBeNull();
+             fileDetails.FileProfileName.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileReturnedWithMerchantName()
+        {
+            List<FileProfile> fileProfiles = new List<FileProfile>();
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            context.Merchants.Add(new Merchant
+            {
+                EstateId = TestData.EstateId,
+                MerchantId = TestData.MerchantId,
+                Name = TestData.MerchantName
+            });
+            context.SaveChanges();
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+
+            this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
+            fileDetails.MerchantName.ShouldBe(TestData.MerchantName);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileReturnedWithUserEmailAddress()
+        {
+            List<FileProfile> fileProfiles = new List<FileProfile>();
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            context.EstateSecurityUsers.Add(new EstateSecurityUser()
+            {
+                EstateId = TestData.EstateId,
+                SecurityUserId = TestData.UserId,
+                EmailAddress = TestData.UserEmailAddress
+            });
+            context.SaveChanges();
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+
+            this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
+            fileDetails.UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileReturnedWithFileProfileName()
+        {
+            var fileProfiles = new List<FileProfile>
+            {
+                new FileProfile(TestData.FileProfileId,                 
+                    TestData.SafaricomProfileName,
+                    TestData.SafaricomListeningDirectory,
+                    TestData.SafaricomRequestType,
+                    TestData.SafaricomOperatorIdentifier,
+                    TestData.SafaricomLineTerminator,
+                    TestData.SafaricomFileFormatHandler)
+            };
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            context.EstateSecurityUsers.Add(new EstateSecurityUser()
+            {
+                EstateId = TestData.EstateId,
+                SecurityUserId = TestData.UserId,
+                EmailAddress = TestData.UserEmailAddress
+            });
+            context.SaveChanges();
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+
+            this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
+            fileDetails.FileProfileName.ShouldBe(TestData.SafaricomProfileName);
         }
 
         [Fact]

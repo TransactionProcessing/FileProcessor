@@ -155,17 +155,43 @@
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         public async Task<FileDetails> GetFile(Guid fileId,
-                                               Guid estateId,
-                                               CancellationToken cancellationToken)
+            Guid estateId,
+            CancellationToken cancellationToken)
         {
-            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
+            FileAggregate fileAggregate =
+                await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
 
             if (fileAggregate.IsCreated == false)
             {
                 throw new NotFoundException($"File with Id [{fileId}] not found");
             }
 
-            return fileAggregate.GetFile();
+            FileDetails fileDetails = fileAggregate.GetFile();
+
+            EstateReportingContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+
+            Merchant merchant = await context.Merchants.AsAsyncEnumerable()
+                .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);
+
+            if (merchant != null)
+            {
+                fileDetails.MerchantName = merchant.Name;
+            }
+
+            EstateSecurityUser userDetails = await context.EstateSecurityUsers.AsAsyncEnumerable()
+                .SingleOrDefaultAsync(u => u.SecurityUserId == fileDetails.UserId);
+            if (userDetails != null)
+            {
+                fileDetails.UserEmailAddress = userDetails.EmailAddress;
+            }
+
+            FileProfile fileProfile = await this.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
+            if (fileProfile != null)
+            {
+                fileDetails.FileProfileName = fileProfile.Name;
+            }
+
+            return fileDetails;
         }
 
         #endregion

@@ -50,6 +50,12 @@
         /// </value>
         public String FileLocation { get; set; }
 
+        public String MerchantName { get; set; }
+
+        public String FileProfileName {  get; set; }
+
+        public String UserEmailAddress { get; set; }
+
         /// <summary>
         /// Gets or sets the file profile identifier.
         /// </summary>

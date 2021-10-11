@@ -512,6 +512,7 @@ namespace FileProcessor.Testing
         public static DateTime ImportLogEndDate = new DateTime(2021,7,2);
 
         public static String RejectionReason = "Invalid Line Format";
+        public static string UserEmailAddress = "securityuser@testemail.com";
 
         public static FileDetails FileDetailsModel => new FileDetails
                                                       {
