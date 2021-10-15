@@ -104,7 +104,7 @@ namespace FileProcessor.IntegrationTests.Features
 
             var importLogs = await this.TestingContext.DockerHelper.FileProcessorClient.GetFileImportLogs(this.TestingContext.AccessToken,
                                                                                    estate.EstateId,
-                                                                                   DateTime.Now.AddDays(-30),
+                                                                                   expectedDate.AddDays(-1),
                                                                                    DateTime.Now,
                                                                                    null,
                                                                                    CancellationToken.None);
