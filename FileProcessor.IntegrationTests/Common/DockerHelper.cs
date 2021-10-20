@@ -300,10 +300,14 @@ namespace FileProcessor.IntegrationTests.Common
                                                                          "stuartferguson/testhosts",
                                                                          new List<INetworkService>
                                                                          {
-                                                                             testNetwork
+                                                                             testNetwork,
+                                                                             Setup.DatabaseServerNetwork
                                                                          },
                                                                          traceFolder,
                                                                          dockerCredentials,
+                                                                         (Setup.SqlServerContainerName,
+                                                                             "sa",
+                                                                             "thisisalongpassword123!"),
                                                                          true);
 
             IContainerService fileProcessorContainer = SetupFileProcessorContainer(this.FileProcessorContainerName,
