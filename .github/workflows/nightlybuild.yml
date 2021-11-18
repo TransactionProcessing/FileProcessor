@@ -16,6 +16,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2.3.4
 
+    - name: Set Up Variables
+      run: echo "action_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
+
     - name: Restore Nuget Packages
       run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
 
@@ -54,5 +57,14 @@ jobs:
       if: ${{ failure() }}
       with:
         name: tracelogs
-        path: /home/txnproc/trace/         
+        path: /home/txnproc/trace/     
+    
+    - uses: nashmaniac/create-issue-action@v1.1
+      if: ${{ failure() }}
+      name: Create an issue on build failure
+      with:
+        title: Investigate Nightly Build Failure
+        token: ${{secrets.GITHUB_TOKEN}}
+        labels: nightlybuild
+        body: Url is ${{env.action_url}}
 
