@@ -13,6 +13,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Threading;
     using Common;
     using DataTransferObjects;
+    using DataTransferObjects.Responses;
     using Newtonsoft.Json;
     using Shared.IntegrationTesting;
     using Shouldly;
@@ -45,7 +46,18 @@ namespace FileProcessor.IntegrationTests.Features
         {
             var fileId = await this.UploadFile(table);
 
+            var estate = this.TestingContext.GetEstateDetails(table.Rows.First());
+            Guid estateId = estate.EstateId;
+
             fileId.ShouldNotBe(Guid.Empty);
+            await Retry.For(async () =>
+                            {
+                                FileDetails fileDetails =
+                                    await this.TestingContext.DockerHelper.FileProcessorClient.GetFile(estate.AccessToken, estate.EstateId, fileId, CancellationToken.None);
+
+                                fileDetails.ShouldNotBeNull();
+                                fileDetails.ProcessingCompleted.ShouldBeTrue();
+                            }, TimeSpan.FromMinutes(3));
         }
 
         [Given(@"I upload this file for processing an error should be returned indicating the file is a duplicate")]
@@ -89,10 +101,7 @@ namespace FileProcessor.IntegrationTests.Features
                                                                             fileData,
                                                                             uploadFileRequest,
                                                                             CancellationToken.None);
-
-            // Now we need to wait some time to let the file be processed
-            await Task.Delay(TimeSpan.FromMinutes(1));
-
+            
             return fileId;
         }
 
