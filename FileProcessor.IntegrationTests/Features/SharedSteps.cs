@@ -50,10 +50,12 @@ namespace FileProcessor.IntegrationTests.Features
             Guid estateId = estate.EstateId;
 
             fileId.ShouldNotBe(Guid.Empty);
+            estateId.ShouldNotBe(Guid.Empty);
+
             await Retry.For(async () =>
                             {
                                 FileDetails fileDetails =
-                                    await this.TestingContext.DockerHelper.FileProcessorClient.GetFile(estate.AccessToken, estate.EstateId, fileId, CancellationToken.None);
+                                    await this.TestingContext.DockerHelper.FileProcessorClient.GetFile(this.TestingContext.AccessToken, estate.EstateId, fileId, CancellationToken.None);
 
                                 fileDetails.ShouldNotBeNull();
                                 fileDetails.ProcessingCompleted.ShouldBeTrue();
