@@ -40,37 +40,45 @@ namespace FileProcessor.IntegrationTests.Common
             foreach (TableRow tableRow in table.Rows)
             {
                 String estateName = SpecflowTableHelper.GetStringRowValue(tableRow, "EstateName");
-
-                CreateEstateRequest createEstateRequest = new CreateEstateRequest
-                {
-                    EstateId = Guid.NewGuid(),
-                    EstateName = estateName
-                };
-
-                CreateEstateResponse response = await this.TestingContext.DockerHelper.EstateClient.CreateEstate(this.TestingContext.AccessToken, createEstateRequest, CancellationToken.None).ConfigureAwait(false);
-
-                response.ShouldNotBeNull();
-                response.EstateId.ShouldNotBe(Guid.Empty);
-
-                // Cache the estate id
-                this.TestingContext.AddEstateDetails(response.EstateId, estateName);
-
-                this.TestingContext.Logger.LogInformation($"Estate {estateName} created with Id {response.EstateId}");
+                // Setup the subscriptions for the estate
+                await Retry.For(async () => { await this.TestingContext.DockerHelper.PopulateSubscriptionServiceConfiguration(estateName).ConfigureAwait(false); },
+                                retryFor:TimeSpan.FromMinutes(2),
+                                retryInterval:TimeSpan.FromSeconds(30));
             }
 
             foreach (TableRow tableRow in table.Rows)
             {
-                EstateDetails estateDetails = this.TestingContext.GetEstateDetails(tableRow);
+                String estateName = SpecflowTableHelper.GetStringRowValue(tableRow, "EstateName");
+
+                CreateEstateRequest createEstateRequest = new CreateEstateRequest
+                                                          {
+                                                              EstateId = Guid.NewGuid(),
+                                                              EstateName = estateName
+                                                          };
+
+                CreateEstateResponse response = await this.TestingContext.DockerHelper.EstateClient
+                                                          .CreateEstate(this.TestingContext.AccessToken, createEstateRequest, CancellationToken.None)
+                                                          .ConfigureAwait(false);
+
+                response.ShouldNotBeNull();
+                response.EstateId.ShouldNotBe(Guid.Empty);
+
+                this.TestingContext.Logger.LogInformation($"Estate {estateName} created with Id {response.EstateId}");
 
                 EstateResponse estate = null;
                 await Retry.For(async () =>
-                {
-                    estate = await this.TestingContext.DockerHelper.EstateClient
-                                       .GetEstate(this.TestingContext.AccessToken, estateDetails.EstateId, CancellationToken.None).ConfigureAwait(false);
-                    estate.ShouldNotBeNull();
-                }, TimeSpan.FromMinutes(3), TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+                                {
+                                    estate = await this.TestingContext.DockerHelper.EstateClient
+                                                       .GetEstate(this.TestingContext.AccessToken, response.EstateId, CancellationToken.None).ConfigureAwait(false);
+                                    estate.ShouldNotBeNull();
 
-                estate.EstateName.ShouldBe(estateDetails.EstateName);
+                                    // Cache the estate id
+                                    this.TestingContext.AddEstateDetails(estate.EstateId, estate.EstateName);
+                                },
+                                TimeSpan.FromMinutes(3),
+                                TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+
+                estate.EstateName.ShouldBe(estateName);
             }
         }
 
@@ -514,7 +522,6 @@ namespace FileProcessor.IntegrationTests.Common
                 MakeMerchantDepositRequest makeMerchantDepositRequest = new MakeMerchantDepositRequest
                 {
                     DepositDateTime = SpecflowTableHelper.GetDateForDateString(SpecflowTableHelper.GetStringRowValue(tableRow, "DateTime"), DateTime.Now),
-                    Source = MerchantDepositSource.Manual,
                     Reference = SpecflowTableHelper.GetStringRowValue(tableRow, "Reference"),
                     Amount = SpecflowTableHelper.GetDecimalValue(tableRow, "Amount")
                 };

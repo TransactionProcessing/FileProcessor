@@ -32,7 +32,7 @@
         /// </summary>
         private readonly List<FileProfile> FileProfiles;
 
-        private readonly Shared.EntityFramework.IDbContextFactory<EstateReportingContext> DbContextFactory;
+        private readonly Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext> DbContextFactory;
 
         private readonly IModelFactory ModelFactory;
 
@@ -49,7 +49,7 @@
         /// <param name="dbContextFactory">The database context factory.</param>
         /// <param name="modelFactory">The model factory.</param>
         public FileProcessorManager(List<FileProfile> fileProfiles,
-                                    Shared.EntityFramework.IDbContextFactory<EstateReportingContext> dbContextFactory,
+                                    Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext> dbContextFactory,
                                     IModelFactory modelFactory,
                                     IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> fileAggregateRepository)
         {
@@ -100,7 +100,7 @@
                                                                  Guid? merchantId,
                                                                  CancellationToken cancellationToken)
         {
-            EstateReportingContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
 
             List<EstateReporting.Database.Entities.FileImportLog> importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
@@ -130,7 +130,7 @@
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken)
         {
-            EstateReportingContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
 
             EstateReporting.Database.Entities.FileImportLog importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
@@ -168,7 +168,7 @@
 
             FileDetails fileDetails = fileAggregate.GetFile();
 
-            EstateReportingContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
 
             Merchant merchant = await context.Merchants.AsAsyncEnumerable()
                 .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);

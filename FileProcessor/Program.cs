@@ -57,39 +57,18 @@ namespace FileProcessor
             hostBuilder.ConfigureServices(services =>
                                           {
                                               services.AddHostedService<FileProcessingWorker>(provider =>
-                                                                                            {
-                                                                                                IFileProcessorManager fileProcessorManager =
-                                                                                                    provider.GetRequiredService<IFileProcessorManager>();
-                                                                                                IMediator mediator = provider.GetRequiredService<IMediator>();
-                                                                                                IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
-                                                                                                FileProcessingWorker worker = new FileProcessingWorker(fileProcessorManager,mediator, fileSystem);
-                                                                                                worker.TraceGenerated += Worker_TraceGenerated;
-                                                                                                return worker;
-                                                                                            });
-
-                                              FileAddedToImportLogEvent fileAddedToImportLogEvent =
-                                                  new FileAddedToImportLogEvent(Guid.Empty,
-                                                                                Guid.Empty,
-                                                                                Guid.Empty,
-                                                                                Guid.Empty,
-                                                                                Guid.Empty,
-                                                                                Guid.Empty,
-                                                                                String.Empty,
-                                                                                String.Empty,
-                                                                                new DateTime());
-
-                                              FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
-
-                                              services.AddHostedService<SubscriptionWorker>(provider =>
-                                                                                            {
-                                                                                                IDomainEventHandlerResolver r =
-                                                                                                    provider.GetRequiredService<IDomainEventHandlerResolver>();
-                                                                                                EventStorePersistentSubscriptionsClient p = provider.GetRequiredService<EventStorePersistentSubscriptionsClient>();
-                                                                                                HttpClient h = provider.GetRequiredService<HttpClient>();
-                                                                                                SubscriptionWorker worker = new SubscriptionWorker(r, p, h);
-                                                                                                worker.TraceGenerated += Worker_TraceGenerated;
-                                                                                                return worker;
-                                                                                            });
+                                                                                              {
+                                                                                                  IFileProcessorManager fileProcessorManager =
+                                                                                                      provider.GetRequiredService<IFileProcessorManager>();
+                                                                                                  IMediator mediator = provider.GetRequiredService<IMediator>();
+                                                                                                  IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
+                                                                                                  FileProcessingWorker worker =
+                                                                                                      new FileProcessingWorker(fileProcessorManager,
+                                                                                                          mediator,
+                                                                                                          fileSystem);
+                                                                                                  worker.TraceGenerated += Worker_TraceGenerated;
+                                                                                                  return worker;
+                                                                                              });
                                           });
 
             return hostBuilder;
