@@ -349,21 +349,20 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
         
-        private Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingContext>> CreateMockContextFactory()
+        private Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext>> CreateMockContextFactory()
         {
-            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingContext>>();
+            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext>>();
         }
 
-        private async Task<EstateReportingContext> GetContext(String databaseName)
+        private async Task<EstateReportingGenericContext> GetContext(String databaseName)
         {
-            EstateReportingContext context = null;
+            EstateReportingGenericContext context = null;
             
-            DbContextOptionsBuilder<EstateReportingContext> builder = new DbContextOptionsBuilder<EstateReportingContext>()
-                                                                      .UseInMemoryDatabase(databaseName)
-                                                                      .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            context = new EstateReportingContext(builder.Options);
+            DbContextOptionsBuilder<EstateReportingGenericContext> builder = new DbContextOptionsBuilder<EstateReportingGenericContext>()
+                                                                             .UseInMemoryDatabase(databaseName)
+                                                                             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            context = new EstateReportingSqlServerContext(builder.Options);
         
-
             return context;
         }
     }
