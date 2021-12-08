@@ -220,7 +220,13 @@ namespace FileProcessor.IntegrationTests.Common
                                                                                                 {
                                                                                                     testNetwork
                                                                                                 },
-                                                                                                true);
+                                                                                                true,
+                                                                                                additionalEnvironmentVariables: new List<String>
+                                                                                                    {
+                                                                                                        insecureEventStoreEnvironmentVariable,
+                                                                                                        persistentSubscriptionPollingInSeconds,
+                                                                                                        internalSubscriptionServiceCacheDuration
+                                                                                                    });
 
             IContainerService transactionProcessorContainer = this.SetupTransactionProcessorContainer("stuartferguson/transactionprocessor",
                                                                                                               new List<INetworkService>
