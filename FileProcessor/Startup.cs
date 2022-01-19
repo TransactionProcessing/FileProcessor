@@ -54,6 +54,7 @@ namespace FileProcessor
     using Shared.Extensions;
     using Shared.General;
     using Shared.Logger;
+    using Shared.Middleware;
     using Shared.Repositories;
     using Swashbuckle.AspNetCore.Filters;
     using TransactionProcessor.Client;
@@ -418,9 +419,11 @@ namespace FileProcessor
 
             ConfigurationReader.Initialise(Startup.Configuration);
 
-            app.AddRequestLogging();
-            app.AddResponseLogging();
+            //app.AddRequestLogging();
+            //app.AddResponseLogging();
             app.AddExceptionHandler();
+            app.UseMiddleware<RequestLoggingMiddlewareTemp>();
+            app.UseMiddleware<ResponseLoggingMiddlewareTemp>();
 
             app.UseRouting();
 
