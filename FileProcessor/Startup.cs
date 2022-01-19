@@ -419,12 +419,10 @@ namespace FileProcessor
 
             ConfigurationReader.Initialise(Startup.Configuration);
 
-            //app.AddRequestLogging();
-            //app.AddResponseLogging();
+            app.AddRequestLogging();
+            app.AddResponseLogging();
             app.AddExceptionHandler();
-            app.UseMiddleware<RequestLoggingMiddlewareTemp>();
-            app.UseMiddleware<ResponseLoggingMiddlewareTemp>();
-
+            
             app.UseRouting();
 
             app.UseAuthentication();
