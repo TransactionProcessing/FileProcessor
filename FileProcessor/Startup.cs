@@ -31,8 +31,10 @@ namespace FileProcessor
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
     using FIleProcessor.Models;
+    using HealthChecks.UI.Client;
     using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
@@ -279,24 +281,28 @@ namespace FileProcessor
 
         public static IServiceProvider ServiceProvider { get; set; }
 
+        private HttpClientHandler ApiEndpointHttpHandler(IServiceProvider serviceProvider)
+        {
+            return new HttpClientHandler
+                   {
+                       ServerCertificateCustomValidationCallback = (message,
+                                                                    cert,
+                                                                    chain,
+                                                                    errors) =>
+                                                                   {
+                                                                       return true;
+                                                                   }
+                   };
+        }
+
         private void ConfigureMiddlewareServices(IServiceCollection services)
         {
-            //services.AddHealthChecks()
-            //        .AddSqlServer(connectionString: ConfigurationReader.GetConnectionString("HealthCheck"),
-            //                      healthQuery: "SELECT 1;",
-            //                      name: "Read Model Server",
-            //                      failureStatus: HealthStatus.Degraded,
-            //                      tags: new string[] { "db", "sql", "sqlserver" })
-            //        .AddEventStore(Startup.EventStoreClientSettings,
-            //                       userCredentials: Startup.EventStoreClientSettings.DefaultCredentials,
-            //                       name: "Eventstore",
-            //                         failureStatus: HealthStatus.Unhealthy,
-            //                         tags: new string[] { "db", "eventstore" })
-            //        .AddUrlGroup(new Uri($"{ConfigurationReader.GetValue("SecurityConfiguration", "Authority")}/health"),
-            //             name: "Security Service",
-            //             httpMethod: HttpMethod.Get,
-            //             failureStatus: HealthStatus.Unhealthy,
-            //             tags: new string[] { "security", "authorisation" });
+            services.AddHealthChecks().AddEventStore(Startup.EventStoreClientSettings,
+                                                     userCredentials:Startup.EventStoreClientSettings.DefaultCredentials,
+                                                     name:"Eventstore",
+                                                     failureStatus:HealthStatus.Unhealthy,
+                                                     tags:new string[] {"db", "eventstore"}).AddEstateManagementService().AddTransactionProcessorService()
+                    .AddSecurityService(ApiEndpointHttpHandler);
 
             services.AddSwaggerGen(c =>
             {
@@ -424,6 +430,11 @@ namespace FileProcessor
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("health", new HealthCheckOptions()
+                                                    {
+                                                        Predicate = _ => true,
+                                                        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                                                    });
             });
 
             app.UseSwagger();
