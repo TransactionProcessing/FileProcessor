@@ -400,7 +400,6 @@ namespace FileProcessor
 
             if (env.IsDevelopment())
             {
-                nlogConfigFilename = $"nlog.{env.EnvironmentName}.config";
                 app.UseDeveloperExceptionPage();
             }
 
