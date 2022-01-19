@@ -54,6 +54,7 @@ namespace FileProcessor
     using Shared.Extensions;
     using Shared.General;
     using Shared.Logger;
+    using Shared.Middleware;
     using Shared.Repositories;
     using Swashbuckle.AspNetCore.Filters;
     using TransactionProcessor.Client;
@@ -399,7 +400,6 @@ namespace FileProcessor
 
             if (env.IsDevelopment())
             {
-                nlogConfigFilename = $"nlog.{env.EnvironmentName}.config";
                 app.UseDeveloperExceptionPage();
             }
 
@@ -421,7 +421,7 @@ namespace FileProcessor
             app.AddRequestLogging();
             app.AddResponseLogging();
             app.AddExceptionHandler();
-
+            
             app.UseRouting();
 
             app.UseAuthentication();
