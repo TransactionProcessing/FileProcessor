@@ -117,43 +117,6 @@ namespace FileProcessor.IntegrationTests.Common
 
         #endregion
         
-        private async Task LoadEventStoreProjections()
-        {
-            //Start our Continous Projections - we might decide to do this at a different stage, but now lets try here
-            String projectionsFolder = "../../../projections/continuous";
-            IPAddress[] ipAddresses = Dns.GetHostAddresses("127.0.0.1");
-
-            if (!String.IsNullOrWhiteSpace(projectionsFolder))
-            {
-                DirectoryInfo di = new DirectoryInfo(projectionsFolder);
-
-                if (di.Exists)
-                {
-                    FileInfo[] files = di.GetFiles();
-
-                    EventStoreProjectionManagementClient projectionClient = new EventStoreProjectionManagementClient(ConfigureEventStoreSettings(this.EventStoreHttpPort));
-
-                    foreach (FileInfo file in files)
-                    {
-                        String projection = File.ReadAllText(file.FullName);
-                        String projectionName = file.Name.Replace(".js", String.Empty);
-
-                        try
-                        {
-                            Logger.LogInformation($"Creating projection [{projectionName}]");
-                            await projectionClient.CreateContinuousAsync(projectionName, projection, trackEmittedStreams: true).ConfigureAwait(false);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.LogError(new Exception($"Projection [{projectionName}] error", e));
-                        }
-                    }
-                }
-            }
-
-            Logger.LogInformation("Loaded projections");
-        }
-
         #region Methods
 
         public String FileProcessorContainerName;
@@ -318,7 +281,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
 
-            await this.LoadEventStoreProjections().ConfigureAwait(false);
+            await this.LoadEventStoreProjections(this.EventStoreHttpPort).ConfigureAwait(false);
         }
 
         public const Int32 FileProcessorDockerPort = 5009;
@@ -380,13 +343,12 @@ namespace FileProcessor.IntegrationTests.Common
 
         public async Task PopulateSubscriptionServiceConfiguration(String estateName)
         {
-            EventStorePersistentSubscriptionsClient client =
-                new EventStorePersistentSubscriptionsClient(DockerHelper.ConfigureEventStoreSettings(this.EventStoreHttpPort));
-
-            PersistentSubscriptionSettings settings = new PersistentSubscriptionSettings(resolveLinkTos: true, StreamPosition.Start);
-            await client.CreateAsync(estateName.Replace(" ", ""), "Reporting", settings);
-            await client.CreateAsync($"EstateManagementSubscriptionStream_{estateName.Replace(" ", "")}", "Estate Management", settings);
-            await client.CreateAsync($"FileProcessorSubscriptionStream_{ReplaceFirst(estateName, " ", "")}", "File Processor", settings);
+            var name = estateName.Replace(" ", "");
+            List<(string streamName, string groupName)> subscriptions = new List<(String, String)>();
+            subscriptions.Add((name, "Reporting"));
+            subscriptions.Add(($"EstateManagementSubscriptionStream_{name}", "Estate Management"));
+            subscriptions.Add(($"FileProcessorSubscriptionStream_{name}", "File Processor"));
+            await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions);
         }
 
         public string ReplaceFirst(string text, string search, string replace)
@@ -397,32 +359,6 @@ namespace FileProcessor.IntegrationTests.Common
                 return text;
             }
             return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
-        }
-
-        private static EventStoreClientSettings ConfigureEventStoreSettings(Int32 eventStoreHttpPort)
-        {
-            String connectionString = $"http://127.0.0.1:{eventStoreHttpPort}";
-
-            EventStoreClientSettings settings = new EventStoreClientSettings();
-            settings.CreateHttpMessageHandler = () => new SocketsHttpHandler
-            {
-                SslOptions =
-                                                          {
-                                                              RemoteCertificateValidationCallback = (sender,
-                                                                                                     certificate,
-                                                                                                     chain,
-                                                                                                     errors) => true,
-                                                          }
-            };
-            settings.ConnectionName = "Specflow";
-            settings.ConnectivitySettings = new EventStoreClientConnectivitySettings
-            {
-                Insecure = true,
-                Address = new Uri(connectionString),
-            };
-
-            settings.DefaultCredentials = new UserCredentials("admin", "changeit");
-            return settings;
         }
         
         private async Task RemoveEstateReadModel()

@@ -1,8 +1,3 @@
-//var fromCategory = fromCategory || require('../../node_modules/esprojection-testing-framework').scope.fromCategory;
-//var partitionBy = partitionBy !== null ? partitionBy : require('../../node_modules/event-store-projection-testing').scope.partitionBy;
-//var emit = emit || require('../../node_modules/esprojection-testing-framework').scope.emit;
-//var linkTo = linkTo || require("../../node_modules/esprojection-testing-framework").scope.linkTo;
-
 fromCategory('TransactionAggregate')
     .foreachStream()
     .when({
@@ -46,7 +41,7 @@ function merchantFeeAddedToTransactionEventHandler(s, e) {
         feeCalculationType: e.data.feeCalculationType,
         eventId: e.eventId
     }
-    emit(getStreamName(s), "MerchantFeeAddedToTransactionEnrichedEvent", newEvent, {});
+    emit(getStreamName(s), "MerchantFeeAddedToTransactionEnrichedEvent", newEvent, null);
 }
 
 function serviceProviderFeeAddedToTransactionEventHandler(s, e) {
@@ -61,7 +56,7 @@ function serviceProviderFeeAddedToTransactionEventHandler(s, e) {
         feeCalculationType: e.data.feeCalculationType,
         eventId: e.eventId
     }
-    emit(getStreamName(s), "ServiceProviderFeeAddedToTransactionEnrichedEvent", newEvent, {});
+    emit(getStreamName(s), "ServiceProviderFeeAddedToTransactionEnrichedEvent", newEvent, null);
 }
 
 function getStreamName(s) {
