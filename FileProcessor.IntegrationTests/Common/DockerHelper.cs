@@ -281,7 +281,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
 
-            await this.LoadEventStoreProjections().ConfigureAwait(false);
+            await this.LoadEventStoreProjections(this.EventStoreHttpPort).ConfigureAwait(false);
         }
 
         public const Int32 FileProcessorDockerPort = 5009;
