@@ -180,7 +180,6 @@ var depositMadeEventHandler = function (s, e) {
     incrementBalanceFromDeposit(s, e.data.amount, e.data.depositDateTime);
 
     // emit an balance changed event here
-    console.log(e);
     s = emitBalanceChangedEvent(e.data.merchantId, e.eventId, s, e.data.amount, e.data.depositDateTime, "Merchant Deposit");
 };
 
