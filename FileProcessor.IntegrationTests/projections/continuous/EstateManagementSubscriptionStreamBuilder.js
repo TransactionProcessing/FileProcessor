@@ -9,8 +9,9 @@ isInvalidEvent = (e) => (e === null || e === undefined || e.data === undefined);
 getSupportedEventTypes = function () {
     var eventTypes = [];
 
-    eventTypes.push('CustomerEmailReceiptRequestedEvent');
     eventTypes.push('TransactionHasBeenCompletedEvent');
+    eventTypes.push('MerchantFeeSettledEvent');
+    eventTypes.push('StatementGeneratedEvent');
 
     return eventTypes;
 }
@@ -32,8 +33,9 @@ isTruncated = function (metadata) {
     }
     return false;
 };
+
 getStreamName = function (estateName) {
-    return 'TransactionProcessorSubscriptionStream_' + estateName;
+    return 'EstateManagementSubscriptionStream_' + estateName;
 }
 
 getStringWithNoSpaces = function (inputString) { return inputString.replace(/-/gi, "").replace(/ /g, ""); }
@@ -61,4 +63,4 @@ fromAll()
             }
         }
     }
-);
+    );
