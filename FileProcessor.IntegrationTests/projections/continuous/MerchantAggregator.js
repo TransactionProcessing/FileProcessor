@@ -1,6 +1,3 @@
-var fromAll = fromAll || require("../../node_modules/@transactionprocessing/esprojection-testing-framework").scope.fromAll;
-var linkTo = linkTo || require("../../node_modules/@transactionprocessing/esprojection-testing-framework").scope.linkTo;
-
 isValidEvent = function (e) {
 
     if (e) {
