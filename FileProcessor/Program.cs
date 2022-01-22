@@ -17,6 +17,7 @@ namespace FileProcessor
     using EventStore.Client;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
+    using Lamar.Microsoft.DependencyInjection;
     using MediatR;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.EventStore.EventHandling;
@@ -42,6 +43,7 @@ namespace FileProcessor
                                                                   .AddEnvironmentVariables().Build();
 
             IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
+            hostBuilder.UseLamar();
             hostBuilder.ConfigureLogging(logging =>
                                          {
                                              logging.AddConsole();
@@ -53,7 +55,6 @@ namespace FileProcessor
                                                      webBuilder.UseConfiguration(config);
                                                      webBuilder.UseKestrel();
                                                  });
-
             hostBuilder.ConfigureServices(services =>
                                           {
                                               services.AddHostedService<FileProcessingWorker>(provider =>
@@ -73,7 +74,6 @@ namespace FileProcessor
 
             return hostBuilder;
         }
-
 
         private static void Worker_TraceGenerated(string trace, LogLevel logLevel)
         {

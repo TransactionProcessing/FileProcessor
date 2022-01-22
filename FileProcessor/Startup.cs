@@ -18,6 +18,7 @@ namespace FileProcessor
     using System.Net.Http;
     using System.Reflection;
     using System.Threading;
+    using Bootstrapper;
     using BusinessLogic.Common;
     using BusinessLogic.EventHandling;
     using BusinessLogic.FileFormatHandlers;
@@ -32,6 +33,7 @@ namespace FileProcessor
     using FileImportLog.DomainEvents;
     using FIleProcessor.Models;
     using HealthChecks.UI.Client;
+    using Lamar;
     using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -92,9 +94,9 @@ namespace FileProcessor
             Startup.WebHostEnvironment = webHostEnvironment;
         }
 
-        private static EventStoreClientSettings EventStoreClientSettings;
+        internal static EventStoreClientSettings EventStoreClientSettings;
 
-        private static void ConfigureEventStoreSettings(EventStoreClientSettings settings = null)
+        internal static void ConfigureEventStoreSettings(EventStoreClientSettings settings = null)
         {
             if (settings == null)
             {
@@ -123,258 +125,33 @@ namespace FileProcessor
             Startup.EventStoreClientSettings = settings;
         }
 
+        public static Container Container;
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureContainer(ServiceRegistry services)
         {
             ConfigurationReader.Initialise(Startup.Configuration);
 
             Startup.ConfigureEventStoreSettings();
 
-            this.ConfigureMiddlewareServices(services);
+            services.IncludeRegistry<MiddlewareRegistry>();
+            services.IncludeRegistry<MediatorRegistry>();
+            services.IncludeRegistry<DomainEventHandlerRegistry>();
+            services.IncludeRegistry<ClientRegistry>();
+            services.IncludeRegistry<RepositoryRegistry>();
+            services.IncludeRegistry<FileRegistry>();
+            services.IncludeRegistry<MiscRegistry>();
 
-            IEnumerable<FileProfile> fileProfiles = Configuration.GetSection("AppSettings:FileProfiles").GetChildren().ToList().Select(x => new
-                {
-                    Name = x.GetValue<String>("Name"),
-                    FileProfileId = x.GetValue<Guid>("Id"),
-                    RequestType = x.GetValue<String>("RequestType"),
-                    ListeningDirectory = x.GetValue<String>("ListeningDirectory"),
-                    OperatorName = x.GetValue<String>("OperatorName"),
-                    LineTerminator = x.GetValue<String>("LineTerminator"),
-                    FileFormatHandler = x.GetValue<String>("FileFormatHandler")
+            Startup.LoadTypes();
 
-            }).Select(f =>
-                          {
-                              return new FileProfile(f.FileProfileId, f.Name, f.ListeningDirectory, f.RequestType, f.OperatorName, f.LineTerminator, f.FileFormatHandler);
-                          });
-            services.AddSingleton<List<FileProfile>>(fileProfiles.ToList());
-
-
-            services.AddSingleton<IMediator, Mediator>();
-            services.AddSingleton<IFileProcessorManager, FileProcessorManager>();
-            services.AddSingleton<BusinessLogic.Common.IModelFactory, BusinessLogic.Common.ModelFactory>();
-            services.AddSingleton<Common.IModelFactory, Common.ModelFactory>();
-            services.AddSingleton<IDbContextFactory<EstateReportingGenericContext>, DbContextFactory<EstateReportingGenericContext>>();
-            services.AddSingleton<Func<String, EstateReportingGenericContext>>(cont => (connectionString) =>
-                                                                                       {
-                                                                                           String databaseEngine =
-                                                                                               ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
-
-                                                                                           return databaseEngine switch
-                                                                                           {
-                                                                                               "MySql" => new EstateReportingMySqlContext(connectionString),
-                                                                                               "SqlServer" => new EstateReportingSqlServerContext(connectionString),
-                                                                                               _ => throw new
-                                                                                                   NotSupportedException($"Unsupported Database Engine {databaseEngine}")
-                                                                                           };
-                                                                                       });
-
-            Boolean useConnectionStringConfig = Boolean.Parse(ConfigurationReader.GetValue("AppSettings", "UseConnectionStringConfig"));
-
-            if (useConnectionStringConfig)
-            {
-                String connectionStringConfigurationConnString = ConfigurationReader.GetConnectionString("ConnectionStringConfiguration");
-                services.AddSingleton<IConnectionStringConfigurationRepository, ConnectionStringConfigurationRepository>();
-                services.AddTransient<ConnectionStringConfigurationContext>(c =>
-                                                                            {
-                                                                                return new ConnectionStringConfigurationContext(connectionStringConfigurationConnString);
-                                                                            });
-
-                // TODO: Read this from a the database and set
-            }
-            else
-            {
-                services.AddEventStoreClient(Startup.ConfigureEventStoreSettings);
-                services.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
-                services.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
-                services.AddSingleton<IConnectionStringConfigurationRepository, ConfigurationReaderConnectionStringRepository>();
-            }
-
-            services.AddSingleton<IFileSystem, FileSystem>();
-            services.AddSingleton<IEventStoreContext, EventStoreContext>();
-
-            services.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
-            services.AddSingleton<IEstateClient, EstateClient>();
-            services.AddSingleton<ITransactionProcessorClient, TransactionProcessorClient>();
-
-            services.AddSingleton<Func<String, String>>(container => (serviceName) =>
-                                                                     {
-                                                                         return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString;
-                                                                     });
-
-            var httpMessageHandler = new SocketsHttpHandler
-                                     {
-                                         SslOptions =
-                                         {
-                                             RemoteCertificateValidationCallback = (sender,
-                                                                                    certificate,
-                                                                                    chain,
-                                                                                    errors) => true,
-                                         }
-                                     };
-            HttpClient httpClient = new HttpClient(httpMessageHandler);
-            services.AddSingleton(httpClient);
-
-            services.AddSingleton<IAggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileAggregate.FileAggregate, DomainEventRecord.DomainEvent>>();
-            services.AddSingleton<IAggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileImportLogAggregate.FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
-
-            FileCreatedEvent f = new FileCreatedEvent(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), String.Empty,
-                                                      new DateTime());
-            FileAddedToImportLogEvent f1 = new FileAddedToImportLogEvent(Guid.NewGuid(),
-                                                                         Guid.NewGuid(),
-                                                                         Guid.NewGuid(),
-                                                                         Guid.NewGuid(),
-                                                                         Guid.NewGuid(),
-                                                                         Guid.NewGuid(),
-                                                                         String.Empty,
-                                                                         String.Empty,
-                                                                         new DateTime());
-
-            TypeProvider.LoadDomainEventsTypeDynamically();
-
-            // request & notification handlers
-            services.AddTransient<ServiceFactory>(context =>
-                                                  {
-                                                      return t => context.GetService(t);
-                                                  });
-
-            services.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
-            services.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
-            services.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
-            services.AddSingleton<IRequestHandler<VoucherRequest, Unit>, FileRequestHandler>();
-            services.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();
-
-            Dictionary<String, String[]> eventHandlersConfiguration = new Dictionary<String, String[]>();
-
-            if (Startup.Configuration != null)
-            {
-                IConfigurationSection section = Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration");
-
-                if (section != null)
-                {
-                    Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration").Bind(eventHandlersConfiguration);
-                }
-            }
-            services.AddSingleton<Dictionary<String, String[]>>(eventHandlersConfiguration);
-
-            services.AddSingleton<Func<Type, IDomainEventHandler>>(container => (type) =>
-                                                                                {
-                                                                                    IDomainEventHandler handler = container.GetService(type) as IDomainEventHandler;
-                                                                                    return handler;
-                                                                                });
-            
-            services.AddSingleton<FileDomainEventHandler>();
-            services.AddSingleton<IDomainEventHandlerResolver, DomainEventHandlerResolver>();
-
-            services.AddSingleton<Func<String, IFileFormatHandler>>(container => (fileFormatHandlerName) =>
-                                                                                 {
-                                                                                     if (fileFormatHandlerName == "SafaricomFileFormatHandler")
-                                                                                        return new SafaricomFileFormatHandler();
-                                                                                     if (fileFormatHandlerName == "VoucherFileFormatHandler")
-                                                                                         return new VoucherFileFormatHandler();
-
-                                                                                     return null;
-                                                                                 });
+            Startup.Container = new Container(services);
 
             Startup.ServiceProvider = services.BuildServiceProvider();
-
         }
 
         public static IServiceProvider ServiceProvider { get; set; }
-
-        private HttpClientHandler ApiEndpointHttpHandler(IServiceProvider serviceProvider)
-        {
-            return new HttpClientHandler
-                   {
-                       ServerCertificateCustomValidationCallback = (message,
-                                                                    cert,
-                                                                    chain,
-                                                                    errors) =>
-                                                                   {
-                                                                       return true;
-                                                                   }
-                   };
-        }
-
-        private void ConfigureMiddlewareServices(IServiceCollection services)
-        {
-            services.AddHealthChecks().AddEventStore(Startup.EventStoreClientSettings,
-                                                     userCredentials:Startup.EventStoreClientSettings.DefaultCredentials,
-                                                     name:"Eventstore",
-                                                     failureStatus:HealthStatus.Unhealthy,
-                                                     tags:new string[] {"db", "eventstore"}).AddEstateManagementService().AddTransactionProcessorService()
-                    .AddSecurityService(ApiEndpointHttpHandler);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "File Processor API",
-                    Version = "1.0",
-                    Description = "A REST Api to manage importing and processing bulk transaction files.",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Stuart Ferguson",
-                        Email = "golfhandicapping@btinternet.com"
-                    }
-                });
-                // add a custom operation filter which sets default values
-                //c.OperationFilter<SwaggerDefaultValues>();
-                //c.ExampleFilters();
-
-                //Locate the XML files being generated by ASP.NET...
-                var directory = new DirectoryInfo(AppContext.BaseDirectory);
-                var xmlFiles = directory.GetFiles("*.xml");
-
-                //... and tell Swagger to use those XML comments.
-                foreach (FileInfo fileInfo in xmlFiles)
-                {
-                    c.IncludeXmlComments(fileInfo.FullName);
-                }
-
-            });
-
-            //services.AddSwaggerExamplesFromAssemblyOf<SwaggerJsonConverter>();
-
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(options =>
-                {
-                    options.BackchannelHttpHandler = new HttpClientHandler
-                                                     {
-                                                         ServerCertificateCustomValidationCallback =
-                                                             (message, certificate, chain, sslPolicyErrors) => true
-                                                     };
-                    options.Authority = ConfigurationReader.GetValue("SecurityConfiguration", "Authority");
-                    options.Audience = ConfigurationReader.GetValue("SecurityConfiguration", "ApiName");
-
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
-                                                        {
-                                                            ValidateAudience = false,
-                                                            ValidAudience = ConfigurationReader.GetValue("SecurityConfiguration", "ApiName"),
-                                                            ValidIssuer = ConfigurationReader.GetValue("SecurityConfiguration", "Authority"),
-                                                        };
-                    options.IncludeErrorDetails = true;
-                });
-
-            services.AddControllers().AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.Culture = new CultureInfo("en-GB");
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            });
-
-            Assembly assembly = this.GetType().GetTypeInfo().Assembly;
-            services.AddMvcCore().AddApplicationPart(assembly).AddControllersAsServices();
-        }
-
+        
         public static void LoadTypes()
         {
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
