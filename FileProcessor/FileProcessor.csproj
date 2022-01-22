@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <PackageReference Include="Lamar" Version="7.0.0" />
+	  <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0" />
 	  <PackageReference Include="EventStore.Client.Grpc.PersistentSubscriptions" Version="21.2.0" />
 	  <PackageReference Include="EventStore.Client.Grpc.ProjectionManagement" Version="21.2.0" />
