@@ -55,17 +55,23 @@ namespace FileProcessor.IntegrationTests.Common
                                                               EstateId = Guid.NewGuid(),
                                                               EstateName = estateName
                                                           };
+                CreateEstateResponse response = null;
+                await Retry.For(async () =>
+                                {
+                                    response = await this.TestingContext.DockerHelper.EstateClient
+                                                         .CreateEstate(this.TestingContext.AccessToken, createEstateRequest, CancellationToken.None)
+                                                         .ConfigureAwait(false);
 
-                CreateEstateResponse response = await this.TestingContext.DockerHelper.EstateClient
-                                                          .CreateEstate(this.TestingContext.AccessToken, createEstateRequest, CancellationToken.None)
-                                                          .ConfigureAwait(false);
+                                    response.ShouldNotBeNull();
+                                    response.EstateId.ShouldNotBe(Guid.Empty);
 
-                response.ShouldNotBeNull();
-                response.EstateId.ShouldNotBe(Guid.Empty);
+                                }, retryFor: TimeSpan.FromMinutes(1),
+                                retryInterval: TimeSpan.FromSeconds(30));
 
+                
                 this.TestingContext.Logger.LogInformation($"Estate {estateName} created with Id {response.EstateId}");
-
-                EstateResponse estate = null;
+            
+            EstateResponse estate = null;
                 await Retry.For(async () =>
                                 {
                                     estate = await this.TestingContext.DockerHelper.EstateClient
