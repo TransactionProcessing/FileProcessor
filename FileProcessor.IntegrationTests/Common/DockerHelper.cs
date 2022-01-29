@@ -159,6 +159,7 @@ namespace FileProcessor.IntegrationTests.Common
             String insecureEventStoreEnvironmentVariable = "EventStoreSettings:Insecure=true";
             String persistentSubscriptionPollingInSeconds = "AppSettings:PersistentSubscriptionPollingInSeconds=10";
             String internalSubscriptionServiceCacheDuration = "AppSettings:InternalSubscriptionServiceCacheDuration=0";
+            String operationTimeoutEnvironmentVariable = "EventStoreSettings:OperationTimeoutInSeconds=60";
 
             IContainerService estateManagementContainer = this.SetupEstateManagementContainer("stuartferguson/estatemanagement",
                                                                                               new List<INetworkService>
@@ -238,6 +239,7 @@ namespace FileProcessor.IntegrationTests.Common
                                                                                            insecureEventStoreEnvironmentVariable,
                                                                                            persistentSubscriptionPollingInSeconds,
                                                                                            internalSubscriptionServiceCacheDuration,
+                                                                                           operationTimeoutEnvironmentVariable
                                                                                        });
 
             this.Containers.AddRange(new List<IContainerService>
