@@ -1,4 +1,4 @@
-name: Publish Pre-Release Nuget 
+name: Publish Pre-Release Nuget and Docker
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "Publish Pre-Release Nugets"
+    name: "Publish Pre-Release Nugets and Docker"
     env:
         ASPNETCORE_ENVIRONMENT: "Production"
 
@@ -50,3 +50,9 @@ jobs:
         dotnet nuget push Nugets/FileProcessor.FileImportLog.DomainEvents.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.MYGET_APIKEY }} --source https://www.myget.org/F/transactionprocessing/api/v2/package
         dotnet pack "FileProcessor.Client\FileProcessor.Client.csproj" /p:PackageVersion=${{ steps.next_version.outputs.VERSION }} --output Nugets -c Release
         dotnet nuget push Nugets/FileProcessor.Client.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.MYGET_APIKEY }} --source https://www.myget.org/F/transactionprocessing/api/v2/package
+
+    - name: Publish Images to Docker Hub
+      run: |
+        docker build . --file FileProcessor/Dockerfile --tag stuartferguson/fileprocessor:master
+        docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+        docker push stuartferguson/fileprocessor:master
