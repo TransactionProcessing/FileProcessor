@@ -242,63 +242,88 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Unit> Handle(SafaricomTopupRequest request,
                                        CancellationToken cancellationToken)
         {
-            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
+            return await this.ProcessFile(request.FileId,request.FileProfileId,request.FileName, cancellationToken);
+        }
 
-            if (fileAggregate.IsCreated == false)
+        private async Task<Unit> ProcessFile(Guid fileId,
+                                             Guid fileProfileId,
+                                             String fileName,
+                                      CancellationToken cancellationToken)
+        {
+            IFileInfo inProgressFile = null;
+            FileProfile fileProfile = null;
+            try
+            {
+                FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
+
+                if (fileAggregate.IsCreated == false)
+                    return new Unit();
+
+                fileProfile = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
+
+                if (fileProfile == null)
+                {
+                    throw new NotFoundException($"No file profile found with Id {fileProfileId}");
+                }
+
+                // Check the processed/failed directories exist
+                if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
+                {
+                    throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
+                }
+
+                if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
+                {
+                    throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
+                }
+
+                inProgressFile = this.FileSystem.FileInfo.FromFileName(fileName);
+
+                if (inProgressFile.Exists == false)
+                {
+                    throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
+                }
+
+                String fileContent = null;
+                //Open file for Read\Write
+                using(Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+                {
+                    //Create object of StreamReader by passing FileStream object on which it needs to operates on
+                    using(StreamReader sr = new StreamReader(fs))
+                    {
+                        //Use ReadToEnd method to read all the content from file
+                        fileContent = await sr.ReadToEndAsync();
+                    }
+                }
+
+                if (String.IsNullOrEmpty(fileContent) == false)
+                {
+                    String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
+
+                    foreach (String fileLine in fileLines)
+                    {
+                        fileAggregate.AddFileLine(fileLine);
+                    }
+
+                    await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
+                }
+
+                // TODO: Move file now
+                inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
+
                 return new Unit();
-            
-            FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(request.FileProfileId, cancellationToken);
-
-            if (fileProfile == null)
-            {
-                throw new NotFoundException($"No file profile found with Id {request.FileProfileId}");
             }
-            
-            IFileInfo inProgressFile = this.FileSystem.FileInfo.FromFileName(request.FileName);
-
-            if (inProgressFile.Exists == false)
+            catch(FileNotFoundException fex)
             {
-                throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
+                Logger.LogError(fex);
+                inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+                throw;
             }
-
-            // Check the processed/failed directories exist
-            if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
+            catch(Exception e)
             {
-                throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
+                Logger.LogError(e);
+                throw;
             }
-
-            if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
-            {
-                throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
-            }
-            String fileContent = null;
-            //Open file for Read\Write
-            using(Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
-            {
-                //Create object of StreamReader by passing FileStream object on which it needs to operates on
-                using(StreamReader sr = new StreamReader(fs))
-                {
-                    //Use ReadToEnd method to read all the content from file
-                    fileContent = await sr.ReadToEndAsync();
-                }
-            }
-
-            if (String.IsNullOrEmpty(fileContent) == false)
-            {
-                String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
-
-                foreach (String fileLine in fileLines)
-                {
-                    fileAggregate.AddFileLine(fileLine);
-                }
-                
-                await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
-            }
-
-            // TODO: Move file now
-            inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
-            
-            return new Unit();
         }
 
         /// <summary>
@@ -564,73 +589,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Unit> Handle(VoucherRequest request,
                                        CancellationToken cancellationToken)
         {
-            FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
-
-            if (fileAggregate.IsCreated == false)
-                return new Unit();
-
-            IFileInfo file = this.FileSystem.FileInfo.FromFileName(request.FileName);
-
-            if (file.Exists == false)
-            {
-                throw new FileNotFoundException($"File {file.FullName} not found");
-            }
-
-            FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(request.FileProfileId, cancellationToken);
-
-            if (fileProfile == null)
-            {
-                throw new NotFoundException($"No file profile found with Id {request.FileProfileId}");
-            }
-
-            String inProgressFolder = $"{fileProfile.ListeningDirectory}/inprogress/";
-            if (this.FileSystem.Directory.Exists(inProgressFolder) == false)
-            {
-                throw new DirectoryNotFoundException($"Directory {inProgressFolder} not found");
-            }
-            String inProgressFilePath = $"{fileProfile.ListeningDirectory}/inprogress/{file.Name}";
-            file.MoveTo(inProgressFilePath, true);
-
-            IFileInfo inProgressFile = this.FileSystem.FileInfo.FromFileName(inProgressFilePath);
-
-            // TODO: Check the processed/failed directories exist
-            if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
-            {
-                throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
-            }
-
-            if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
-            {
-                throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
-            }
-            String fileContent = null;
-            //Open file for Read\Write
-            using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
-            {
-                //Create object of StreamReader by passing FileStream object on which it needs to operates on
-                using (StreamReader sr = new StreamReader(fs))
-                {
-                    //Use ReadToEnd method to read all the content from file
-                    fileContent = await sr.ReadToEndAsync();
-                }
-            }
-
-            if (String.IsNullOrEmpty(fileContent) == false)
-            {
-                String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
-
-                foreach (String fileLine in fileLines)
-                {
-                    fileAggregate.AddFileLine(fileLine);
-                }
-
-                await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
-            }
-
-            // TODO: Move file now
-            inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
-
-            return new Unit();
+            return await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
         }
     }
 }
