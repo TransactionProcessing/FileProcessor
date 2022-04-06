@@ -266,13 +266,6 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                     throw new NotFoundException($"No file profile found with Id {fileProfileId}");
                 }
 
-                inProgressFile = this.FileSystem.FileInfo.FromFileName(fileName);
-
-                if (inProgressFile.Exists == false)
-                {
-                    throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
-                }
-
                 // Check the processed/failed directories exist
                 if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
                 {
@@ -282,6 +275,13 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
                 {
                     throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
+                }
+
+                inProgressFile = this.FileSystem.FileInfo.FromFileName(fileName);
+
+                if (inProgressFile.Exists == false)
+                {
+                    throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
                 }
 
                 String fileContent = null;
@@ -313,11 +313,16 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
                 return new Unit();
             }
+            catch(FileNotFoundException fex)
+            {
+                Logger.LogError(fex);
+                inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+                throw;
+            }
             catch(Exception e)
             {
                 Logger.LogError(e);
-                inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
-                return new Unit();
+                throw;
             }
         }
 
