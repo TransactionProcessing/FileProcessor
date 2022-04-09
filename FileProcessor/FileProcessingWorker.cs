@@ -47,6 +47,8 @@
 
         #endregion
 
+        public Boolean IsRunning { get; private set; }
+
         #region Constructors
 
         /// <summary>
@@ -99,7 +101,7 @@
                 this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
                 this.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
 
-                IDirectoryInfo inprogressDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName(fileProfile.ListeningDirectory);
+                IDirectoryInfo inprogressDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName($"{fileProfile.ListeningDirectory}//inprogress");
                 var inprogressList = inprogressDirectory.GetFiles();
 
                 if (inprogressList.Any())
@@ -115,6 +117,8 @@
             }
             
             await base.StartAsync(cancellationToken);
+
+            this.IsRunning = true;
         }
 
         /// <summary>
@@ -123,6 +127,8 @@
         /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
+            this.IsRunning = false;
+            await base.StopAsync(cancellationToken);
         }
 
         /// <summary>
@@ -153,9 +159,9 @@
                     {
                         this.LogInformation($"About to look in {fileProfile.ListeningDirectory} for files");
                         IDirectoryInfo listeningDirectory = this.FileSystem.DirectoryInfo.FromDirectoryName(fileProfile.ListeningDirectory);
-                        
+
                         List<IFileInfo> files = listeningDirectory.GetFiles().OrderBy(f => f.CreationTime).Take(1).ToList(); // Only process 1 file per file profile concurrently,
-                        
+
                         foreach (IFileInfo fileInfo in files)
                         {
                             this.LogInformation($"File {fileInfo.Name} detected");
@@ -175,7 +181,7 @@
 
                     await Task.WhenAll(fileProcessingTasks.ToArray());
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     this.LogCritical(e);
                 }

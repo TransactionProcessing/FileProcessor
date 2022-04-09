@@ -88,16 +88,16 @@ namespace FileProcessor.BusinessLogic.EventHandling
         private async Task HandleSpecificDomainEvent(FileAddedToImportLogEvent domainEvent,
                                                      CancellationToken cancellationToken)
         {
-            ProcessUploadedFileRequest request = new ProcessUploadedFileRequest(domainEvent.EstateId,
-                                                                                domainEvent.MerchantId,
-                                                                                domainEvent.FileImportLogId,
-                                                                                domainEvent.FileId,
-                                                                                domainEvent.UserId,
-                                                                                domainEvent.FilePath,
-                                                                                domainEvent.FileProfileId,
-                                                                                domainEvent.FileUploadedDateTime);
+            //ProcessUploadedFileRequest request = new ProcessUploadedFileRequest(domainEvent.EstateId,
+            //                                                                    domainEvent.MerchantId,
+            //                                                                    domainEvent.FileImportLogId,
+            //                                                                    domainEvent.FileId,
+            //                                                                    domainEvent.UserId,
+            //                                                                    domainEvent.FilePath,
+            //                                                                    domainEvent.FileProfileId,
+            //                                                                    domainEvent.FileUploadedDateTime);
 
-            await this.Mediator.Send(request, cancellationToken);
+            //await this.Mediator.Send(request, cancellationToken);
         }
 
         #endregion
