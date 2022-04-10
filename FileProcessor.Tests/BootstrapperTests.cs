@@ -1,4 +1,6 @@
-﻿namespace FileProcessor.Tests
+﻿using FileProcessor.Testing;
+
+namespace FileProcessor.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -31,25 +33,25 @@
 
         private IConfigurationRoot SetupMemoryConfiguration()
         {
-            Dictionary<String, String> configuration = new Dictionary<String, String>();
+            //Dictionary<String, String> configuration = new Dictionary<String, String>();
 
             IConfigurationBuilder builder = new ConfigurationBuilder();
 
-            configuration.Add("ConnectionStrings:HealthCheck", "HeathCheckConnString");
-            configuration.Add("SecurityConfiguration:Authority", "https://127.0.0.1");
-            configuration.Add("EventStoreSettings:ConnectionString", "https://127.0.0.1:2113");
-            configuration.Add("EventStoreSettings:ConnectionName", "UnitTestConnection");
-            configuration.Add("EventStoreSettings:UserName", "admin");
-            configuration.Add("EventStoreSettings:Password", "changeit");
-            configuration.Add("AppSettings:UseConnectionStringConfig", "false");
-            configuration.Add("AppSettings:SecurityService", "http://127.0.0.1");
-            configuration.Add("AppSettings:MessagingServiceApi", "http://127.0.0.1");
-            configuration.Add("AppSettings:EstateManagementApi", "http://127.0.0.1");
-            configuration.Add("AppSettings:TransactionProcessorApi", "http://127.0.0.1");
-            configuration.Add("AppSettings:DatabaseEngine", "SqlServer");
+            //configuration.Add("ConnectionStrings:HealthCheck", "HeathCheckConnString");
+            //configuration.Add("SecurityConfiguration:Authority", "https://127.0.0.1");
+            //configuration.Add("EventStoreSettings:ConnectionString", "https://127.0.0.1:2113");
+            //configuration.Add("EventStoreSettings:ConnectionName", "UnitTestConnection");
+            //configuration.Add("EventStoreSettings:UserName", "admin");
+            //configuration.Add("EventStoreSettings:Password", "changeit");
+            //configuration.Add("AppSettings:UseConnectionStringConfig", "false");
+            //configuration.Add("AppSettings:SecurityService", "http://127.0.0.1");
+            //configuration.Add("AppSettings:MessagingServiceApi", "http://127.0.0.1");
+            //configuration.Add("AppSettings:EstateManagementApi", "http://127.0.0.1");
+            //configuration.Add("AppSettings:TransactionProcessorApi", "http://127.0.0.1");
+            //configuration.Add("AppSettings:DatabaseEngine", "SqlServer");
 
-            builder.AddInMemoryCollection(configuration);
-
+            //builder.AddInMemoryCollection(configuration);
+            builder.AddInMemoryCollection(TestData.DefaultAppSettings);
             return builder.Build();
         }
 

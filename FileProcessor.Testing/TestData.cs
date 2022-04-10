@@ -284,8 +284,26 @@ namespace FileProcessor.Testing
             new Dictionary<String, String>
             {
                 ["AppSettings:ClientId"] = "clientId",
-                ["AppSettings:ClientSecret"] = "clientSecret"
+                ["AppSettings:ClientSecret"] = "clientSecret",
+                ["AppSettings:TemporaryFileLocation"] = "C:\\Temp",
+                ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
+                ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
+                ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
+                ["EventStoreSettings:ConnectionString"] = "https://127.0.0.1:2113",
+                ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
+                ["EventStoreSettings:UserName"] = "admin",
+                ["EventStoreSettings:Password"] = "changeit",
+                ["AppSettings:UseConnectionStringConfig"] = "false",
+                ["AppSettings:SecurityService"] = "http://127.0.0.1",
+                ["AppSettings:MessagingServiceApi"] = "http://127.0.0.1",
+                ["AppSettings:EstateManagementApi"] = "http://127.0.0.1",
+                ["AppSettings:TransactionProcessorApi"] = "http://127.0.0.1",
+                ["AppSettings:DatabaseEngine"] = "SqlServer"
             };
+
+
+        
+        
 
         public static TokenResponse TokenResponse()
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -254,11 +255,6 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             FileProfile fileProfile = null;
             try
             {
-                FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
-
-                if (fileAggregate.IsCreated == false)
-                    return new Unit();
-
                 fileProfile = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
 
                 if (fileProfile == null)
@@ -269,12 +265,14 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 // Check the processed/failed directories exist
                 if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
                 {
-                    throw new DirectoryNotFoundException($"Directory {fileProfile.ProcessedDirectory} not found");
+                    Logger.LogWarning($"Creating Directory {fileProfile.ProcessedDirectory} as not found");
+                    this.FileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
                 }
 
                 if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
                 {
-                    throw new DirectoryNotFoundException($"Directory {fileProfile.FailedDirectory} not found");
+                    Logger.LogWarning($"Creating Directory {fileProfile.FailedDirectory} as not found");
+                    this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
                 }
 
                 inProgressFile = this.FileSystem.FileInfo.FromFileName(fileName);
@@ -284,12 +282,20 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                     throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
                 }
 
+                FileAggregate fileAggregate =
+                    await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
+
+                if (fileAggregate.IsCreated == false)
+                {
+                    throw new InvalidOperationException($"File with Id {fileId} not created");
+                }
+
                 String fileContent = null;
                 //Open file for Read\Write
-                using(Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+                using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
                 {
                     //Create object of StreamReader by passing FileStream object on which it needs to operates on
-                    using(StreamReader sr = new StreamReader(fs))
+                    using (StreamReader sr = new StreamReader(fs))
                     {
                         //Use ReadToEnd method to read all the content from file
                         fileContent = await sr.ReadToEndAsync();
@@ -308,19 +314,19 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                     await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
                 }
 
+                Logger.LogInformation(
+                    $"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
+
                 // TODO: Move file now
                 inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
 
                 return new Unit();
             }
-            catch(FileNotFoundException fex)
+            catch (Exception e)
             {
-                Logger.LogError(fex);
-                inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
-                throw;
-            }
-            catch(Exception e)
-            {
+                if (inProgressFile != null && fileProfile != null)
+                    inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+
                 Logger.LogError(e);
                 throw;
             }

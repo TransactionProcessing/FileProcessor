@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediatR;
 
 namespace FileProcessor.BusinessLogic.Tests
 {
@@ -76,6 +77,7 @@ namespace FileProcessor.BusinessLogic.Tests
                                                                            SecurityServiceClient.Object,
                                                                            fileFormatHandlerResolver,
                                                                            FileSystem);
+            Logger.Initialise(NullLogger.Instance);
         }
 
         [Fact]
@@ -207,7 +209,10 @@ namespace FileProcessor.BusinessLogic.Tests
             {
                 await this.FileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
         }
+
+        
 
         [Fact]
         public void FileRequestHandler_SafaricomTopupRequest_FileAggregateNotCreated_RequestIsHandled()
@@ -225,10 +230,11 @@ namespace FileProcessor.BusinessLogic.Tests
             SafaricomTopupRequest safaricomTopupRequest =
                 new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
-            Should.NotThrow(async () =>
+            Should.Throw<InvalidOperationException>(async () =>
             {
                 await this.FileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/failed");
         }
 
         [Fact]
@@ -291,12 +297,13 @@ namespace FileProcessor.BusinessLogic.Tests
             SafaricomTopupRequest safaricomTopupRequest =
                 new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
-            Should.Throw<DirectoryNotFoundException>(async () =>
+            Should.NotThrow(async () =>
             {
                 await this.FileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
         }
-
+        
         [Fact]
         public async Task FileRequestHandler_SafaricomTopupRequest_FailedDirectoryNotFound_RequestIsHandled()
         {
@@ -311,11 +318,12 @@ namespace FileProcessor.BusinessLogic.Tests
 
             SafaricomTopupRequest safaricomTopupRequest =
                 new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-            Should.Throw<DirectoryNotFoundException>(async () =>
+            
+            Should.NotThrow(async () =>
             {
                 await this.FileRequestHandler.Handle(safaricomTopupRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
         }
 
         [Fact]
@@ -340,6 +348,7 @@ namespace FileProcessor.BusinessLogic.Tests
             });
 
             this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Never);
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
         }
 
         [Theory]
@@ -793,7 +802,7 @@ namespace FileProcessor.BusinessLogic.Tests
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-            
+
             VoucherRequest voucherRequest =
                 new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
@@ -801,7 +810,10 @@ namespace FileProcessor.BusinessLogic.Tests
             {
                 await this.FileRequestHandler.Handle(voucherRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
         }
+
+
 
         [Fact]
         public void FileRequestHandler_VoucherRequest_FileAggregateNotCreated_RequestIsHandled()
@@ -819,10 +831,11 @@ namespace FileProcessor.BusinessLogic.Tests
             VoucherRequest voucherRequest =
                 new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
-            Should.NotThrow(async () =>
+            Should.Throw<InvalidOperationException>(async () =>
             {
                 await this.FileRequestHandler.Handle(voucherRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/failed");
         }
 
         [Fact]
@@ -869,7 +882,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 await this.FileRequestHandler.Handle(voucherRequest, CancellationToken.None);
             });
         }
-        
+
         [Fact]
         public async Task FileRequestHandler_VoucherRequest_ProcessedDirectoryNotFound_RequestIsHandled()
         {
@@ -882,15 +895,14 @@ namespace FileProcessor.BusinessLogic.Tests
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
 
-            Logger.Initialise(NullLogger.Instance);
-
             VoucherRequest voucherRequest =
                 new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
-            Should.Throw<DirectoryNotFoundException>(async () =>
+            Should.NotThrow(async () =>
             {
                 await this.FileRequestHandler.Handle(voucherRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
         }
 
         [Fact]
@@ -904,21 +916,22 @@ namespace FileProcessor.BusinessLogic.Tests
 
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
             this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-            
+
             VoucherRequest voucherRequest =
                 new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
 
-            Should.Throw<DirectoryNotFoundException>(async () =>
+            Should.NotThrow(async () =>
             {
                 await this.FileRequestHandler.Handle(voucherRequest, CancellationToken.None);
             });
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
         }
 
         [Fact]
         public void FileRequestHandler_VoucherRequest_FileIsEmpty_RequestIsHandled()
         {
             this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-            
+
             this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
 
             this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData(String.Empty));
@@ -936,6 +949,13 @@ namespace FileProcessor.BusinessLogic.Tests
             });
 
             this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Never);
+            this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
+        }
+
+        private void VerifyFileProcessing(String filePath)
+        {
+            IDirectoryInfo directoryInfo = this.FileSystem.DirectoryInfo.FromDirectoryName(filePath);
+            directoryInfo.GetFiles("*.*").Length.ShouldBe(1);
         }
     }
 }
