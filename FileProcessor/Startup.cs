@@ -120,15 +120,11 @@ namespace FileProcessor
                                                 Address = new Uri(Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString")),
                                             };
 
-            String operationTimeout = Startup.Configuration.GetValue<String>("EventStoreSettings:OperationTimeoutInSeconds");
+            settings.ConnectionName = Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionName");
+            settings.ConnectivitySettings = EventStoreClientConnectivitySettings.Default;
+            settings.ConnectivitySettings.Address = new Uri(Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString"));
+            settings.ConnectivitySettings.Insecure = Startup.Configuration.GetValue<Boolean>("EventStoreSettings:Insecure");
 
-            if (String.IsNullOrEmpty(operationTimeout) == false)
-            {
-                settings.OperationOptions = new EventStoreClientOperationOptions
-                                            {
-                                                TimeoutAfter = TimeSpan.FromSeconds(Int32.Parse(operationTimeout))
-                                            };
-            }
 
             settings.DefaultCredentials = new UserCredentials(Startup.Configuration.GetValue<String>("EventStoreSettings:UserName"),
                                                               Startup.Configuration.GetValue<String>("EventStoreSettings:Password"));

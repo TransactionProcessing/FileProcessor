@@ -4,7 +4,7 @@ namespace FileProcessor.FileImportLog.DomainEvents
 {
     using Shared.DomainDrivenDesign.EventSourcing;
 
-    public record ImportLogCreatedEvent : DomainEventRecord.DomainEvent
+    public record ImportLogCreatedEvent : DomainEvent
     {
         public ImportLogCreatedEvent(Guid aggregateId, Guid estateId, DateTime importLogDateTime) : base(aggregateId, Guid.NewGuid())
         {

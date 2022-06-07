@@ -3,7 +3,7 @@
     using System;
     using Shared.DomainDrivenDesign.EventSourcing;
 
-    public record FileLineProcessingRejectedEvent : DomainEventRecord.DomainEvent
+    public record FileLineProcessingRejectedEvent : DomainEvent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FileLineProcessingFailedEvent" /> class.

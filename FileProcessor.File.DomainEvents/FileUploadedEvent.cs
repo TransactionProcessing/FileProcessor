@@ -10,7 +10,7 @@
     /// <seealso cref="Shared.DomainDrivenDesign.EventSourcing.IDomainEvent" />
     /// <seealso cref="System.IEquatable{Shared.DomainDrivenDesign.EventSourcing.DomainEventRecord.DomainEvent}" />
     /// <seealso cref="System.IEquatable{FileProcessor.File.DomainEvents.FileCreatedEvent}" />
-    public record FileCreatedEvent : DomainEventRecord.DomainEvent
+    public record FileCreatedEvent : DomainEvent
     {
         #region Constructors
 

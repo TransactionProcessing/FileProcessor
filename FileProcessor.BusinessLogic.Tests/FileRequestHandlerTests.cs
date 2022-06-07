@@ -36,9 +36,9 @@ namespace FileProcessor.BusinessLogic.Tests
     {
         private Mock<IFileProcessorManager> FileProcessorManager;
 
-        private Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>> FileImportLogAggregateRepository;
+        private Mock<IAggregateRepository<FileImportLogAggregate, DomainEvent>> FileImportLogAggregateRepository;
 
-        private Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> FileAggregateRepository;
+        private Mock<IAggregateRepository<FileAggregate, DomainEvent>> FileAggregateRepository;
 
         private Mock<ITransactionProcessorClient> TransactionProcessorClient;
 
@@ -55,9 +55,9 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             this.FileProcessorManager = new Mock<IFileProcessorManager>();
             this.FileImportLogAggregateRepository =
-                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+                new Mock<IAggregateRepository<FileImportLogAggregate, DomainEvent>>();
             this.FileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             this.TransactionProcessorClient = new Mock<ITransactionProcessorClient>();
             this.EstateClient = new Mock<IEstateClient>();
             this.SecurityServiceClient = new Mock<ISecurityServiceClient>();

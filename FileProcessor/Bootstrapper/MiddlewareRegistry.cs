@@ -297,9 +297,9 @@
 
             this.AddSingleton<IEventStoreContext, EventStoreContext>();
 
-            this.AddSingleton<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>, AggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
-            this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>,
-                AggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent>>();
+            this.AddSingleton<IAggregateRepository<FileAggregate, DomainEvent>, AggregateRepository<FileAggregate, DomainEvent>>();
+            this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
+                AggregateRepository<FileImportLogAggregate, DomainEvent>>();
 
             this.AddSingleton<IDbContextFactory<EstateReportingGenericContext>, DbContextFactory<EstateReportingGenericContext>>();
             this.AddSingleton<Func<String, EstateReportingGenericContext>>(cont => connectionString =>

@@ -10,7 +10,7 @@
     /// <seealso cref="Shared.DomainDrivenDesign.EventSourcing.IDomainEvent" />
     /// <seealso cref="System.IEquatable{Shared.DomainDrivenDesign.EventSourcing.DomainEventRecord.DomainEvent}" />
     /// <seealso cref="System.IEquatable{FileProcessor.File.DomainEvents.FileLineProcessingFailedEvent}" />
-    public record FileLineProcessingFailedEvent : DomainEventRecord.DomainEvent
+    public record FileLineProcessingFailedEvent : DomainEvent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FileLineProcessingFailedEvent"/> class.

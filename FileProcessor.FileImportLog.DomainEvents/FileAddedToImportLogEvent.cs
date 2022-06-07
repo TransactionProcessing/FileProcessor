@@ -3,7 +3,7 @@
     using System;
     using Shared.DomainDrivenDesign.EventSourcing;
 
-    public record FileAddedToImportLogEvent : DomainEventRecord.DomainEvent
+    public record FileAddedToImportLogEvent : DomainEvent
     {
         #region Constructors
 
