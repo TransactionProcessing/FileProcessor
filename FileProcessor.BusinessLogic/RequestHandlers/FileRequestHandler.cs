@@ -51,12 +51,12 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         /// </summary>
         private readonly IFileProcessorManager FileProcessorManager;
 
-        private readonly IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent> FileImportLogAggregateRepository;
+        private readonly IAggregateRepository<FileImportLogAggregate, DomainEvent> FileImportLogAggregateRepository;
 
         /// <summary>
         /// The file aggregate repository
         /// </summary>
-        private readonly IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> FileAggregateRepository;
+        private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
 
         /// <summary>
         /// The transaction processor client
@@ -94,8 +94,8 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         /// <param name="fileFormatHandlerResolver">The file format handler resolver.</param>
         /// <param name="fileSystem">The file system.</param>
         public FileRequestHandler(IFileProcessorManager fileProcessorManager,
-                                  IAggregateRepository<FileImportLogAggregate, DomainEventRecord.DomainEvent> fileImportLogAggregateRepository,
-                                  IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> fileAggregateRepository,
+                                  IAggregateRepository<FileImportLogAggregate, DomainEvent> fileImportLogAggregateRepository,
+                                  IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository,
                                   ITransactionProcessorClient transactionProcessorClient,
                                   IEstateClient estateClient,
                                   ISecurityServiceClient securityServiceClient,

@@ -10,7 +10,7 @@
     /// <seealso cref="Shared.DomainDrivenDesign.EventSourcing.IDomainEvent" />
     /// <seealso cref="System.IEquatable{Shared.DomainDrivenDesign.EventSourcing.DomainEventRecord.DomainEvent}" />
     /// <seealso cref="System.IEquatable{FileProcessor.File.DomainEvents.FileLineAddedEvent}" />
-    public record FileLineAddedEvent : DomainEventRecord.DomainEvent
+    public record FileLineAddedEvent : DomainEvent
     {
         #region Constructors
 
@@ -71,7 +71,7 @@
         #endregion
     }
 
-    public record FileProcessingCompletedEvent : DomainEventRecord.DomainEvent
+    public record FileProcessingCompletedEvent : DomainEvent
     {
         public FileProcessingCompletedEvent(Guid aggregateId,
                                             Guid estateId,

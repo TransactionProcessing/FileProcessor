@@ -36,7 +36,7 @@
 
         private readonly IModelFactory ModelFactory;
 
-        private readonly IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> FileAggregateRepository;
+        private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
 
         #endregion
 
@@ -51,7 +51,7 @@
         public FileProcessorManager(List<FileProfile> fileProfiles,
                                     Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext> dbContextFactory,
                                     IModelFactory modelFactory,
-                                    IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent> fileAggregateRepository)
+                                    IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository)
         {
             this.FileProfiles = fileProfiles;
             this.DbContextFactory = dbContextFactory;

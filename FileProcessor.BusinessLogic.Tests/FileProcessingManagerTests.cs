@@ -34,8 +34,8 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var contextFactory = this.CreateMockContextFactory();
             Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object,modelFactory.Object, fileAggregateRepository.Object);
 
             var allFileProfiles = await manager.GetAllFileProfiles(CancellationToken.None);
@@ -49,8 +49,8 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var contextFactory = this.CreateMockContextFactory();
             Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory.Object, fileAggregateRepository.Object);
 
             var fileProfile = await manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
@@ -72,8 +72,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
@@ -95,8 +95,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
@@ -118,8 +118,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
@@ -141,8 +141,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
             context.SaveChanges();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
@@ -159,8 +159,8 @@ namespace FileProcessor.BusinessLogic.Tests
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
@@ -188,8 +188,8 @@ namespace FileProcessor.BusinessLogic.Tests
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
@@ -215,8 +215,8 @@ namespace FileProcessor.BusinessLogic.Tests
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
@@ -251,8 +251,8 @@ namespace FileProcessor.BusinessLogic.Tests
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
@@ -271,8 +271,8 @@ namespace FileProcessor.BusinessLogic.Tests
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEventRecord.DomainEvent>>();
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
