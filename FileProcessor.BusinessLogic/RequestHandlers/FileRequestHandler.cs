@@ -12,6 +12,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     using System.Security.Cryptography;
     using MediatR;
     using System.Threading;
+    using Common;
     using EstateManagement.Client;
     using EstateManagement.DataTransferObjects.Responses;
     using EventHandling;
@@ -128,7 +129,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             DateTime importLogDateTime = request.FileUploadedDateTime;
 
             // This will now create the import log and add an event for the file being uploaded
-            Guid importLogId = this.CreateGuidFromDateTime(importLogDateTime.Date);
+            Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime.Date, request.EstateId);
 
             // Get the import log
             FileImportLogAggregate fileImportLogAggregate = await this.FileImportLogAggregateRepository.GetLatestVersion(importLogId, cancellationToken);
@@ -201,18 +202,6 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             }
         }
 
-        private Guid CreateGuidFromDateTime(DateTime dateTime)
-        {
-            var bytes = BitConverter.GetBytes(dateTime.Ticks);
-
-            Array.Resize(ref bytes, 16);
-
-            var guid = new Guid(bytes);
-
-            return guid;
-        }
-
-       
         public async Task<Unit> Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
         {
             // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
