@@ -7,6 +7,7 @@
     using System.IO.Abstractions;
     using System.Linq;
     using System.Net.Http;
+    using System.Net.Security;
     using System.Reflection;
     using BusinessLogic.Common;
     using BusinessLogic.EventHandling;
@@ -289,9 +290,34 @@
             }
             else
             {
-                this.AddEventStoreClient(Startup.ConfigureEventStoreSettings);
+                Boolean insecureES = Startup.Configuration.GetValue<Boolean>("EventStoreSettings:Insecure");
+
+                Func<SocketsHttpHandler> CreateHttpMessageHandler = () => new SocketsHttpHandler
+                                                                          {
+
+                                                                              SslOptions = new SslClientAuthenticationOptions
+                                                                                           {
+                                                                                               RemoteCertificateValidationCallback = (sender,
+                                                                                                   certificate,
+                                                                                                   chain,
+                                                                                                   errors) => {
+
+                                                                                                   return true;
+                                                                                               }
+                                                                                           }
+                                                                          };
+
                 this.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
                 this.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
+
+                if (insecureES)
+                {
+                    this.AddInSecureEventStoreClient(Startup.EventStoreClientSettings.ConnectivitySettings.Address, CreateHttpMessageHandler);
+                }
+                else
+                {
+                    this.AddEventStoreClient(Startup.EventStoreClientSettings.ConnectivitySettings.Address, CreateHttpMessageHandler);
+                }
                 this.AddSingleton<IConnectionStringConfigurationRepository, ConfigurationReaderConnectionStringRepository>();
             }
 

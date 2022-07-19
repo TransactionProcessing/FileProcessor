@@ -128,29 +128,29 @@ namespace FileProcessor.IntegrationTests.Features
             i.ShouldNotBeNull();
         }
 
-        [When(@"As merchant ""(.*)"" on Estate ""(.*)"" I get my transactions (.*) transaction should be returned")]
-        public async Task WhenAsMerchantOnEstateIGetMyTransactionsTransactionShouldBeReturned(string merchantName, string estateName, int numberOfTransactions)
-        {
-            // We will need to give the processing some time to complete
-            var estate = this.TestingContext.GetEstateDetails(estateName);
-            Guid estateId = estate.EstateId;
-            var merchantId = estate.GetMerchantId(merchantName);
-            String accessToken = this.TestingContext.AccessToken;
+        //[When(@"As merchant ""(.*)"" on Estate ""(.*)"" I get my transactions (.*) transaction should be returned")]
+        //public async Task WhenAsMerchantOnEstateIGetMyTransactionsTransactionShouldBeReturned(string merchantName, string estateName, int numberOfTransactions)
+        //{
+        //    // We will need to give the processing some time to complete
+        //    var estate = this.TestingContext.GetEstateDetails(estateName);
+        //    Guid estateId = estate.EstateId;
+        //    var merchantId = estate.GetMerchantId(merchantName);
+        //    String accessToken = this.TestingContext.AccessToken;
 
-            await Retry.For(async () =>
-            {
-                var t = await this.TestingContext.DockerHelper.EstateReportingClient
-                                  .GetTransactionsForMerchantByDate(accessToken,
-                                                                    estateId,
-                                                                    merchantId,
-                                                                    DateTime.Now.ToString("yyyyMMdd"),
-                                                                    DateTime.Now.ToString("yyyyMMdd"),
-                                                                    CancellationToken.None).ConfigureAwait(false);
+        //    await Retry.For(async () =>
+        //    {
+        //        var t = await this.TestingContext.DockerHelper.EstateReportingClient
+        //                          .GetTransactionsForMerchantByDate(accessToken,
+        //                                                            estateId,
+        //                                                            merchantId,
+        //                                                            DateTime.Now.ToString("yyyyMMdd"),
+        //                                                            DateTime.Now.ToString("yyyyMMdd"),
+        //                                                            CancellationToken.None).ConfigureAwait(false);
 
-                t.ShouldNotBeNull();
-                t.TransactionDayResponses.ShouldHaveSingleItem();
-                t.TransactionDayResponses.Single().NumberOfTransactions.ShouldBe(numberOfTransactions);
-            }, TimeSpan.FromMinutes(10), TimeSpan.FromSeconds(30));
-        }
+        //        t.ShouldNotBeNull();
+        //        t.TransactionDayResponses.ShouldHaveSingleItem();
+        //        t.TransactionDayResponses.Single().NumberOfTransactions.ShouldBe(numberOfTransactions);
+        //    }, TimeSpan.FromMinutes(10), TimeSpan.FromSeconds(30));
+        //}
     }
 }

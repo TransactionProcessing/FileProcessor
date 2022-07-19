@@ -126,7 +126,21 @@ namespace FileProcessor.IntegrationTests.Common
         /// <param name="scenarioName">Name of the scenario.</param>
         public override async Task StartContainersForScenarioRun(String scenarioName)
         {
-            this.HostTraceFolder = FdOs.IsWindows() ? $"D:\\home\\txnproc\\trace\\{scenarioName}" : $"//home//txnproc//trace//{scenarioName}";
+            String IsSecureEventStoreEnvVar = Environment.GetEnvironmentVariable("IsSecureEventStore");
+
+            if (IsSecureEventStoreEnvVar == null)
+            {
+                // No env var set so default to insecure
+                this.IsSecureEventStore = false;
+            }
+            else
+            {
+                // We have the env var so we set the secure flag based on the value in the env var
+                Boolean.TryParse(IsSecureEventStoreEnvVar, out Boolean isSecure);
+                this.IsSecureEventStore = isSecure;
+            }
+
+            this.HostTraceFolder = FdOs.IsWindows() ? $"C:\\home\\txnproc\\trace\\{scenarioName}" : $"//home//txnproc//trace//{scenarioName}";
             
             Logging.Enabled();
 
@@ -153,10 +167,16 @@ namespace FileProcessor.IntegrationTests.Common
             INetworkService testNetwork = DockerHelper.SetupTestNetwork();
             this.TestNetworks.Add(testNetwork);
 
-            IContainerService eventStoreContainer = this.SetupEventStoreContainer("eventstore/eventstore:21.10.0-buster-slim", testNetwork);
+            IContainerService eventStoreContainer =
+                this.SetupEventStoreContainer("eventstore/eventstore:21.10.0-buster-slim", testNetwork, isSecure: this.IsSecureEventStore);
             this.EventStoreHttpPort = eventStoreContainer.ToHostExposedEndpoint($"{DockerHelper.EventStoreHttpDockerPort}/tcp").Port;
 
-            String insecureEventStoreEnvironmentVariable = "EventStoreSettings:Insecure=true";
+            String insecureEventStoreEnvironmentVariable = "EventStoreSettings:Insecure=True";
+            if (this.IsSecureEventStore)
+            {
+                insecureEventStoreEnvironmentVariable = "EventStoreSettings:Insecure=False";
+            }
+
             String persistentSubscriptionPollingInSeconds = "AppSettings:PersistentSubscriptionPollingInSeconds=10";
             String internalSubscriptionServiceCacheDuration = "AppSettings:InternalSubscriptionServiceCacheDuration=0";
             String operationTimeoutEnvironmentVariable = "EventStoreSettings:OperationTimeoutInSeconds=60";
@@ -283,10 +303,28 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
 
-            await this.LoadEventStoreProjections(this.EventStoreHttpPort).ConfigureAwait(false);
+            await this.LoadEventStoreProjections(this.EventStoreHttpPort, this.IsSecureEventStore).ConfigureAwait(false);
         }
 
         public const Int32 FileProcessorDockerPort = 5009;
+
+        public Boolean IsSecureEventStore { get; private set; }
+
+        protected override String GenerateEventStoreConnectionString()
+        {
+            // TODO: this could move to shared
+            String eventStoreAddress = $"esdb://admin:changeit@{this.EventStoreContainerName}:{DockerHelper.EventStoreHttpDockerPort}";
+            if (this.IsSecureEventStore)
+            {
+                eventStoreAddress = $"{eventStoreAddress}?tls=true&tlsVerifyCert=false";
+            }
+            else
+            {
+                eventStoreAddress = $"{eventStoreAddress}?tls=false&tlsVerifyCert=false";
+            }
+
+            return eventStoreAddress;
+        }
 
         private IContainerService SetupFileProcessorContainer(String imageName,
                                                               List<INetworkService> networkService,
@@ -343,14 +381,14 @@ namespace FileProcessor.IntegrationTests.Common
             return builtContainer;
         }
 
-        public async Task PopulateSubscriptionServiceConfiguration(String estateName)
+        public async Task PopulateSubscriptionServiceConfiguration(String estateName, Boolean isSecureEventStore)
         {
             var name = estateName.Replace(" ", "");
             List<(string streamName, string groupName, Int32 numberOfRetries)> subscriptions = new ();
             subscriptions.Add((name, "Reporting",0));
             subscriptions.Add(($"EstateManagementSubscriptionStream_{name}", "Estate Management",0));
             subscriptions.Add(($"FileProcessorSubscriptionStream_{name}", "File Processor",0));
-            await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions);
+            await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions, isSecureEventStore);
         }
 
         public string ReplaceFirst(string text, string search, string replace)

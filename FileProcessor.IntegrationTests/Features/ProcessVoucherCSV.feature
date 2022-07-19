@@ -87,7 +87,7 @@ Scenario: Process Voucher File with 1 detail row for recipient mobile
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
+	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
 Scenario: Process Voucher File with 2 detail rows
 	Given I have a file named 'VoucherIssue.txt' with the following contents
@@ -100,7 +100,7 @@ Scenario: Process Voucher File with 2 detail rows
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
+	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
 Scenario: Process 2 Voucher Files
 	Given I have a file named 'VoucherIssue1.txt' with the following contents
@@ -123,7 +123,7 @@ Scenario: Process 2 Voucher Files
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 
-	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 4 transaction should be returned
+	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 4 transaction should be returned
 
 @PRTest
 Scenario: Process Duplicate Voucher Topup File with 1 detail row
