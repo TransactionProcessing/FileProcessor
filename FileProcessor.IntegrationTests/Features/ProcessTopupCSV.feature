@@ -123,7 +123,7 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 	
-	When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
+	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
 	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
