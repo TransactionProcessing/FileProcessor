@@ -115,16 +115,16 @@ namespace FileProcessor
         {
             ConfigurationReader.Initialise(Startup.Configuration);
 
+            Startup.LoadTypes();
+
             services.IncludeRegistry<MediatorRegistry>();
             services.IncludeRegistry<DomainEventHandlerRegistry>();
-            services.IncludeRegistry<ClientRegistry>();
             services.IncludeRegistry<RepositoryRegistry>();
             services.IncludeRegistry<MiddlewareRegistry>();
             services.IncludeRegistry<FileRegistry>();
             services.IncludeRegistry<MiscRegistry>();
-
-            Startup.LoadTypes();
-
+            services.IncludeRegistry<ClientRegistry>();
+            
             Startup.Container = new Container(services);
 
             Startup.ServiceProvider = services.BuildServiceProvider();

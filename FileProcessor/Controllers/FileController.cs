@@ -4,6 +4,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,6 +18,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using NLog;
+    using SecurityService.Client;
     using Shared.General;
 
     /// <summary>
@@ -119,8 +121,8 @@
         [Route("{fileId}")]
         public async Task<IActionResult> GetFile([FromRoute] Guid fileId,
                                                  [FromQuery] Guid estateId,
-                                                 CancellationToken cancellationToken)
-        {
+                                                 CancellationToken cancellationToken) {
+
             FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
 
             return this.Ok(this.ModelFactory.ConvertFrom(fileDetailsModel));

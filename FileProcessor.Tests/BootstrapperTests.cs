@@ -11,11 +11,12 @@ namespace FileProcessor.Tests
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Moq;
+    using SecurityService.Client;
     using Xunit;
 
     public class BootstrapperTests
     {
-        [Fact(Skip = "re-enable")]
+        [Fact]
         public void VerifyBootstrapperIsValid()
         {
             Mock<IWebHostEnvironment> hostingEnvironment = new Mock<IWebHostEnvironment>();
@@ -29,6 +30,10 @@ namespace FileProcessor.Tests
 
             this.AddTestRegistrations(services, hostingEnvironment.Object);
             s.ConfigureContainer(services);
+
+            var g = Startup.Container.GetInstance<ISecurityServiceClient>();
+
+
             Startup.Container.AssertConfigurationIsValid(AssertMode.Full);
         }
 

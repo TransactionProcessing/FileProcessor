@@ -286,18 +286,17 @@ namespace FileProcessor.IntegrationTests.Common
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String EstateReportingBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateReportingApiPort}";
 
-            HttpClientHandler clientHandler = new HttpClientHandler
-                                              {
-                                                  ServerCertificateCustomValidationCallback = (message,
-                                                                                               certificate2,
-                                                                                               arg3,
-                                                                                               arg4) =>
-                                                                                              {
-                                                                                                  return true;
-                                                                                              }
-
-                                              };
-            HttpClient httpClient = new HttpClient(clientHandler);
+            var httpMessageHandler = new SocketsHttpHandler
+                                     {
+                                         SslOptions =
+                                         {
+                                             RemoteCertificateValidationCallback = (sender,
+                                                                                    certificate,
+                                                                                    chain,
+                                                                                    errors) => true,
+                                         }
+                                     };
+            HttpClient httpClient = new HttpClient(httpMessageHandler);
             this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
@@ -391,16 +390,6 @@ namespace FileProcessor.IntegrationTests.Common
             await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions, isSecureEventStore);
         }
 
-        public string ReplaceFirst(string text, string search, string replace)
-        {
-            int pos = text.IndexOf(search);
-            if (pos < 0)
-            {
-                return text;
-            }
-            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
-        }
-        
         private async Task RemoveEstateReadModel()
         {
             List<Guid> estateIdList = this.TestingContext.GetAllEstateIds();
