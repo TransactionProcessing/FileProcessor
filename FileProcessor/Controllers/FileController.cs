@@ -122,7 +122,6 @@
         public async Task<IActionResult> GetFile([FromRoute] Guid fileId,
                                                  [FromQuery] Guid estateId,
                                                  CancellationToken cancellationToken) {
-
             FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
 
             return this.Ok(this.ModelFactory.ConvertFrom(fileDetailsModel));
