@@ -387,10 +387,6 @@ this.FeatureBackground();
 #line 74
  testRunner.And("I upload this file for processing", ((string)(null)), table71, "And ");
 #line hidden
-#line 78
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 1 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
@@ -451,10 +447,6 @@ this.FeatureBackground();
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
 #line 86
  testRunner.And("I upload this file for processing", ((string)(null)), table73, "And ");
-#line hidden
-#line 90
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 1 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -521,10 +513,6 @@ this.FeatureBackground();
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
 #line 99
  testRunner.And("I upload this file for processing", ((string)(null)), table75, "And ");
-#line hidden
-#line 103
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 2 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -633,10 +621,6 @@ this.FeatureBackground();
 #line 122
  testRunner.And("I upload this file for processing", ((string)(null)), table79, "And ");
 #line hidden
-#line 126
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 4 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
@@ -704,10 +688,6 @@ this.FeatureBackground();
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
 #line 136
  testRunner.And("I upload this file for processing", ((string)(null)), table81, "And ");
-#line hidden
-#line 140
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 2 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table82 = new TechTalk.SpecFlow.Table(new string[] {
                             "Column1",

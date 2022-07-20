@@ -373,10 +373,6 @@ this.FeatureBackground();
 #line 73
  testRunner.And("I upload this file for processing", ((string)(null)), table42, "And ");
 #line hidden
-#line 77
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 1 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
@@ -437,10 +433,6 @@ this.FeatureBackground();
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
 #line 86
  testRunner.And("I upload this file for processing", ((string)(null)), table44, "And ");
-#line hidden
-#line 90
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 2 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -535,10 +527,6 @@ this.FeatureBackground();
 #line 108
  testRunner.And("I upload this file for processing", ((string)(null)), table48, "And ");
 #line hidden
-#line 112
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 3 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line hidden
             }
             this.ScenarioCleanup();
         }
@@ -601,10 +589,6 @@ this.FeatureBackground();
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
 #line 122
  testRunner.And("I upload this file for processing", ((string)(null)), table50, "And ");
-#line hidden
-#line 126
- testRunner.When("As merchant \"Test Merchant 1\" on Estate \"Test Estate 1\" I get my transactions 2 t" +
-                        "ransaction should be returned", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table51 = new TechTalk.SpecFlow.Table(new string[] {
                             "Column1",

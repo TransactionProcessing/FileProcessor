@@ -1,46 +1,21 @@
 ﻿namespace FileProcessor.Bootstrapper
 {
     using System;
-    using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
-    using System.IO.Abstractions;
-    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
-    using BusinessLogic.Common;
-    using BusinessLogic.EventHandling;
-    using BusinessLogic.FileFormatHandlers;
-    using BusinessLogic.Managers;
-    using BusinessLogic.RequestHandlers;
-    using BusinessLogic.Requests;
-    using EstateManagement.Client;
-    using EstateReporting.Database;
-    using FileAggregate;
-    using FileImportLogAggregate;
-    using FIleProcessor.Models;
     using Lamar;
-    using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
-    using SecurityService.Client;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EntityFramework;
-    using Shared.EntityFramework.ConnectionStringConfiguration;
-    using Shared.EventStore.Aggregate;
-    using Shared.EventStore.EventHandling;
-    using Shared.EventStore.EventStore;
     using Shared.EventStore.Extensions;
     using Shared.Extensions;
     using Shared.General;
-    using Shared.Repositories;
-    using TransactionProcessor.Client;
 
     /// <summary>
     /// 
@@ -156,234 +131,6 @@
                                                                        return true;
                                                                    }
                    };
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class MediatorRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MediatorRegistry"/> class.
-        /// </summary>
-        public MediatorRegistry()
-        {
-            this.AddSingleton<IMediator, Mediator>();
-            // request & notification handlers
-            this.AddTransient<ServiceFactory>(context => { return t => context.GetService(t); });
-
-            this.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
-            this.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
-            this.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
-            this.AddSingleton<IRequestHandler<VoucherRequest, Unit>, FileRequestHandler>();
-            this.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class DomainEventHandlerRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DomainEventHandlerRegistry"/> class.
-        /// </summary>
-        public DomainEventHandlerRegistry()
-        {
-            Dictionary<String, String[]> eventHandlersConfiguration = new Dictionary<String, String[]>();
-
-            if (Startup.Configuration != null)
-            {
-                IConfigurationSection section = Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration");
-
-                if (section != null)
-                {
-                    Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration").Bind(eventHandlersConfiguration);
-                }
-            }
-
-            this.AddSingleton(eventHandlersConfiguration);
-
-            this.AddSingleton<Func<Type, IDomainEventHandler>>(container => type =>
-                                                                            {
-                                                                                IDomainEventHandler handler = container.GetService(type) as IDomainEventHandler;
-                                                                                return handler;
-                                                                            });
-
-            this.AddSingleton<FileDomainEventHandler>();
-            this.AddSingleton<IDomainEventHandlerResolver, DomainEventHandlerResolver>();
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class ClientRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ClientRegistry"/> class.
-        /// </summary>
-        public ClientRegistry()
-        {
-            this.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
-            this.AddSingleton<IEstateClient, EstateClient>();
-            this.AddSingleton<ITransactionProcessorClient, TransactionProcessorClient>();
-
-            this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
-
-            var httpMessageHandler = new SocketsHttpHandler
-                                     {
-                                         SslOptions =
-                                         {
-                                             RemoteCertificateValidationCallback = (sender,
-                                                                                    certificate,
-                                                                                    chain,
-                                                                                    errors) => true,
-                                         }
-                                     };
-            HttpClient httpClient = new HttpClient(httpMessageHandler);
-            this.AddSingleton(httpClient);
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class RepositoryRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RepositoryRegistry"/> class.
-        /// </summary>
-        public RepositoryRegistry()
-        {
-            Boolean useConnectionStringConfig = bool.Parse(ConfigurationReader.GetValue("AppSettings", "UseConnectionStringConfig"));
-
-            if (useConnectionStringConfig)
-            {
-                String connectionStringConfigurationConnString = ConfigurationReader.GetConnectionString("ConnectionStringConfiguration");
-                this.AddSingleton<IConnectionStringConfigurationRepository, ConnectionStringConfigurationRepository>();
-                this.AddTransient(c => { return new ConnectionStringConfigurationContext(connectionStringConfigurationConnString); });
-
-                // TODO: Read this from a the database and set
-            }
-            else
-            {
-                this.AddEventStoreClient(Startup.ConfigureEventStoreSettings);
-                this.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
-                this.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
-                this.AddSingleton<IConnectionStringConfigurationRepository, ConfigurationReaderConnectionStringRepository>();
-            }
-
-            this.AddSingleton<IEventStoreContext, EventStoreContext>();
-
-            this.AddSingleton<IAggregateRepository<FileAggregate, DomainEvent>, AggregateRepository<FileAggregate, DomainEvent>>();
-            this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
-                AggregateRepository<FileImportLogAggregate, DomainEvent>>();
-
-            this.AddSingleton<IDbContextFactory<EstateReportingGenericContext>, DbContextFactory<EstateReportingGenericContext>>();
-            this.AddSingleton<Func<String, EstateReportingGenericContext>>(cont => connectionString =>
-                                                                                   {
-                                                                                       String databaseEngine =
-                                                                                           ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
-
-                                                                                       return databaseEngine switch
-                                                                                       {
-                                                                                           "MySql" => new EstateReportingMySqlContext(connectionString),
-                                                                                           "SqlServer" => new EstateReportingSqlServerContext(connectionString),
-                                                                                           _ => throw new
-                                                                                               NotSupportedException($"Unsupported Database Engine {databaseEngine}")
-                                                                                       };
-                                                                                   });
-            this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class FileRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileRegistry"/> class.
-        /// </summary>
-        public FileRegistry()
-        {
-            IEnumerable<FileProfile> fileProfiles = Startup.Configuration.GetSection("AppSettings:FileProfiles").GetChildren().ToList().Select(x => new
-                {
-                    Name = x.GetValue<String>("Name"),
-                    FileProfileId = x.GetValue<Guid>("Id"),
-                    RequestType = x.GetValue<String>("RequestType"),
-                    ListeningDirectory = x.GetValue<String>("ListeningDirectory"),
-                    OperatorName = x.GetValue<String>("OperatorName"),
-                    LineTerminator = x.GetValue<String>("LineTerminator"),
-                    FileFormatHandler = x.GetValue<String>("FileFormatHandler")
-                }).Select(f =>
-                          {
-                              return new FileProfile(f.FileProfileId,
-                                                     f.Name,
-                                                     f.ListeningDirectory,
-                                                     f.RequestType,
-                                                     f.OperatorName,
-                                                     f.LineTerminator,
-                                                     f.FileFormatHandler);
-                          });
-            this.AddSingleton(fileProfiles.ToList());
-            this.AddSingleton<IFileSystem, FileSystem>();
-            this.AddSingleton<Func<String, IFileFormatHandler>>(container => fileFormatHandlerName =>
-                                                                             {
-                                                                                 if (fileFormatHandlerName == "SafaricomFileFormatHandler")
-                                                                                     return new SafaricomFileFormatHandler();
-                                                                                 if (fileFormatHandlerName == "VoucherFileFormatHandler")
-                                                                                     return new VoucherFileFormatHandler();
-
-                                                                                 return null;
-                                                                             });
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
-    public class MiscRegistry : ServiceRegistry
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MiscRegistry"/> class.
-        /// </summary>
-        public MiscRegistry()
-        {
-            this.AddSingleton<IModelFactory, ModelFactory>();
-            this.AddSingleton<Common.IModelFactory, Common.ModelFactory>();
         }
 
         #endregion
