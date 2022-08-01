@@ -39,8 +39,12 @@ namespace FileProcessor.Testing
         public static Int32 LineNumber = 1;
 
         public static Int32 NotFoundLineNumber = 100;
-        
+
         public static String FileLine = "D,124567,100";
+        public static String FileLine1 = "D,124567,100";
+        public static String FileLine2 = "D,124568,100";
+        public static String FileLine3 = "D,124569,100";
+        public static String FileLine4 = "D,124560,100";
 
         public static String FileLocation = "home/txnproc/bulkfiles/safaricom/ExampleFile.csv";
 
@@ -269,9 +273,9 @@ namespace FileProcessor.Testing
 
             fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
             fileAggregate.AddFileLine("D,1,2");
-            fileAggregate.AddFileLine("D,1,2");
-            fileAggregate.AddFileLine("D,1,2");
-            fileAggregate.AddFileLine("D,1,2");
+            fileAggregate.AddFileLine("D,1,3");
+            fileAggregate.AddFileLine("D,1,4");
+            fileAggregate.AddFileLine("D,1,5");
             fileAggregate.RecordFileLineAsSuccessful(1, TestData.TransactionId);
             fileAggregate.RecordFileLineAsRejected(2, TestData.RejectionReason);
             fileAggregate.RecordFileLineAsFailed(3, TestData.TransactionId, "-1","Failed");
