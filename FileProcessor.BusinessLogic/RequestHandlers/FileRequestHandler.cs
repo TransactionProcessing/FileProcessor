@@ -465,6 +465,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                 OperatorIdentifier = contract.OperatorName,
                 ProductId = product.ProductId,
                 AdditionalTransactionMetadata = transactionMetadata,
+                TransactionSource = 2 // File based transaction
             };
             
             SerialisedMessage serialisedRequestMessage = new SerialisedMessage
