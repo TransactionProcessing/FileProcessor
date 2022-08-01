@@ -486,13 +486,13 @@ namespace FileProcessor.BusinessLogic.Tests
             Logger.Initialise(NullLogger.Instance);
             
             ProcessTransactionForFileLineRequest processTransactionForFileLineRequest1 =
-                new ProcessTransactionForFileLineRequest(TestData.FileId, 1, TestData.FileLine);
+                new ProcessTransactionForFileLineRequest(TestData.FileId, 1, TestData.FileLine1);
             ProcessTransactionForFileLineRequest processTransactionForFileLineRequest2 =
-                new ProcessTransactionForFileLineRequest(TestData.FileId, 2, TestData.FileLine);
+                new ProcessTransactionForFileLineRequest(TestData.FileId, 1, TestData.FileLine2);
             ProcessTransactionForFileLineRequest processTransactionForFileLineRequest3 =
-                new ProcessTransactionForFileLineRequest(TestData.FileId, 3, TestData.FileLine);
+                new ProcessTransactionForFileLineRequest(TestData.FileId, 3, TestData.FileLine3);
             ProcessTransactionForFileLineRequest processTransactionForFileLineRequest4 =
-                new ProcessTransactionForFileLineRequest(TestData.FileId, 4, TestData.FileLine);
+                new ProcessTransactionForFileLineRequest(TestData.FileId, 4, TestData.FileLine4);
 
             Should.NotThrow(async () =>
             {

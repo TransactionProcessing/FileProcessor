@@ -95,6 +95,22 @@ namespace FileProcessor.FileAggregate.Tests
         }
 
         [Fact]
+        public void FileAggregate_AddFileLine_AddDuplicateLine_FileLineIsNotAddedAdded()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
+                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime);
+            fileAggregate.AddFileLine(TestData.FileLine);
+            fileAggregate.AddFileLine(TestData.FileLine);
+
+            FileDetails fileDetails = fileAggregate.GetFile();
+            fileDetails.FileLines.ShouldNotBeNull();
+            fileDetails.FileLines.ShouldNotBeEmpty();
+            fileDetails.FileLines.ShouldHaveSingleItem();
+            fileDetails.FileLines.Count.ShouldBe(1);
+        }
+
+        [Fact]
         public void FileAggregate_AddFileLine_FileNotCreated_FileLineAdded()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);

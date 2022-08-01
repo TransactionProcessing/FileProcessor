@@ -267,6 +267,12 @@ namespace FileProcessor.FileAggregate
                 throw new InvalidOperationException($"File Id {this.AggregateId} has not been uploaded yet");
             }
 
+            Boolean lineAlreadyExists = this.FileLines.Any(f => f.LineData == fileLine);
+
+            // We already have this line so just return
+            if (lineAlreadyExists)
+                return;
+
             Int32 lineNumber = this.FileLines.Count + 1;
             
             FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(this.AggregateId, this.EstateId, lineNumber, fileLine);

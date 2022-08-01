@@ -297,7 +297,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
 
                     foreach (String fileLine in fileLines)
                     {
-                        fileAggregate.AddFileLine(fileLine);
+                        fileAggregate.AddFileLine(fileLine.Trim());
                     }
 
                     await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
