@@ -212,6 +212,9 @@ namespace FileProcessor.IntegrationTests.Common
                                                                                                         internalSubscriptionServiceCacheDuration
                                                                                                     });
 
+            String pataPawaUrlEnvironmentVariable = "OperatorConfiguration:PataPawaPostPay:Url=http://" + this.TestHostContainerName + ":9000/PataPawaPostPayService/basichttp";
+            String pataPawaApiLogonRequiredEnvironmentVariable = "OperatorConfiguration:PataPawaPostPay:ApiLogonRequired=false";
+
             IContainerService transactionProcessorContainer = this.SetupTransactionProcessorContainer("stuartferguson/transactionprocessor",
                                                                                                               new List<INetworkService>
                                                                                                               {
@@ -220,6 +223,8 @@ namespace FileProcessor.IntegrationTests.Common
                                                                                                               true,
                                                                                                               additionalEnvironmentVariables: new List<String>
                                                                                                                   {
+                                                                                                                      pataPawaUrlEnvironmentVariable,
+                                                                                                                      pataPawaApiLogonRequiredEnvironmentVariable,
                                                                                                                       insecureEventStoreEnvironmentVariable,
                                                                                                                       persistentSubscriptionPollingInSeconds,
                                                                                                                       internalSubscriptionServiceCacheDuration,
