@@ -288,7 +288,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateReportingApiPort = estateReportingContainer.ToHostExposedEndpoint("5005/tcp").Port;
             this.SecurityServicePort = securityServiceContainer.ToHostExposedEndpoint("5001/tcp").Port;
             this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5009/tcp").Port;
-            this.TransactionProcessorPort= fileProcessorContainer.ToHostExposedEndpoint("5002/tcp").Port;
+            this.TransactionProcessorPort= transactionProcessorContainer.ToHostExposedEndpoint("5002/tcp").Port;
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementApiPort}";
@@ -315,6 +315,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
 
             await this.LoadEventStoreProjections(this.EventStoreHttpPort, this.IsSecureEventStore).ConfigureAwait(false);
+            await this.PopulateSubscriptionServiceConfigurationGeneric(this.IsSecureEventStore).ConfigureAwait(false);
         }
 
         public const Int32 FileProcessorDockerPort = 5009;
