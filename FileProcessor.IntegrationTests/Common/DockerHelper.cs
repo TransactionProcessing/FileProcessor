@@ -399,6 +399,7 @@ namespace FileProcessor.IntegrationTests.Common
             subscriptions.Add((estateName.Replace(" ", ""), "Reporting", 2));
             subscriptions.Add(($"EstateManagementSubscriptionStream_{estateName.Replace(" ", "")}", "Estate Management", 0));
             subscriptions.Add(($"TransactionProcessorSubscriptionStream_{estateName.Replace(" ", "")}", "Transaction Processor", 0));
+            subscriptions.Add(($"FileProcessorSubscriptionStream_{estateName.Replace(" ", "")}", "File Processor", 2));
             await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions, isSecureEventStore);
         }
         public async Task PopulateSubscriptionServiceConfigurationGeneric(Boolean isSecureEventStore)
