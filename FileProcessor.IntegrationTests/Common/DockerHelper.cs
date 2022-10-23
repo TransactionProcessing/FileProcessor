@@ -26,6 +26,7 @@ namespace FileProcessor.IntegrationTests.Common
     using SecurityService.Client;
     using Shared.IntegrationTesting;
     using Shared.Logger;
+    using TransactionProcessor.Client;
     using ILogger = Shared.Logger.ILogger;
 
     public class DockerHelper : global::Shared.IntegrationTesting.DockerHelper
@@ -48,6 +49,8 @@ namespace FileProcessor.IntegrationTests.Common
         /// The file processor client
         /// </summary>
         public IFileProcessorClient FileProcessorClient;
+
+        public ITransactionProcessorClient TransactionProcessorClient;
 
         /// <summary>
         /// The test identifier
@@ -214,22 +217,23 @@ namespace FileProcessor.IntegrationTests.Common
 
             String pataPawaUrlEnvironmentVariable = "OperatorConfiguration:PataPawaPostPay:Url=http://" + this.TestHostContainerName + ":9000/PataPawaPostPayService/basichttp";
             String pataPawaApiLogonRequiredEnvironmentVariable = "OperatorConfiguration:PataPawaPostPay:ApiLogonRequired=false";
+            String transactionProcessorReadModelConnectionString = $"ConnectionStrings:TransactionProcessorReadModel=\"server={this.SqlServerDetails.sqlServerContainerName};user id=sa;password={this.SqlServerDetails.sqlServerPassword};database=TransactionProcessorReadModel\"";
 
             IContainerService transactionProcessorContainer = this.SetupTransactionProcessorContainer("stuartferguson/transactionprocessor",
-                                                                                                              new List<INetworkService>
-                                                                                                              {
-                                                                                                                  testNetwork
-                                                                                                              },
-                                                                                                              true,
-                                                                                                              additionalEnvironmentVariables: new List<String>
-                                                                                                                  {
-                                                                                                                      pataPawaUrlEnvironmentVariable,
-                                                                                                                      pataPawaApiLogonRequiredEnvironmentVariable,
-                                                                                                                      insecureEventStoreEnvironmentVariable,
-                                                                                                                      persistentSubscriptionPollingInSeconds,
-                                                                                                                      internalSubscriptionServiceCacheDuration,
-                                                                                                                      $"AppSettings:VoucherManagementApi=http://{this.VoucherManagementContainerName}:{DockerHelper.VoucherManagementDockerPort}"
-                                                                                                                  });
+                                                                                                      new List<INetworkService> {
+                                                                                                          testNetwork,
+                                                                                                          Setup.DatabaseServerNetwork
+                                                                                                      },
+                                                                                                      true,
+                                                                                                      additionalEnvironmentVariables:new List<String> {
+                                                                                                          transactionProcessorReadModelConnectionString,
+                                                                                                          pataPawaUrlEnvironmentVariable,
+                                                                                                          pataPawaApiLogonRequiredEnvironmentVariable,
+                                                                                                          insecureEventStoreEnvironmentVariable,
+                                                                                                          persistentSubscriptionPollingInSeconds,
+                                                                                                          internalSubscriptionServiceCacheDuration,
+                                                                                                          $"AppSettings:VoucherManagementApi=http://{this.VoucherManagementContainerName}:{DockerHelper.VoucherManagementDockerPort}"
+                                                                                                      });
 
             IContainerService estateReportingContainer = this.SetupEstateReportingContainer(        "stuartferguson/estatereporting",
                                                                                                     new List<INetworkService>
@@ -284,12 +288,14 @@ namespace FileProcessor.IntegrationTests.Common
             this.EstateReportingApiPort = estateReportingContainer.ToHostExposedEndpoint("5005/tcp").Port;
             this.SecurityServicePort = securityServiceContainer.ToHostExposedEndpoint("5001/tcp").Port;
             this.FileProcessorPort = fileProcessorContainer.ToHostExposedEndpoint("5009/tcp").Port;
+            this.TransactionProcessorPort= transactionProcessorContainer.ToHostExposedEndpoint("5002/tcp").Port;
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementApiPort}";
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String EstateReportingBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateReportingApiPort}";
+            String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
 
             var httpMessageHandler = new SocketsHttpHandler
                                      {
@@ -306,8 +312,10 @@ namespace FileProcessor.IntegrationTests.Common
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
+            this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
 
             await this.LoadEventStoreProjections(this.EventStoreHttpPort, this.IsSecureEventStore).ConfigureAwait(false);
+            await this.PopulateSubscriptionServiceConfigurationGeneric(this.IsSecureEventStore).ConfigureAwait(false);
         }
 
         public const Int32 FileProcessorDockerPort = 5009;
@@ -385,13 +393,20 @@ namespace FileProcessor.IntegrationTests.Common
             return builtContainer;
         }
 
-        public async Task PopulateSubscriptionServiceConfiguration(String estateName, Boolean isSecureEventStore)
+        public async Task PopulateSubscriptionServiceConfigurationForEstate(String estateName, Boolean isSecureEventStore)
         {
-            var name = estateName.Replace(" ", "");
-            List<(string streamName, string groupName, Int32 numberOfRetries)> subscriptions = new ();
-            subscriptions.Add((name, "Reporting",5));
-            subscriptions.Add(($"EstateManagementSubscriptionStream_{name}", "Estate Management",0));
-            subscriptions.Add(($"FileProcessorSubscriptionStream_{name}", "File Processor",0));
+            List<(String streamName, String groupName, Int32 maxRetries)> subscriptions = new List<(String streamName, String groupName, Int32 maxRetries)>();
+            subscriptions.Add((estateName.Replace(" ", ""), "Reporting", 2));
+            subscriptions.Add(($"EstateManagementSubscriptionStream_{estateName.Replace(" ", "")}", "Estate Management", 0));
+            subscriptions.Add(($"TransactionProcessorSubscriptionStream_{estateName.Replace(" ", "")}", "Transaction Processor", 0));
+            subscriptions.Add(($"FileProcessorSubscriptionStream_{estateName.Replace(" ", "")}", "File Processor", 2));
+            await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions, isSecureEventStore);
+        }
+        public async Task PopulateSubscriptionServiceConfigurationGeneric(Boolean isSecureEventStore)
+        {
+            List<(String streamName, String groupName, Int32 maxRetries)> subscriptions = new List<(String streamName, String groupName, Int32 maxRetries)>();
+            subscriptions.Add(($"$ce-MerchantBalanceArchive", "Transaction Processor - Ordered", 0));
+            subscriptions.Add(($"$et-EstateCreatedEvent", "Transaction Processor - Ordered", 2));
             await this.PopulateSubscriptionServiceConfiguration(this.EventStoreHttpPort, subscriptions, isSecureEventStore);
         }
 

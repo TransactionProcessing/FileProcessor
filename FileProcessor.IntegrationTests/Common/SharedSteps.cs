@@ -17,6 +17,7 @@ namespace FileProcessor.IntegrationTests.Common
     using Shared.IntegrationTesting;
     using Shouldly;
     using TechTalk.SpecFlow;
+    using TransactionProcessor.DataTransferObjects;
 
     [Binding]
     [Scope(Tag = "shared")]
@@ -43,7 +44,7 @@ namespace FileProcessor.IntegrationTests.Common
                 // Setup the subscriptions for the estate
                 await Retry.For(async () => {
                                     await this.TestingContext.DockerHelper
-                                              .PopulateSubscriptionServiceConfiguration(estateName, this.TestingContext.DockerHelper.IsSecureEventStore)
+                                              .PopulateSubscriptionServiceConfigurationForEstate(estateName, this.TestingContext.DockerHelper.IsSecureEventStore)
                                               .ConfigureAwait(false);},
                                 retryFor:TimeSpan.FromMinutes(2),
                                 retryInterval:TimeSpan.FromSeconds(30));
@@ -526,7 +527,7 @@ namespace FileProcessor.IntegrationTests.Common
                 Guid merchantId = estateDetails.GetMerchantId(merchantName);
 
                 // Get current balance
-                MerchantBalanceResponse previousMerchantBalance = await this.TestingContext.DockerHelper.EstateClient.GetMerchantBalance(token, estateDetails.EstateId, merchantId, CancellationToken.None);
+                MerchantBalanceResponse previousMerchantBalance = await this.TestingContext.DockerHelper.TransactionProcessorClient.GetMerchantBalance(token, estateDetails.EstateId, merchantId, CancellationToken.None);
 
                 MakeMerchantDepositRequest makeMerchantDepositRequest = new MakeMerchantDepositRequest
                 {
@@ -546,7 +547,7 @@ namespace FileProcessor.IntegrationTests.Common
                 // Check the merchant balance
                 await Retry.For(async () =>
                           {
-                              MerchantBalanceResponse currentMerchantBalance = await this.TestingContext.DockerHelper.EstateClient.GetMerchantBalance(token, estateDetails.EstateId, merchantId, CancellationToken.None);
+                              MerchantBalanceResponse currentMerchantBalance = await this.TestingContext.DockerHelper.TransactionProcessorClient.GetMerchantBalance(token, estateDetails.EstateId, merchantId, CancellationToken.None);
 
                               currentMerchantBalance.AvailableBalance.ShouldBe(previousMerchantBalance.AvailableBalance + makeMerchantDepositRequest.Amount);
                           }, TimeSpan.FromMinutes(2));
