@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: "Release"
+    env:
+        ASPNETCORE_ENVIRONMENT: "Production"
+
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2.3.4
+
+    - name: Get the version
+      id: get_version
+      uses: battila7/get-version-action@v2
+
+    - name: Publish Images to Docker Hub - Pre Release
+      if: ${{ github.event.release.prerelease == true }} 
+      run: |
+        docker build . --file FileProcessor/Dockerfilewindows --tag stuartferguson/fileprocessorwindows:dev
+        docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+        docker push stuartferguson/fileprocessorwindows:dev
+    - name: Publish Images to Docker Hub - Formal Release
+      if: ${{ github.event.release.prerelease == false }} 
+      run: |
+        docker build . --file FileProcessor/Dockerfilewindows --tag stuartferguson/fileprocessorwindows:latest
+        docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+        docker push stuartferguson/fileprocessorwindows:latest
