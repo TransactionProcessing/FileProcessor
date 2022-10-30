@@ -317,7 +317,6 @@ namespace FileProcessor.Testing
         public static MerchantResponse GetMerchantResponseWithOperator =>
             new MerchantResponse
             {
-                AvailableBalance = TestData.AvailableBalance,
                 EstateId = TestData.EstateId,
                 MerchantId = TestData.MerchantId,
                 MerchantName = TestData.MerchantName,
