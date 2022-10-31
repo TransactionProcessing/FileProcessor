@@ -14,6 +14,7 @@ RUN dotnet build "FileProcessor.csproj" -c Release -o /app/build
 WORKDIR "/src"
 RUN %SYSTEMROOT%\System32\WindowsPowerShell\v1.0\powershell.exe -Command Import-PfxCertificate -FilePath "Certificates/aspnetapp-root-cert.pfx" -Password (ConvertTo-SecureString -String 'password' -AsPlainText -Force) -CertStoreLocation Cert:\LocalMachine\Root
 
+WORKDIR "/src/FileProcessor"
 FROM build AS publish
 RUN dotnet publish "FileProcessor.csproj" -c Release -o /app/publish
 
