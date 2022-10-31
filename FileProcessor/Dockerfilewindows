@@ -20,7 +20,7 @@ RUN dotnet publish "FileProcessor.csproj" -c Release -o /app/publish
 
 FROM base AS mkdir
 WORKDIR /home
-RUN mkdir -p /home/txnproc/bulkfiles
+RUN mkdir /home/txnproc/bulkfiles
 
 FROM mkdir AS final
 WORKDIR /app
