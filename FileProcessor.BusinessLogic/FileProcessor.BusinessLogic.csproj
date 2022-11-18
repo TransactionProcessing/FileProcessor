@@ -1,22 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
 		<PackageReference Include="EstateManagement.Client" Version="1.1.6-build16" />
 		<PackageReference Include="EstateReporting.Database" Version="1.1.8-build15" />
 		<PackageReference Include="SecurityService.Client" Version="1.1.2-build20" />
-		<PackageReference Include="Shared" Version="1.4.2" />
-		<PackageReference Include="Shared.DomainDrivenDesign" Version="1.4.2" />
+		<PackageReference Include="Shared" Version="1.5.1" />
+		<PackageReference Include="Shared.DomainDrivenDesign" Version="1.5.1" />
 		<PackageReference Include="MediatR" Version="10.0.1" />
-		<PackageReference Include="Shared.EventStore" Version="1.4.2" />
+		<PackageReference Include="Shared.EventStore" Version="1.5.1" />
 		<PackageReference Include="System.IO.Abstractions" Version="17.0.15" />
 		<PackageReference Include="TransactionProcessor.Client" Version="1.1.13-build22" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

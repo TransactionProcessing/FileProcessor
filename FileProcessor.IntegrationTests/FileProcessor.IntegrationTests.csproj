@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -13,17 +13,17 @@
   <ItemGroup>
 	  <PackageReference Include="EstateReporting.Client" Version="1.1.8-build15" />
 	  <PackageReference Include="EventStoreProjections" Version="1.0.13" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
-	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.50" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.57" />
 	  <PackageReference Include="EstateReporting.Database" Version="1.1.8-build15" />
 	  <PackageReference Include="EstateManagement.Client" Version="1.1.6-build16" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.5" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="SecurityService.Client" Version="1.1.2-build20" />
-	  <PackageReference Include="Shared" Version="1.4.2" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="1.4.2" />
-    <PackageReference Include="Shouldly" Version="4.0.3" />
+	  <PackageReference Include="Shared" Version="1.5.1" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="1.5.1" />
+    <PackageReference Include="Shouldly" Version="4.1.0" />
 	  <PackageReference Include="SpecFlow" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />

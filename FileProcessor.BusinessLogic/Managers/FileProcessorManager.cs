@@ -38,6 +38,8 @@
 
         private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
 
+        private const String ConnectionStringIdentifier = "EstateReportingReadModel";
+
         #endregion
 
         #region Constructors
@@ -100,7 +102,7 @@
                                                                  Guid? merchantId,
                                                                  CancellationToken cancellationToken)
         {
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
             List<EstateReporting.Database.Entities.FileImportLog> importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
@@ -130,7 +132,7 @@
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken)
         {
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
             EstateReporting.Database.Entities.FileImportLog importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
@@ -168,7 +170,7 @@
 
             FileDetails fileDetails = fileAggregate.GetFile();
 
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, cancellationToken);
+            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
             Merchant merchant = await context.Merchants.AsAsyncEnumerable()
                 .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);

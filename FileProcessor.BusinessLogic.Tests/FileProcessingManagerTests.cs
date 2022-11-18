@@ -64,7 +64,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(),It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
             
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
@@ -87,7 +87,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
@@ -110,7 +110,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
@@ -133,7 +133,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
@@ -156,7 +156,7 @@ namespace FileProcessor.BusinessLogic.Tests
             List<FileProfile> fileProfiles = new List<FileProfile>();
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -185,7 +185,7 @@ namespace FileProcessor.BusinessLogic.Tests
             });
             context.SaveChanges();
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -212,7 +212,7 @@ namespace FileProcessor.BusinessLogic.Tests
             });
             context.SaveChanges();
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -248,7 +248,7 @@ namespace FileProcessor.BusinessLogic.Tests
             });
             context.SaveChanges();
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -268,7 +268,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var fileProfiles = TestData.FileProfiles;
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
             IModelFactory modelFactory = new ModelFactory();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =

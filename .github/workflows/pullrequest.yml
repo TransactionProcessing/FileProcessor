@@ -21,6 +21,11 @@ jobs:
         echo "CI is > ${CI}"
         echo "HOME is > ${HOME}"
 
+    - name: Install NET 7
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '7.0.x'
+
     - name: Restore Nuget Packages
       run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
 

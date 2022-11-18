@@ -79,7 +79,6 @@ namespace FileProcessor.IntegrationTests.Common
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementPort}";
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
-            String EstateReportingBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateReportingPort}";
             String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
 
             var httpMessageHandler = new SocketsHttpHandler
@@ -95,7 +94,6 @@ namespace FileProcessor.IntegrationTests.Common
             HttpClient httpClient = new HttpClient(httpMessageHandler);
             this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
-            this.EstateReportingClient = new EstateReportingClient(EstateReportingBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
         }
