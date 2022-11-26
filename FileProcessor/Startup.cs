@@ -192,6 +192,11 @@ namespace FileProcessor
                                                         Predicate = _ => true,
                                                         ResponseWriter = Shared.HealthChecks.HealthCheckMiddleware.WriteResponse
                                                     });
+                endpoints.MapHealthChecks("healthui", new HealthCheckOptions()
+                                                    {
+                                                        Predicate = _ => true,
+                                                        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                                                    });
             });
 
             app.UseSwagger();
