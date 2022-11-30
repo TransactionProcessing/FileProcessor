@@ -21,7 +21,6 @@ namespace FileProcessor
     using MediatR;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.EventStore.EventHandling;
-    using Shared.EventStore.Subscriptions;
     using Shared.Logger;
 
     [ExcludeFromCodeCoverage]
