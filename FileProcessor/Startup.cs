@@ -244,61 +244,116 @@ namespace FileProcessor
             }
         };
 
-        static Action<TraceEventType, String> concurrentLog = (tt, message) => log(tt, "CONCURRENT", message);
+        static Action<TraceEventType, String> mainLog = (tt, message) => Extensions.log(tt, "MAIN", message);
+        static Action<TraceEventType, String> orderedLog = (tt, message) => Extensions.log(tt, "ORDERED", message);
 
         public static void PreWarm(this IApplicationBuilder applicationBuilder)
         {
             Startup.LoadTypes();
 
-            //SubscriptionWorker worker = new SubscriptionWorker()
-            var internalSubscriptionService = Boolean.Parse(ConfigurationReader.GetValue("InternalSubscriptionService"));
+            IConfigurationSection subscriptionConfigSection = Startup.Configuration.GetSection("AppSettings:SubscriptionConfiguration");
+            SubscriptionWorkersRoot subscriptionWorkersRoot = new SubscriptionWorkersRoot();
+            subscriptionConfigSection.Bind(subscriptionWorkersRoot);
 
-            if (internalSubscriptionService)
+            if (subscriptionWorkersRoot.InternalSubscriptionService)
             {
+
                 String eventStoreConnectionString = ConfigurationReader.GetValue("EventStoreSettings", "ConnectionString");
-                Int32 inflightMessages = Int32.Parse(ConfigurationReader.GetValue("AppSettings", "InflightMessages"));
-                Int32 persistentSubscriptionPollingInSeconds = Int32.Parse(ConfigurationReader.GetValue("AppSettings", "PersistentSubscriptionPollingInSeconds"));
-                String filter = ConfigurationReader.GetValue("AppSettings", "InternalSubscriptionServiceFilter");
-                String ignore = ConfigurationReader.GetValue("AppSettings", "InternalSubscriptionServiceIgnore");
-                String streamName = ConfigurationReader.GetValue("AppSettings", "InternalSubscriptionFilterOnStreamName");
-                Int32 cacheDuration = Int32.Parse(ConfigurationReader.GetValue("AppSettings", "InternalSubscriptionServiceCacheDuration"));
 
-                ISubscriptionRepository subscriptionRepository = SubscriptionRepository.Create(eventStoreConnectionString, cacheDuration);
-
-                ((SubscriptionRepository)subscriptionRepository).Trace += (sender, s) => Extensions.log(TraceEventType.Information, "REPOSITORY", s);
+                ISubscriptionRepository subscriptionRepository = SubscriptionRepository.Create(eventStoreConnectionString, subscriptionWorkersRoot.InternalSubscriptionServiceCacheDuration);
+                ((SubscriptionRepository)subscriptionRepository).Trace += (sender,
+                                                                           s) => Extensions.log(TraceEventType.Information, "REPOSITORY", s);
 
                 // init our SubscriptionRepository
                 subscriptionRepository.PreWarm(CancellationToken.None).Wait();
 
-                var eventHandlerResolver = Startup.ServiceProvider.GetService<IDomainEventHandlerResolver>();
-
-                SubscriptionWorker concurrentSubscriptions = SubscriptionWorker.CreateConcurrentSubscriptionWorker(eventStoreConnectionString, eventHandlerResolver, subscriptionRepository, inflightMessages, persistentSubscriptionPollingInSeconds);
-
-                concurrentSubscriptions.Trace += (_, args) => concurrentLog(TraceEventType.Information, args.Message);
-                concurrentSubscriptions.Warning += (_, args) => concurrentLog(TraceEventType.Warning, args.Message);
-                concurrentSubscriptions.Error += (_, args) => concurrentLog(TraceEventType.Error, args.Message);
-
-                if (!String.IsNullOrEmpty(ignore))
+                List<SubscriptionWorker> workers = ConfigureSubscriptions(subscriptionRepository, subscriptionWorkersRoot);
+                foreach (SubscriptionWorker subscriptionWorker in workers)
                 {
-                    concurrentSubscriptions = concurrentSubscriptions.IgnoreSubscriptions(ignore);
+                    subscriptionWorker.StartAsync(CancellationToken.None).Wait();
                 }
-
-                if (!String.IsNullOrEmpty(filter))
-                {
-                    //NOTE: Not overly happy with this design, but
-                    //the idea is if we supply a filter, this overrides ignore
-                    concurrentSubscriptions = concurrentSubscriptions.FilterSubscriptions(filter)
-                                                                     .IgnoreSubscriptions(null);
-
-                }
-
-                if (!String.IsNullOrEmpty(streamName))
-                {
-                    concurrentSubscriptions = concurrentSubscriptions.FilterByStreamName(streamName);
-                }
-
-                concurrentSubscriptions.StartAsync(CancellationToken.None).Wait();
             }
         }
+
+        private static List<SubscriptionWorker> ConfigureSubscriptions(ISubscriptionRepository subscriptionRepository, SubscriptionWorkersRoot configuration)
+        {
+            List<SubscriptionWorker> workers = new List<SubscriptionWorker>();
+
+            foreach (SubscriptionWorkerConfig configurationSubscriptionWorker in configuration.SubscriptionWorkers)
+            {
+                if (configurationSubscriptionWorker.Enabled == false)
+                    continue;
+
+                if (configurationSubscriptionWorker.IsOrdered)
+                {
+                    IDomainEventHandlerResolver eventHandlerResolver = Startup.Container.GetInstance<IDomainEventHandlerResolver>("Ordered");
+                    SubscriptionWorker worker = SubscriptionWorker.CreateOrderedSubscriptionWorker(Startup.EventStoreClientSettings,
+                                                                                                   eventHandlerResolver,
+                                                                                                   subscriptionRepository,
+                                                                                                   configuration.PersistentSubscriptionPollingInSeconds);
+                    worker.Trace += (_,
+                                     args) => Extensions.orderedLog(TraceEventType.Information, args.Message);
+                    worker.Warning += (_,
+                                       args) => Extensions.orderedLog(TraceEventType.Warning, args.Message);
+                    worker.Error += (_,
+                                     args) => Extensions.orderedLog(TraceEventType.Error, args.Message);
+                    worker.SetIgnoreGroups(configurationSubscriptionWorker.IgnoreGroups);
+                    worker.SetIgnoreStreams(configurationSubscriptionWorker.IgnoreStreams);
+                    worker.SetIncludeGroups(configurationSubscriptionWorker.IncludeGroups);
+                    worker.SetIncludeStreams(configurationSubscriptionWorker.IncludeStreams);
+                    workers.Add(worker);
+
+                }
+                else
+                {
+                    for (Int32 i = 0; i < configurationSubscriptionWorker.InstanceCount; i++)
+                    {
+                        IDomainEventHandlerResolver eventHandlerResolver = Startup.Container.GetInstance<IDomainEventHandlerResolver>("Main");
+                        SubscriptionWorker worker = SubscriptionWorker.CreateSubscriptionWorker(Startup.EventStoreClientSettings,
+                                                                                                eventHandlerResolver,
+                                                                                                subscriptionRepository,
+                                                                                                configurationSubscriptionWorker.InflightMessages,
+                                                                                                configuration.PersistentSubscriptionPollingInSeconds);
+
+                        worker.Trace += (_,
+                                         args) => Extensions.mainLog(TraceEventType.Information, args.Message);
+                        worker.Warning += (_,
+                                           args) => Extensions.mainLog(TraceEventType.Warning, args.Message);
+                        worker.Error += (_,
+                                         args) => Extensions.mainLog(TraceEventType.Error, args.Message);
+
+                        worker.SetIgnoreGroups(configurationSubscriptionWorker.IgnoreGroups);
+                        worker.SetIgnoreStreams(configurationSubscriptionWorker.IgnoreStreams);
+                        worker.SetIncludeGroups(configurationSubscriptionWorker.IncludeGroups);
+                        worker.SetIncludeStreams(configurationSubscriptionWorker.IncludeStreams);
+
+                        workers.Add(worker);
+                    }
+                }
+            }
+
+            return workers;
+        }
+    }
+
+    public class SubscriptionWorkersRoot
+    {
+        public Boolean InternalSubscriptionService { get; set; }
+        public Int32 PersistentSubscriptionPollingInSeconds { get; set; }
+        public Int32 InternalSubscriptionServiceCacheDuration { get; set; }
+        public List<SubscriptionWorkerConfig> SubscriptionWorkers { get; set; }
+    }
+
+    public class SubscriptionWorkerConfig
+    {
+        public String WorkerName { get; set; }
+        public String IncludeGroups { get; set; }
+        public String IgnoreGroups { get; set; }
+        public String IncludeStreams { get; set; }
+        public String IgnoreStreams { get; set; }
+        public Boolean Enabled { get; set; }
+        public Int32 InflightMessages { get; set; }
+        public Int32 InstanceCount { get; set; }
+        public Boolean IsOrdered { get; set; }
     }
 }

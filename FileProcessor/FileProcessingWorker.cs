@@ -16,7 +16,6 @@
     using Microsoft.Extensions.Logging;
     using Shared.EventStore.Aggregate;
     using Shared.EventStore.EventStore;
-    using Shared.EventStore.Subscriptions;
     using Shared.General;
 
     /// <summary>

@@ -42,7 +42,8 @@ public class DomainEventHandlerRegistry : ServiceRegistry
                                                                         });
 
         this.AddSingleton<FileDomainEventHandler>();
-        this.AddSingleton<IDomainEventHandlerResolver, DomainEventHandlerResolver>();
+        this.For<IDomainEventHandlerResolver>().Use<DomainEventHandlerResolver>().Named("Main")
+            .Ctor<Dictionary<String, String[]>>().Is(eventHandlersConfiguration).Singleton();
     }
 
     #endregion
