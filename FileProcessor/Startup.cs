@@ -257,7 +257,6 @@ namespace FileProcessor
 
             if (subscriptionWorkersRoot.InternalSubscriptionService)
             {
-
                 String eventStoreConnectionString = ConfigurationReader.GetValue("EventStoreSettings", "ConnectionString");
 
                 ISubscriptionRepository subscriptionRepository = SubscriptionRepository.Create(eventStoreConnectionString, subscriptionWorkersRoot.InternalSubscriptionServiceCacheDuration);
@@ -302,7 +301,6 @@ namespace FileProcessor
                     worker.SetIncludeGroups(configurationSubscriptionWorker.IncludeGroups);
                     worker.SetIncludeStreams(configurationSubscriptionWorker.IncludeStreams);
                     workers.Add(worker);
-
                 }
                 else
                 {
