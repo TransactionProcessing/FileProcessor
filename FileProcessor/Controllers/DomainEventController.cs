@@ -9,6 +9,7 @@ namespace FileProcessor.Controllers
     using System.Threading;
     using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
     using Shared.EventStore.EventHandling;
@@ -60,11 +61,11 @@ namespace FileProcessor.Controllers
 
             cancellationToken.Register(() => this.Callback(cancellationToken, domainEvent.EventId));
 
+            List<IDomainEventHandler> eventHandlers = this.GetDomainEventHandlers(domainEvent);
+
             try
             {
                 Logger.LogInformation($"Processing event - ID [{domainEvent.EventId}], Type[{domainEvent.GetType().Name}]");
-
-                List<IDomainEventHandler> eventHandlers = this.DomainEventHandlerResolver.GetDomainEventHandlers(domainEvent);
 
                 if (eventHandlers == null || eventHandlers.Any() == false)
                 {
@@ -109,22 +110,37 @@ namespace FileProcessor.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets the domain event.
-        /// </summary>
-        /// <param name="domainEvent">The domain event.</param>
-        /// <returns></returns>
+        private List<IDomainEventHandler> GetDomainEventHandlers(IDomainEvent domainEvent)
+        {
+
+            if (this.Request.Headers.ContainsKey("EventHandler"))
+            {
+                var eventHandler = this.Request.Headers["EventHandler"];
+                var eventHandlerType = this.Request.Headers["EventHandlerType"];
+                var resolver = Startup.Container.GetInstance<IDomainEventHandlerResolver>(eventHandlerType);
+                // We are being told by the caller to use a specific handler
+                var allhandlers = resolver.GetDomainEventHandlers(domainEvent);
+                var handlers = allhandlers.Where(h => h.GetType().Name.Contains(eventHandler));
+
+                return handlers.ToList();
+
+            }
+
+            List<IDomainEventHandler> eventHandlers = this.DomainEventHandlerResolver.GetDomainEventHandlers(domainEvent);
+            return eventHandlers;
+        }
+
         private async Task<IDomainEvent> GetDomainEvent(Object domainEvent)
         {
-            String eventType = this.Request.Query["eventType"].ToString();
+            String eventType = this.Request.Headers["eventType"].ToString();
 
-            var type = TypeMap.GetType(eventType);
+            Type type = TypeMap.GetType(eventType);
 
             if (type == null)
                 throw new Exception($"Failed to find a domain event with type {eventType}");
 
             JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
-            var jsonSerialiserSettings = new JsonSerializerSettings
+            JsonSerializerSettings jsonSerialiserSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 TypeNameHandling = TypeNameHandling.All,
@@ -135,13 +151,26 @@ namespace FileProcessor.Controllers
 
             if (type.IsSubclassOf(typeof(DomainEvent)))
             {
-                var json = JsonConvert.SerializeObject(domainEvent, jsonSerialiserSettings);
-                DomainEventFactory domainEventFactory = new();
+                String json = JsonConvert.SerializeObject(domainEvent, jsonSerialiserSettings);
 
-                return domainEventFactory.CreateDomainEvent(json, type);
+                DomainEventFactory domainEventFactory = new();
+                String validatedJson = this.ValidateEvent(json);
+                return domainEventFactory.CreateDomainEvent(validatedJson, type);
             }
 
             return null;
+        }
+
+        private String ValidateEvent(String domainEventJson)
+        {
+            JObject domainEvent = JObject.Parse(domainEventJson);
+
+            if (domainEvent.ContainsKey("eventId") == false || domainEvent["eventId"].ToObject<Guid>() == Guid.Empty)
+            {
+                throw new ArgumentException("Domain Event must contain an Event Id");
+            }
+
+            return domainEventJson;
         }
 
         #endregion
