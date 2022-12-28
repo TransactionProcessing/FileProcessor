@@ -22,7 +22,7 @@ jobs:
     - name: Install NET 7
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '7.0.101'
 
     - name: Restore Nuget Packages
       run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
@@ -41,16 +41,10 @@ jobs:
     - name: Setup Node.js for use with actions
       uses: actions/setup-node@v1.4.4
     
-    #- name: Combine Coverage
-    #  run: |
-    #    npm i lcov-result-merger
-    #    ./node_modules/lcov-result-merger/bin/lcov-result-merger.js '*.info' 'lcov.info' 
-
-    #- name: Upload Code Coverage
-    #  uses: coverallsapp/github-action@master
-    #  with:
-    #      github-token: ${{ secrets.github_token }}
-    #      path-to-lcov: lcov.info    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3  
+      with:
+        files: ./lcov1.info,./lcov2.info,./lcov3.info,./lcov4.info  
                
     - name: Build Docker Image
       run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
@@ -64,12 +58,12 @@ jobs:
         name: tracelogs
         path: /home/txnproc/trace/     
     
-    #- uses: nashmaniac/create-issue-action@v1.1
-    #  if: ${{ failure() }}
-    #  name: Create an issue on build failure
-    #  with:
-    #    title: Investigate Nightly Build Failure
-    #    token: ${{secrets.GITHUB_TOKEN}}
-    #    labels: nightlybuild
-    #    body: Url is ${{env.action_url}}
+    - uses: dacbd/create-issue-action@main
+      if: ${{ failure() }}
+      name: Create an issue on build failure
+      with:
+        title: Investigate Nightly Build Failure
+        token: ${{secrets.GITHUB_TOKEN}}
+        labels: nightlybuild
+        body: Url is ${{env.action_url}}
 
