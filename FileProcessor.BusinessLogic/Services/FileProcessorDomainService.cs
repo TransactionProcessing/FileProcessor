@@ -240,7 +240,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
         }
 
-
         if (contract == null)
         {
             throw new NotFoundException($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
