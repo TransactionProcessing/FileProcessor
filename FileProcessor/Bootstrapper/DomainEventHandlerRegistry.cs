@@ -2,16 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using BusinessLogic.EventHandling;
 using Lamar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.EventStore.EventHandling;
 
-/// <summary>
-/// 
-/// </summary>
-/// <seealso cref="Lamar.ServiceRegistry" />
+[ExcludeFromCodeCoverage]
 public class DomainEventHandlerRegistry : ServiceRegistry
 {
     #region Constructors

@@ -16,7 +16,7 @@ namespace FileProcessor.Tests
 
     public class BootstrapperTests
     {
-        [Fact(Skip = "Needs investigation")]
+        [Fact]
         public void VerifyBootstrapperIsValid()
         {
             Mock<IWebHostEnvironment> hostingEnvironment = new Mock<IWebHostEnvironment>();
@@ -52,6 +52,7 @@ namespace FileProcessor.Tests
             services.AddSingleton<DiagnosticListener>(diagnosticSource);
             services.AddSingleton<IWebHostEnvironment>(hostingEnvironment);
             services.AddSingleton<IHostEnvironment>(hostingEnvironment);
+            services.AddSingleton<IConfiguration>(Startup.Configuration);
         }
     }
 }
