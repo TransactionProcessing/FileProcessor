@@ -24,7 +24,6 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         public async Task FileRequestHandler_HandleUploadFileRequest_RequestHandled() {
-
             Should.NotThrow(async () => {
                                 await this.FileRequestHandler.Handle(TestData.UploadFileRequest, CancellationToken.None);
                             });
@@ -32,7 +31,6 @@ namespace FileProcessor.BusinessLogic.Tests
 
         public async Task FileRequestHandler_ProcessUploadedFileRequest_RequestHandled()
         {
-
             Should.NotThrow(async () => {
                                 await this.FileRequestHandler.Handle(TestData.ProcessUploadedFileRequest, CancellationToken.None);
                             });
@@ -40,7 +38,6 @@ namespace FileProcessor.BusinessLogic.Tests
 
         public async Task FileRequestHandler_SafaricomTopupRequest_RequestHandled()
         {
-
             Should.NotThrow(async () => {
                                 await this.FileRequestHandler.Handle(TestData.SafaricomTopupRequest, CancellationToken.None);
                             });
@@ -48,7 +45,6 @@ namespace FileProcessor.BusinessLogic.Tests
 
         public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_RequestHandled()
         {
-
             Should.NotThrow(async () => {
                                 await this.FileRequestHandler.Handle(TestData.ProcessTransactionForFileLineRequest, CancellationToken.None);
                             });
@@ -56,7 +52,6 @@ namespace FileProcessor.BusinessLogic.Tests
 
         public async Task FileRequestHandler_VoucherRequest_RequestHandled()
         {
-
             Should.NotThrow(async () => {
                                 await this.FileRequestHandler.Handle(TestData.VoucherRequest, CancellationToken.None);
                             });

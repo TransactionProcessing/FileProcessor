@@ -256,7 +256,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // Build a transaction request message
         SaleTransactionRequest saleTransactionRequest = new SaleTransactionRequest
                                                         {
-
                                                             EstateId = fileDetails.EstateId,
                                                             MerchantId = fileDetails.MerchantId,
                                                             TransactionDateTime = fileDetails.FileReceivedDateTime,
