@@ -1,10 +1,12 @@
 ﻿namespace FileProcessor.Bootstrapper;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Security;
 using BusinessLogic.Common;
 using BusinessLogic.Managers;
+using Common;
 using EstateReporting.Database;
 using FileAggregate;
 using FileImportLogAggregate;
@@ -20,10 +22,7 @@ using Shared.EventStore.Extensions;
 using Shared.General;
 using Shared.Repositories;
 
-/// <summary>
-/// 
-/// </summary>
-/// <seealso cref="Lamar.ServiceRegistry" />
+[ExcludeFromCodeCoverage]
 public class RepositoryRegistry : ServiceRegistry
 {
     #region Constructors

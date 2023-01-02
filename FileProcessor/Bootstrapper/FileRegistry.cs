@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Linq;
 using BusinessLogic.FileFormatHandlers;
@@ -10,10 +11,7 @@ using Lamar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// 
-/// </summary>
-/// <seealso cref="Lamar.ServiceRegistry" />
+[ExcludeFromCodeCoverage]
 public class FileRegistry : ServiceRegistry
 {
     #region Constructors

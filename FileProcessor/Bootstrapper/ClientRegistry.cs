@@ -1,6 +1,7 @@
 ﻿namespace FileProcessor.Bootstrapper;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using EstateManagement.Client;
 using Lamar;
@@ -9,10 +10,7 @@ using SecurityService.Client;
 using Shared.General;
 using TransactionProcessor.Client;
 
-/// <summary>
-/// 
-/// </summary>
-/// <seealso cref="Lamar.ServiceRegistry" />
+[ExcludeFromCodeCoverage]
 public class ClientRegistry : ServiceRegistry
 {
     #region Constructors
