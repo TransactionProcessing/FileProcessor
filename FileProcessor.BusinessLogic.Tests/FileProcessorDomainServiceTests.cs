@@ -78,13 +78,9 @@ public class FileProcessorDomainServiceTests
     [Fact]
     public async Task FileRequestHandler_UploadFileRequest_RequestIsHandled()
     {
-            
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
 
         this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
-            
-            
-
             
         this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom");
@@ -206,8 +202,6 @@ public class FileProcessorDomainServiceTests
                         });
         this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
     }
-
-        
 
     [Fact]
     public void FileRequestHandler_SafaricomTopupRequest_FileAggregateNotCreated_RequestIsHandled()
@@ -807,9 +801,7 @@ public class FileProcessorDomainServiceTests
                         });
         this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
     }
-
-
-
+    
     [Fact]
     public void FileRequestHandler_VoucherRequest_FileAggregateNotCreated_RequestIsHandled()
     {
