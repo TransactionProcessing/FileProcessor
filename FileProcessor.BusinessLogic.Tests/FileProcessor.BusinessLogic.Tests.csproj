@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FileProcessor.BusinessLogic\FileProcessor.BusinessLogic.csproj" />
     <ProjectReference Include="..\FileProcessor.Testing\FileProcessor.Testing.csproj" />
+    <ProjectReference Include="..\FileProcessor\FileProcessor.csproj" />
   </ItemGroup>
 
 </Project>

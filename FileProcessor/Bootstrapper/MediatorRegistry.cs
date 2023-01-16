@@ -1,16 +1,14 @@
 ﻿namespace FileProcessor.Bootstrapper;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using BusinessLogic.RequestHandlers;
 using BusinessLogic.Requests;
 using Lamar;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// 
-/// </summary>
-/// <seealso cref="Lamar.ServiceRegistry" />
+[ExcludeFromCodeCoverage]
 public class MediatorRegistry : ServiceRegistry
 {
     #region Constructors

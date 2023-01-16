@@ -10,14 +10,11 @@ using System.Threading.Tasks;
 
 namespace FileProcessor
 {
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.IO.Abstractions;
-    using System.Net.Http;
     using System.Reflection;
-    using System.Threading;
     using Bootstrapper;
     using BusinessLogic.Common;
     using BusinessLogic.EventHandling;
@@ -34,6 +31,7 @@ namespace FileProcessor
     using FIleProcessor.Models;
     using HealthChecks.UI.Client;
     using Lamar;
+    using LamarCodeGeneration.Util;
     using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -49,10 +47,8 @@ namespace FileProcessor
     using Shared.EntityFramework;
     using Shared.EntityFramework.ConnectionStringConfiguration;
     using Shared.EventStore.Aggregate;
-    using Shared.EventStore.EventHandling;
     using Shared.EventStore.EventStore;
     using Shared.EventStore.Extensions;
-    using Shared.EventStore.SubscriptionWorker;
     using Shared.Extensions;
     using Shared.General;
     using Shared.Logger;
@@ -148,6 +144,24 @@ namespace FileProcessor
             FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
 
             TypeProvider.LoadDomainEventsTypeDynamically();
+        }
+
+        public static void LoadDomainEventsTypeDynamically(List<string> assemblyFilters = null)
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            
+            List<Type> source = new List<Type>();
+            foreach (string assemblyFilter in assemblyFilters)
+            {
+                List<Assembly> filteredAssemblies = assemblies.Where(a => a.FullName.Contains(assemblyFilter) == true).ToList();
+                foreach (Assembly a in filteredAssemblies) {
+                    assemblies = assemblies.Remove(a);
+                }
+            }
+            source.AddRange(assemblies.SelectMany((Func<Assembly, IEnumerable<Type>>)(a => (IEnumerable<Type>)a.GetTypes())));
+
+            foreach (Type type in source.Where((Func<Type, bool>)(t => t.IsSubclassOf(typeof(DomainEvent)))).OrderBy((Func<Type, string>)(e => e.Name)).ToList())
+                TypeMap.AddType(type, type.Name);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

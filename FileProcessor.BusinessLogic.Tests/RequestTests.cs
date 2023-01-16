@@ -12,7 +12,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public void UploadFileRequest_CanBeCreated_IsCreated()
         {
-            UploadFileRequest uploadFileRequest =
+            UploadFileRequest uploadFileRequest = 
                 new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePath, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
             uploadFileRequest.EstateId.ShouldBe(TestData.EstateId);

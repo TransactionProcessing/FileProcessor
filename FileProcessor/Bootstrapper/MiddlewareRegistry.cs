@@ -1,6 +1,7 @@
 ﻿namespace FileProcessor.Bootstrapper
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Net.Http;
@@ -17,10 +18,7 @@
     using Shared.Extensions;
     using Shared.General;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="Lamar.ServiceRegistry" />
+    [ExcludeFromCodeCoverage]
     public class MiddlewareRegistry : ServiceRegistry
     {
         #region Constructors
