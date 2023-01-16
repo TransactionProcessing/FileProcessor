@@ -311,7 +311,8 @@ namespace FileProcessor.IntegrationTests.Common
                 {
                     ProductName = SpecflowTableHelper.GetStringRowValue(tableRow, "ProductName"),
                     DisplayText = SpecflowTableHelper.GetStringRowValue(tableRow, "DisplayText"),
-                    Value = null
+                    Value = null,
+                    ProductType = SpecflowTableHelper.GetEnumValue<ProductType>(tableRow, "ProductType"),
                 };
                 if (String.IsNullOrEmpty(productValue) == false)
                 {

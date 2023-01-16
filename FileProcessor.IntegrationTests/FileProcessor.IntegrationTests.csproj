@@ -12,22 +12,22 @@
 
   <ItemGroup>
 	  <PackageReference Include="EstateReporting.Client" Version="1.1.8-build15" />
-	  <PackageReference Include="EventStoreProjections" Version="1.0.13" />
+	  <PackageReference Include="EventStoreProjections" Version="2022.12.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.57" />
 	  <PackageReference Include="EstateReporting.Database" Version="1.1.8-build15" />
-	  <PackageReference Include="EstateManagement.Client" Version="1.1.6-build16" />
+	  <PackageReference Include="EstateManagement.Client" Version="2022.12.3-build32" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="SecurityService.Client" Version="1.1.2-build20" />
-	  <PackageReference Include="Shared" Version="2022.12.0-beta4" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="2022.12.0-beta4" />
+    <PackageReference Include="SecurityService.Client" Version="2022.12.2-build34" />
+	  <PackageReference Include="Shared" Version="2023.1.0" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2023.1.0" />
     <PackageReference Include="Shouldly" Version="4.1.0" />
 	  <PackageReference Include="SpecFlow" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
-	  <PackageReference Include="TransactionProcessor.Client" Version="1.1.13-build22" />
+	  <PackageReference Include="TransactionProcessor.Client" Version="2022.12.3-build49" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

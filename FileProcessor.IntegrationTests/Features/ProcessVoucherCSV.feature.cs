@@ -210,21 +210,24 @@ namespace FileProcessor.IntegrationTests.Features
                         "ContractDescription",
                         "ProductName",
                         "DisplayText",
-                        "Value"});
+                        "Value",
+                        "ProductType"});
             table64.AddRow(new string[] {
                         "Test Estate 1",
                         "Safaricom",
                         "Safaricom Contract",
                         "Variable Topup",
                         "Custom",
-                        ""});
+                        "",
+                        "MobileTopup"});
             table64.AddRow(new string[] {
                         "Test Estate 1",
                         "Voucher",
                         "Hospital 1 Contract",
                         "Variable Voucher",
                         "Custom",
-                        ""});
+                        "",
+                        "Voucher"});
 #line 41
  testRunner.When("I create the following Products", ((string)(null)), table64, "When ");
 #line hidden
