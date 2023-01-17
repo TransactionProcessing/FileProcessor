@@ -143,12 +143,7 @@ namespace FileProcessor
 
             FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
 
-            //TypeProvider.LoadDomainEventsTypeDynamically(new List<String>() {
-            //                                                                    "Pomelo",
-            //                                                                    "Microsoft"
-            //                                                                });
-
-            LoadDomainEventsTypeDynamically(new List<String>() {
+            TypeProvider.LoadDomainEventsTypeDynamically(new List<String>() {
                                                                                 "Pomelo",
                                                                                 "Microsoft"
                                                                             });
