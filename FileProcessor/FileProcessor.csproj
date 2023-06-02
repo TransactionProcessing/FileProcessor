@@ -30,6 +30,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.4.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.5" />
+	  <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
