@@ -42,6 +42,7 @@ namespace FileProcessor
                                                                   .AddEnvironmentVariables().Build();
 
             IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
+            hostBuilder.UseWindowsService();
             hostBuilder.UseLamar();
             hostBuilder.ConfigureLogging(logging =>
                                          {
