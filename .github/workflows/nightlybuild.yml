@@ -45,11 +45,6 @@ jobs:
     - name: Set Up Variables
       run: echo "action_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
 
-    - name: Install NET 7
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: '7.0.101'
-
     - name: Restore Nuget Packages
       run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
 
