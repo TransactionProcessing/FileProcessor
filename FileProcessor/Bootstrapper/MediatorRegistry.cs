@@ -20,13 +20,12 @@ public class MediatorRegistry : ServiceRegistry
     {
         this.AddSingleton<IMediator, Mediator>();
         // request & notification handlers
-        this.AddTransient<ServiceFactory>(context => { return t => context.GetService(t); });
 
         this.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<ProcessUploadedFileRequest, Unit>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<SafaricomTopupRequest, Unit>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<VoucherRequest, Unit>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest, Unit>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<ProcessUploadedFileRequest>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<SafaricomTopupRequest>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<VoucherRequest>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest>, FileRequestHandler>();
     }
 
     #endregion
