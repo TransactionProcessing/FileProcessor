@@ -59,31 +59,25 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             return await this.DomainService.UploadFile(request, cancellationToken);
         }
 
-        public async Task<Unit> Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
+        public async Task Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
         {
             await this.DomainService.ProcessUploadedFile(request, cancellationToken);
-
-            return new Unit();
+            
         }
-        public async Task<Unit> Handle(SafaricomTopupRequest request,
+        public async Task Handle(SafaricomTopupRequest request,
                                        CancellationToken cancellationToken) {
             await this.DomainService.ProcessSafaricomTopup(request, cancellationToken);
-
-            return new Unit();
         }
         
-        public async Task<Unit> Handle(ProcessTransactionForFileLineRequest request,
+        public async Task Handle(ProcessTransactionForFileLineRequest request,
                                        CancellationToken cancellationToken) {
             await this.DomainService.ProcessTransactionForFileLine(request, cancellationToken);
-            return new Unit();
         }
         
-        public async Task<Unit> Handle(VoucherRequest request,
+        public async Task Handle(VoucherRequest request,
                                        CancellationToken cancellationToken)
         {
             await this.DomainService.ProcessVoucher(request, cancellationToken);
-
-            return new Unit();
         }
     }
 }

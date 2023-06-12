@@ -30,8 +30,8 @@ namespace FileProcessor
     using FileImportLog.DomainEvents;
     using FIleProcessor.Models;
     using HealthChecks.UI.Client;
+    using JasperFx.Core;
     using Lamar;
-    using LamarCodeGeneration.Util;
     using MediatR;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Diagnostics.HealthChecks;
