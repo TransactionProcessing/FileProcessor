@@ -7,9 +7,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
-    using EstateReporting.Database;
-    using EstateReporting.Database.Entities;
-    using EstateReporting.Database.ViewEntities;
+    using EstateManagement.Database.Contexts;
+    using EstateManagement.Database.Entities;
     using FileAggregate;
     using FIleProcessor.Models;
     using Microsoft.EntityFrameworkCore;
@@ -17,7 +16,6 @@
     using Shared.EventStore.Aggregate;
     using Shared.Exceptions;
     using FileImportLog = FIleProcessor.Models.FileImportLog;
-    using FileLine = EstateReporting.Database.Entities.FileLine;
 
     /// <summary>
     /// 
@@ -32,7 +30,7 @@
         /// </summary>
         private readonly List<FileProfile> FileProfiles;
 
-        private readonly Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext> DbContextFactory;
+        private readonly Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext> DbContextFactory;
 
         private readonly IModelFactory ModelFactory;
 
@@ -51,7 +49,7 @@
         /// <param name="dbContextFactory">The database context factory.</param>
         /// <param name="modelFactory">The model factory.</param>
         public FileProcessorManager(List<FileProfile> fileProfiles,
-                                    Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext> dbContextFactory,
+                                    Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext> dbContextFactory,
                                     IModelFactory modelFactory,
                                     IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository)
         {
@@ -102,21 +100,35 @@
                                                                  Guid? merchantId,
                                                                  CancellationToken cancellationToken)
         {
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
+            EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
-            List<EstateReporting.Database.Entities.FileImportLog> importLogQuery =
+            List<EstateManagement.Database.Entities.FileImportLog> importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
 
-            List<FileImportLogFile> importLogFileQuery = await context.FileImportLogFiles.AsAsyncEnumerable()
-                                                                      .Where(fi => importLogQuery.Select(f => f.FileImportLogId).Contains(fi.FileImportLogId))
-                                                                      .ToListAsync(cancellationToken);
+            var importLogFileQuery = await context.FileImportLogFiles
+                                                  .Join(context.Files,
+                                                        fileImportLogFile => fileImportLogFile.FileImportLogReportingId,
+                                                        file => file.FileImportLogReportingId,
+                                                        (fileImportLogFile, file) => new {
+                                                                                             fileImportLogFile,
+                                                                                             file
+                                                                                         })
+                                                  .AsAsyncEnumerable()
+                                                  .Where(fi => importLogQuery.Select(f => f.FileImportLogReportingId).Contains(fi.fileImportLogFile.FileImportLogReportingId))
+                                                  .ToListAsync(cancellationToken);
 
-            if (merchantId.HasValue)
-            {
-                importLogFileQuery = importLogFileQuery.Where(i => i.MerchantId == merchantId.Value).ToList();
+            if (merchantId.HasValue){
+                Merchant merchant = await context.Merchants.SingleOrDefaultAsync(m => m.MerchantId == merchantId.Value, cancellationToken:cancellationToken);
+                importLogFileQuery = importLogFileQuery.Where(i => i.fileImportLogFile.MerchantReportingId == merchant.MerchantReportingId).ToList();
             }
-            
-            return this.ModelFactory.ConvertFrom(importLogQuery, importLogFileQuery);
+
+            List<(FileImportLogFile, File)> entityData = new List<(FileImportLogFile, File)>();
+            foreach (var file in importLogFileQuery)
+            {
+                entityData.Add((file.fileImportLogFile, file.file));
+            }
+
+            return this.ModelFactory.ConvertFrom(estateId, merchantId.GetValueOrDefault(),importLogQuery, entityData);
         }
 
         /// <summary>
@@ -132,21 +144,36 @@
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken)
         {
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
+            EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
-            EstateReporting.Database.Entities.FileImportLog importLogQuery =
+            EstateManagement.Database.Entities.FileImportLog importLogQuery =
                 await context.FileImportLogs.AsAsyncEnumerable().SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
 
-            List<FileImportLogFile> importLogFileQuery = await context.FileImportLogFiles.AsAsyncEnumerable()
-                                                                      .Where(fi => fi.FileImportLogId == fileImportLogId)
+            var importLogFileQuery = await context.FileImportLogFiles
+                                                                      .Join(context.Files,
+                                                                            fileImportLogFile => fileImportLogFile.FileImportLogReportingId,
+                                                                            file => file.FileImportLogReportingId,
+                                                                            (fileImportLogFile, file) => new{
+                                                                                                                fileImportLogFile,
+                                                                                                                file
+                                                                                                            })
+                                                                      .AsAsyncEnumerable()
+                                                                      .Where(fi => fi.fileImportLogFile.FileImportLogReportingId == importLogQuery.FileImportLogReportingId)
                                                                       .ToListAsync(cancellationToken);
-
+            
             if (merchantId.HasValue)
             {
-                importLogFileQuery = importLogFileQuery.Where(i => i.MerchantId == merchantId.Value).ToList();
+                Merchant merchant = await context.Merchants.SingleOrDefaultAsync(m => m.MerchantId == merchantId.Value, cancellationToken: cancellationToken);
+                importLogFileQuery = importLogFileQuery.Where(i => i.fileImportLogFile.MerchantReportingId == merchant.MerchantReportingId).ToList();
             }
 
-            return this.ModelFactory.ConvertFrom(importLogQuery, importLogFileQuery);
+            List<(FileImportLogFile, File)> entityData = new List<(FileImportLogFile, File)>();
+            foreach (var file in importLogFileQuery)
+            {
+                entityData.Add((file.fileImportLogFile, file.file));
+            }
+
+            return this.ModelFactory.ConvertFrom(estateId, merchantId.GetValueOrDefault(), importLogQuery, entityData);
         }
 
         /// <summary>
@@ -170,7 +197,7 @@
 
             FileDetails fileDetails = fileAggregate.GetFile();
 
-            EstateReportingGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
+            EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
             Merchant merchant = await context.Merchants.AsAsyncEnumerable()
                 .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);

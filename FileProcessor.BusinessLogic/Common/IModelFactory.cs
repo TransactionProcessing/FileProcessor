@@ -1,7 +1,8 @@
 ﻿namespace FileProcessor.BusinessLogic.Common
 {
+    using System;
     using System.Collections.Generic;
-    using EstateReporting.Database.Entities;
+    using EstateManagement.Database.Entities;
     using FileImportLogModel = FIleProcessor.Models.FileImportLog;
 
     /// <summary>
@@ -10,24 +11,16 @@
     public interface IModelFactory
     {
         #region Methods
-
-        /// <summary>
-        /// Converts from.
-        /// </summary>
-        /// <param name="importLogs">The import logs.</param>
-        /// <param name="importLogFilesList">The import log files list.</param>
-        /// <returns></returns>
-        List<FileImportLogModel> ConvertFrom(List<FileImportLog> importLogs,
-                                             List<FileImportLogFile> importLogFilesList);
-
-        /// <summary>
-        /// Converts from.
-        /// </summary>
-        /// <param name="importLog">The import log.</param>
-        /// <param name="importLogFilesList">The import log files list.</param>
-        /// <returns></returns>
-        FileImportLogModel ConvertFrom(FileImportLog importLog,
-                                       List<FileImportLogFile> importLogFilesList);
+        
+        List<FileImportLogModel> ConvertFrom(Guid estateId,
+                                             Guid merchantId,
+                                             List<EstateManagement.Database.Entities.FileImportLog> importLogs,
+                                             List<(FileImportLogFile, File)> importLogFilesList);
+        
+        FileImportLogModel ConvertFrom(Guid estateId,
+                                       Guid merchantId,
+                                       EstateManagement.Database.Entities.FileImportLog importLog,
+                                       List<(FileImportLogFile, File)> importLogFilesList);
 
         #endregion
     }
