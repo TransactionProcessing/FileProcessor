@@ -95,6 +95,42 @@ public class FileProcessorDomainServiceTests
     }
 
     [Fact]
+    public async Task FileRequestHandler_UploadFileRequest_MerchantIdNotProvided_ErrorThrown()
+    {
+        UploadFileRequest uploadFileRequest =
+            new UploadFileRequest(TestData.EstateId, Guid.Empty, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+
+        Should.Throw<InvalidDataException>(async () =>
+                                           {
+                                               await this.FileProcessorDomainService.UploadFile(uploadFileRequest, CancellationToken.None);
+                                           });
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_UploadFileRequest_FileProfileIdNotProvided_ErrorThrown()
+    {
+        UploadFileRequest uploadFileRequest =
+            new UploadFileRequest(TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FilePathWithName, Guid.Empty, TestData.FileUploadedDateTime);
+
+        Should.Throw<InvalidDataException>(async () =>
+                                           {
+                                               await this.FileProcessorDomainService.UploadFile(uploadFileRequest, CancellationToken.None);
+                                           });
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_UploadFileRequest_UserIdNotProvided_ErrorThrown()
+    {
+        UploadFileRequest uploadFileRequest =
+            new UploadFileRequest(TestData.EstateId, TestData.MerchantId, Guid.Empty, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+
+        Should.Throw<InvalidDataException>(async () =>
+                                           {
+                                               await this.FileProcessorDomainService.UploadFile(uploadFileRequest, CancellationToken.None);
+                                           });
+    }
+
+    [Fact]
     public async Task FileRequestHandler_UploadFileRequest_ImportLogAlreadyCreated_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);

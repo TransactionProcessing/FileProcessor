@@ -35,19 +35,21 @@ namespace FileProcessor.IntegrationTests.Features
         }
 
         [When(@"I get the '(.*)' import logs between '(.*)' and '(.*)' the following data is returned")]
-        public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(string estateName, string startDate, string endDate, Table table)
-        {
-            FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, endDate, CancellationToken.None);
+        public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(string estateName, string startDate, string endDate, Table table){
+            foreach (TableRow tableRow in table.Rows){
+                await Retry.For(async () => {
+                                    FileImportLogList importLogList = await this.GetFileImportLogList(estateName, startDate, endDate, CancellationToken.None);
 
-            foreach (TableRow tableRow in table.Rows)
-            {
-                DateTime importLogDateTime = SpecflowTableHelper.GetDateForDateString(SpecflowTableHelper.GetStringRowValue(tableRow, "ImportLogDate"), DateTime.Now);
-                Int32 fileCount = SpecflowTableHelper.GetIntValue(tableRow, "FileCount");
 
-                // Find the import log now
-                FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == importLogDateTime.Date && fil.FileCount == fileCount);
+                                    DateTime importLogDateTime = SpecflowTableHelper.GetDateForDateString(SpecflowTableHelper.GetStringRowValue(tableRow, "ImportLogDate"), DateTime.Now);
+                                    Int32 fileCount = SpecflowTableHelper.GetIntValue(tableRow, "FileCount");
 
-                importLog.ShouldNotBeNull();
+
+                                    // Find the import log now
+                                    FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == importLogDateTime.Date && fil.FileCount == fileCount);
+
+                                    importLog.ShouldNotBeNull();
+                                });
             }
         }
 
