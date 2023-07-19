@@ -44,10 +44,12 @@ namespace FileProcessor.IntegrationTests.Features
                 DateTime importLogDateTime = SpecflowTableHelper.GetDateForDateString(SpecflowTableHelper.GetStringRowValue(tableRow, "ImportLogDate"), DateTime.Now);
                 Int32 fileCount = SpecflowTableHelper.GetIntValue(tableRow, "FileCount");
 
-                // Find the import log now
-                FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == importLogDateTime.Date && fil.FileCount == fileCount);
+                await Retry.For(async () => {
+                                    // Find the import log now
+                                    FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == importLogDateTime.Date && fil.FileCount == fileCount);
 
-                importLog.ShouldNotBeNull();
+                                    importLog.ShouldNotBeNull();
+                });
             }
         }
 
