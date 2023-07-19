@@ -107,8 +107,8 @@
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                   .Join(context.Files,
-                                                        fileImportLogFile => fileImportLogFile.FileImportLogReportingId,
-                                                        file => file.FileImportLogReportingId,
+                                                        fileImportLogFile => fileImportLogFile.FileReportingId,
+                                                        file => file.FileReportingId,
                                                         (fileImportLogFile, file) => new {
                                                                                              fileImportLogFile,
                                                                                              file
@@ -151,8 +151,8 @@
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                                       .Join(context.Files,
-                                                                            fileImportLogFile => fileImportLogFile.FileImportLogReportingId,
-                                                                            file => file.FileImportLogReportingId,
+                                                                            fileImportLogFile => fileImportLogFile.FileReportingId,
+                                                                            file => file.FileReportingId,
                                                                             (fileImportLogFile, file) => new{
                                                                                                                 fileImportLogFile,
                                                                                                                 file
