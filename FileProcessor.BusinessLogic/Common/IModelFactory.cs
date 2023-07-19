@@ -13,14 +13,12 @@
         #region Methods
         
         List<FileImportLogModel> ConvertFrom(Guid estateId,
-                                             Guid merchantId,
                                              List<EstateManagement.Database.Entities.FileImportLog> importLogs,
-                                             List<(FileImportLogFile, File)> importLogFilesList);
+                                             List<(FileImportLogFile, File, Merchant)> importLogFilesList);
         
         FileImportLogModel ConvertFrom(Guid estateId,
-                                       Guid merchantId,
                                        EstateManagement.Database.Entities.FileImportLog importLog,
-                                       List<(FileImportLogFile, File)> importLogFilesList);
+                                       List<(FileImportLogFile, File, Merchant)> importLogFilesList);
 
         #endregion
     }

@@ -22,9 +22,8 @@
         /// <param name="importLogFilesList">The import log files list.</param>
         /// <returns></returns>
         public List<FileImportLog> ConvertFrom(Guid estateId,
-                                               Guid merchantId,
                                                List<EstateManagement.Database.Entities.FileImportLog> importLogs,
-                                               List<(FileImportLogFile, File)> importLogFilesList)
+                                               List<(FileImportLogFile, File, Merchant)> importLogFilesList)
         {
             List<FileImportLog> models = new List<FileImportLog>();
 
@@ -37,13 +36,13 @@
                 model.EstateId = estateId;
                 model.Files = new List<ImportLogFile>();
 
-                IEnumerable<(FileImportLogFile, File)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == fileImportLog.FileImportLogReportingId);
+                IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == fileImportLog.FileImportLogReportingId);
 
-                foreach ((FileImportLogFile, File) importLogFile in currentImportLogFiles)
+                foreach ((FileImportLogFile, File, Merchant) importLogFile in currentImportLogFiles)
                 {
                     model.Files.Add(new ImportLogFile
                                     {
-                                        MerchantId = merchantId,
+                                        MerchantId = importLogFile.Item3.MerchantId,
                                         EstateId = estateId,
                                         FileId = importLogFile.Item2.FileId,
                                         FilePath = importLogFile.Item1.FilePath,
@@ -66,9 +65,8 @@
         /// <param name="importLogFilesList">The import log files list.</param>
         /// <returns></returns>
         public FileImportLog ConvertFrom(Guid estateId,
-                                         Guid merchantId,
                                          EstateManagement.Database.Entities.FileImportLog importLog,
-                                         List<(FileImportLogFile, File)> importLogFilesList)
+                                         List<(FileImportLogFile, File, Merchant)> importLogFilesList)
         {
             FileImportLog model = new FileImportLog();
 
@@ -77,13 +75,13 @@
             model.EstateId = estateId;
             model.Files = new List<ImportLogFile>();
 
-            IEnumerable<(FileImportLogFile, File)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == importLog.FileImportLogReportingId);
+            IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == importLog.FileImportLogReportingId);
 
-            foreach ((FileImportLogFile, File) importLogFile in currentImportLogFiles)
+            foreach ((FileImportLogFile, File,Merchant) importLogFile in currentImportLogFiles)
             {
                 model.Files.Add(new ImportLogFile
                                 {
-                                    MerchantId = merchantId,
+                                    MerchantId = importLogFile.Item3.MerchantId,
                                     EstateId = estateId,
                                     FileId = importLogFile.Item2.FileId,
                                     FilePath = importLogFile.Item1.FilePath,
