@@ -5,9 +5,9 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.5" />
+		<PackageReference Include="EstateManagement.Database" Version="2023.7.2-build43" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.7" />
 		<PackageReference Include="EstateManagement.Client" Version="2023.6.1" />
-		<PackageReference Include="EstateReporting.Database" Version="1.1.8-build15" />
 		<PackageReference Include="SecurityService.Client" Version="2023.6.1" />
 		<PackageReference Include="Shared" Version="2023.6.1" />
 		<PackageReference Include="Shared.DomainDrivenDesign" Version="2023.6.1" />
@@ -15,8 +15,8 @@
 		<PackageReference Include="Shared.EventStore" Version="2023.6.1" />
 		<PackageReference Include="System.IO.Abstractions" Version="19.2.29" />
 		<PackageReference Include="TransactionProcessor.Client" Version="2023.6.2" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.7" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.7" />
 	</ItemGroup>
 
 	<ItemGroup>

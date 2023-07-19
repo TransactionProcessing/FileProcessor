@@ -7,7 +7,7 @@ using System.Net.Security;
 using BusinessLogic.Common;
 using BusinessLogic.Managers;
 using Common;
-using EstateReporting.Database;
+using EstateManagement.Database.Contexts;
 using FileAggregate;
 using FileImportLogAggregate;
 using Lamar;
@@ -79,20 +79,20 @@ public class RepositoryRegistry : ServiceRegistry
         this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
             AggregateRepository<FileImportLogAggregate, DomainEvent>>();
 
-        this.AddSingleton<IDbContextFactory<EstateReportingGenericContext>, DbContextFactory<EstateReportingGenericContext>>();
-        this.AddSingleton<Func<String, EstateReportingGenericContext>>(cont => connectionString =>
-                                                                               {
-                                                                                   String databaseEngine =
-                                                                                       ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
+        this.AddSingleton<IDbContextFactory<EstateManagementGenericContext>, DbContextFactory<EstateManagementGenericContext>>();
+        this.AddSingleton<Func<String, EstateManagementGenericContext>>(cont => connectionString =>
+                                                                                {
+                                                                                    String databaseEngine =
+                                                                                        ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
 
-                                                                                   return databaseEngine switch
-                                                                                   {
-                                                                                       "MySql" => new EstateReportingMySqlContext(connectionString),
-                                                                                       "SqlServer" => new EstateReportingSqlServerContext(connectionString),
-                                                                                       _ => throw new
-                                                                                           NotSupportedException($"Unsupported Database Engine {databaseEngine}")
-                                                                                   };
-                                                                               });
+                                                                                    return databaseEngine switch
+                                                                                    {
+                                                                                        "MySql" => new EstateManagementMySqlContext(connectionString),
+                                                                                        "SqlServer" => new EstateManagementSqlServerContext(connectionString),
+                                                                                        _ => throw new
+                                                                                            NotSupportedException($"Unsupported Database Engine {databaseEngine}")
+                                                                                    };
+                                                                                });
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
     }
 

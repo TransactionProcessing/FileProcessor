@@ -69,6 +69,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                        CancellationToken cancellationToken) {
         DateTime importLogDateTime = request.FileUploadedDateTime;
 
+        this.ValidateRequest(request);
+
         // This will now create the import log and add an event for the file being uploaded
         Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime.Date, request.EstateId);
 
@@ -127,6 +129,22 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
 
         return fileId;
+    }
+
+    private void ValidateRequest(UploadFileRequest request){
+        if (request.UserId == Guid.Empty){
+            throw new InvalidDataException("No User Id provided with file upload");
+        }
+
+        if (request.MerchantId == Guid.Empty)
+        {
+            throw new InvalidDataException("No Merchant Id provided with file upload");
+        }
+
+        if (request.FileProfileId == Guid.Empty)
+        {
+            throw new InvalidDataException("No File Profile Id provided with file upload");
+        }
     }
 
     public async Task ProcessUploadedFile(ProcessUploadedFileRequest request,

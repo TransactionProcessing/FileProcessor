@@ -8,8 +8,8 @@ namespace FileProcessor.BusinessLogic.Tests
 {
     using System.Threading;
     using Common;
-    using EstateReporting.Database;
-    using EstateReporting.Database.Entities;
+    using EstateManagement.Database.Contexts;
+    using EstateManagement.Database.Entities;
     using FileAggregate;
     using FIleProcessor.Models;
     using Managers;
@@ -23,7 +23,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using Shouldly;
     using Testing;
     using Xunit;
-    using FileImportLog = EstateReporting.Database.Entities.FileImportLog;
+    using FileImportLog = FIleProcessor.Models.FileImportLog;
     using FileLine = FIleProcessor.Models.FileLine;
 
     public class FileProcessingManagerTests
@@ -76,7 +76,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
-            var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
+            List<FileImportLog> importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
 
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
         }
@@ -179,7 +179,8 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.Merchants.Add(new Merchant
             {
-                EstateId = TestData.EstateId,
+                EstateReportingId = TestData.EstateReportingId,
+                MerchantReportingId = TestData.MerchantReportingId,
                 MerchantId = TestData.MerchantId,
                 Name = TestData.MerchantName
             });
@@ -206,7 +207,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
-                EstateId = TestData.EstateId,
+                EstateReportingId = TestData.EstateReportingId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
@@ -242,7 +243,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
-                EstateId = TestData.EstateId,
+                EstateReportingId = TestData.EstateReportingId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
@@ -313,19 +314,19 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
 
-        private void VerifyImportLogs(List<FileImportLog> source,  List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
+        private void VerifyImportLogs(List<EstateManagement.Database.Entities.FileImportLog> source,  List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
         {
             importLogs.ShouldNotBeNull();
             importLogs.ShouldNotBeEmpty();
             importLogs.Count.ShouldBe(TestData.FileImportLogs.Count);
-            foreach (FileImportLog fileImportLog in source)
+            foreach (EstateManagement.Database.Entities.FileImportLog fileImportLog in source)
             {
                 var importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
 
-        private void VerifyImportLog(FileImportLog source, FIleProcessor.Models.FileImportLog importLog, Guid? merchantId = null)
+        private void VerifyImportLog(EstateManagement.Database.Entities.FileImportLog source, FIleProcessor.Models.FileImportLog importLog, Guid? merchantId = null)
         {
             importLog.ShouldNotBeNull();
             importLog.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
@@ -349,19 +350,19 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
         
-        private Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext>> CreateMockContextFactory()
+        private Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext>> CreateMockContextFactory()
         {
-            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateReportingGenericContext>>();
+            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext>>();
         }
 
-        private async Task<EstateReportingGenericContext> GetContext(String databaseName)
+        private async Task<EstateManagementGenericContext> GetContext(String databaseName)
         {
-            EstateReportingGenericContext context = null;
+            EstateManagementGenericContext context = null;
             
-            DbContextOptionsBuilder<EstateReportingGenericContext> builder = new DbContextOptionsBuilder<EstateReportingGenericContext>()
-                                                                             .UseInMemoryDatabase(databaseName)
-                                                                             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            context = new EstateReportingSqlServerContext(builder.Options);
+            DbContextOptionsBuilder<EstateManagementGenericContext> builder = new DbContextOptionsBuilder<EstateManagementGenericContext>()
+                                                                              .UseInMemoryDatabase(databaseName)
+                                                                              .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            context = new EstateManagementSqlServerContext(builder.Options);
         
             return context;
         }
