@@ -22,7 +22,7 @@ jobs:
         echo "HOME is > ${HOME}"
 
     - name: Restore Nuget Packages
-      run: dotnet restore FileProcessor.sln --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/transactionprocessing/api/v3/index.json
+      run: dotnet restore FileProcessor.sln --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
 
     - name: Build Code
       run: dotnet build FileProcessor.sln --configuration Release
