@@ -26,6 +26,8 @@ namespace FileProcessor.Testing
         public static Guid MerchantId = Guid.Parse("20E13552-7AE6-4BB4-856A-C466E82B6B54");
 
         public static Guid FileId = Guid.Parse("5F7F45D6-0604-46C7-AA88-EAA885A6B208");
+        public static Guid FileId1 = Guid.Parse("5F7F45D6-0604-46C7-AA88-EAA885A6B208");
+        public static Guid FileId2 = Guid.Parse("4363C3C2-E5AC-4942-8A6A-5989C71B6B18");
 
         public static Guid UserId = Guid.Parse("BE52C5AC-72E5-4976-BAA0-98699E36C1EB");
 
@@ -97,6 +99,13 @@ namespace FileProcessor.Testing
         public static String VoucherDetailLineWithMobileNumber => $"D,{TestData.VoucherOperatorIdentifier},{TestData.VoucherRecipientMobile},{TestData.VoucherDetailLineAmount}";
 
         public static FileProfile FileProfileNull => null;
+
+        public static Merchant Merchant => new Merchant{
+                                                           EstateReportingId = TestData.EstateReportingId,
+                                                           MerchantId = TestData.MerchantId,
+                                                           MerchantReportingId = TestData.MerchantReportingId,
+                                                           Name = TestData.MerchantName,
+                                                       };
 
         public static FileProfile GetFileProfile(String operatorName)
         {
@@ -737,6 +746,7 @@ namespace FileProcessor.Testing
                                                           FileImportLogId = TestData.FileImportLogId1,
                                                           ImportLogDateTime = TestData.ImportLogStartDate,
                                                           EstateReportingId = TestData.EstateReportingId,
+                                                          FileImportLogReportingId = TestData.FileImportLogReportingId1
                                                       };
 
         public static List<FileImportLogFile> FileImportLog1Files => new List<FileImportLogFile>
@@ -774,6 +784,7 @@ namespace FileProcessor.Testing
                                             MerchantReportingId = TestData.MerchantReportingId,
                                             FileProfileId = TestData.FileProfileId,
                                             UserId = TestData.UserId,
+                                            FileId = TestData.FileId1
                                         },
                               new File{
                                           FileImportLogReportingId = TestData.FileImportLogReportingId1,
@@ -781,6 +792,7 @@ namespace FileProcessor.Testing
                                           MerchantReportingId = TestData.MerchantReportingId,
                                           FileProfileId = TestData.FileProfileId,
                                           UserId = TestData.UserId,
+                                          FileId = TestData.FileId2
                                       },
 
                           };
@@ -790,7 +802,8 @@ namespace FileProcessor.Testing
                                                           FileImportLogId = TestData.FileImportLogId2,
                                                           ImportLogDateTime = TestData.ImportLogEndDate,
                                                           EstateReportingId = TestData.EstateReportingId,
-                                                      };
+                                                          FileImportLogReportingId = TestData.FileImportLogReportingId2
+        };
 
         public static List<FileImportLogFile> FileImportLog2Files => new List<FileImportLogFile>
                                                                      {
