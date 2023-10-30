@@ -18,8 +18,6 @@ namespace FileProcessor.IntegrationTests.Common
     using Ductus.FluentDocker.Services;
     using Ductus.FluentDocker.Services.Extensions;
     using EstateManagement.Client;
-    using EstateReporting.Client;
-    using EstateReporting.Database;
     using EventStore.Client;
     using Microsoft.Data.SqlClient;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
@@ -37,8 +35,6 @@ namespace FileProcessor.IntegrationTests.Common
         /// The estate client
         /// </summary>
         public IEstateClient EstateClient;
-
-        public IEstateReportingClient EstateReportingClient;
 
         /// <summary>
         /// The security service client
@@ -109,9 +105,9 @@ namespace FileProcessor.IntegrationTests.Common
                 await Retry.For(async () =>
                 {
                     // Build the connection string (to master)
-                    String connectionString = Setup.GetLocalConnectionString(databaseName);
-                    EstateReportingSqlServerContext context = new EstateReportingSqlServerContext(connectionString);
-                    await context.Database.EnsureDeletedAsync(CancellationToken.None);
+                    //String connectionString = Setup.GetLocalConnectionString(databaseName);
+                    //EstateReportingSqlServerContext context = new EstateReportingSqlServerContext(connectionString);
+                    //await context.Database.EnsureDeletedAsync(CancellationToken.None);
                 });
             }
         }
