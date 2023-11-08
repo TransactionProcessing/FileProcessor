@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   release:
@@ -59,26 +59,23 @@ jobs:
         sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" && \
         sudo apt update && sudo apt install octopuscli
 
-    - name: Pack Files for Octopus
-      if: ${{ github.event.release.prerelease == false }}
-      run: >-
-        octo pack
-        --outFolder /home/runner/work/FileProcessor/FileProcessor
-        --basePath /home/runner/work/FileProcessor/FileProcessor/publishOutput
-        --id FileProcessor
-        --version ${{ steps.get_version.outputs.VERSION }}
-        --format zip
-        --verbose
-        --logLevel=verbose
+    - name: Create Zip package 🐙
+      id: package
+      uses: OctopusDeploy/create-zip-package-action@v3
+      with:
+        package_id: FileProcessor
+        version: ${{ steps.get_version.outputs.VERSION }}
+        base_path: /home/runner/work/FileProcessor/FileProcessor/publishOutput
+        files: "**/*"
+        output_folder: /home/runner/work/FileProcessor/FileProcessor
 
-    - name: Push Package to Octopus
-      if: ${{ github.event.release.prerelease == false }}
-      run: >-
-        octo push
-        --server ${{ secrets.OCTOPUS_URL }}
-        --apiKey ${{ secrets.OCTOPUS_APIKEY }}
-        --package /home/runner/work/FileProcessor/FileProcessor/FileProcessor.${{ steps.get_version.outputs.VERSION }}.zip
-        --overwrite-mode IgnoreIfExists
+    - name: Push a package to Octopus Deploy 🐙
+      uses: OctopusDeploy/push-package-action@v3
+      with:
+        api_key: ${{ secrets.OCTOPUS_APIKEY }}
+        server: ${{ secrets.OCTOPUS_URL }}
+        space: ${{ secrets.OCTOPUS_SPACE }}
+        packages: ${{ steps.package.outputs.package_file_path }}
     
     - name: Get Release
       if: ${{ github.event.release.prerelease == false }}
@@ -97,19 +94,41 @@ jobs:
           json: ${{ steps.getrelease.outputs.data }}
           releasenote: "body"
     
-    - name: Create & Deploy Release in Octopus
-      if: ${{ github.event.release.prerelease == false }}
-      run: >-
-        octo  create-release
-        --server ${{ secrets.OCTOPUS_URL }}
-        --apiKey ${{ secrets.OCTOPUS_APIKEY }}
-        --project "File Processor"
-        --version ${{ steps.get_version.outputs.VERSION }}
-        --channel Default
-        --deployTo Staging
-        --waitfordeployment
-        --deploymenttimeout 00:05:00
-        --releasenotes "${{ steps.buildreleasenotes.outputs.releasenote }}" 
+    - name: Create a release in Octopus Deploy 🐙
+      uses: OctopusDeploy/create-release-action@v3
+      id: "create_release"
+      with:
+        api_key: ${{ secrets.OCTOPUS_APIKEY }}
+        server: ${{ secrets.OCTOPUS_URL }}
+        space: ${{ secrets.OCTOPUS_SPACE }}
+        project: "File Processor"
+        package_version: ${{ steps.get_version.outputs.VERSION }}
+        release_notes: ${{ steps.buildreleasenotes.outputs.releasenote }}
+        release_number: ${{ steps.get_version.outputs.VERSION }}
+        ignore_existing: true
+        channel: "Default"
+
+    - name: Deploy a release in Octopus Deploy 🐙
+      uses: OctopusDeploy/deploy-release-action@v3
+      id: "deploy_release"
+      with:
+        api_key: ${{ secrets.OCTOPUS_APIKEY }}
+        server: ${{ secrets.OCTOPUS_URL }}
+        space: ${{ secrets.OCTOPUS_SPACE }}
+        project: "File Processor"
+        release_number: ${{steps.create_release.outputs.release_number}}
+        environments: |
+            Staging      
+            
+    - name: Await task in Octopus Deploy 🐙
+      uses: OctopusDeploy/await-task-action@v3
+      with:
+        api_key: ${{ secrets.OCTOPUS_APIKEY }}
+        server: ${{ secrets.OCTOPUS_URL }}
+        space: ${{ secrets.OCTOPUS_SPACE }}
+        timeout_after: 300
+        polling_interval: 30
+        server_task_id: ${{ fromJson(steps.deploy_release.outputs.server_tasks)[0].serverTaskId }}
         
     - name: Build and Publish Nuget Packages
       if: ${{ github.event.release.prerelease == false }}
