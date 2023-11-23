@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.11.1" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2023.11.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileProcessor.Client\FileProcessor.Client.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All"/>
+  </ItemGroup>
+
+	<Target Name="IncludeP2PAssets">
+		<ItemGroup>
+			<BuildOutputInPackage Include="$(OutputPath)FileProcessor.DataTransferObjects.dll" />
+			<BuildOutputInPackage Include="$(OutputPath)FileProcessor.Client.dll" />
+		</ItemGroup>
+	</Target>
+
+</Project>

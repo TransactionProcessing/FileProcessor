@@ -10,7 +10,78 @@ namespace FileProcessor.IntegrationTests.Common
     using Shared.Logger;
     using Shouldly;
     using System.IO;
+    using EstateManagement.DataTransferObjects.Responses;
+    using EstateManagement.IntegrationTesting.Helpers;
+    using IntegrationTesting.Helpers;
     using TechTalk.SpecFlow;
+
+    public class ClientDetails
+    {
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClientDetails"/> class.
+        /// </summary>
+        /// <param name="clientId">The client identifier.</param>
+        /// <param name="clientSecret">The client secret.</param>
+        /// <param name="grantType">Type of the grant.</param>
+        private ClientDetails(String clientId,
+                              String clientSecret,
+                              String grantType)
+        {
+            this.ClientId = clientId;
+            this.ClientSecret = clientSecret;
+            this.GrantType = grantType;
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the client identifier.
+        /// </summary>
+        /// <value>
+        /// The client identifier.
+        /// </value>
+        public String ClientId { get; }
+
+        /// <summary>
+        /// Gets the client secret.
+        /// </summary>
+        /// <value>
+        /// The client secret.
+        /// </value>
+        public String ClientSecret { get; }
+
+        /// <summary>
+        /// Gets the type of the grant.
+        /// </summary>
+        /// <value>
+        /// The type of the grant.
+        /// </value>
+        public String GrantType { get; }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Creates the specified client identifier.
+        /// </summary>
+        /// <param name="clientId">The client identifier.</param>
+        /// <param name="clientSecret">The client secret.</param>
+        /// <param name="grantType">Type of the grant.</param>
+        /// <returns></returns>
+        public static ClientDetails Create(String clientId,
+                                           String clientSecret,
+                                           String grantType)
+        {
+            return new ClientDetails(clientId, clientSecret, grantType);
+        }
+
+        #endregion
+    }
 
     public class TestingContext
     {
@@ -24,7 +95,7 @@ namespace FileProcessor.IntegrationTests.Common
         /// <summary>
         /// The estates
         /// </summary>
-        private readonly List<EstateDetails> Estates;
+        public readonly List<EstateDetails1> Estates;
 
         #endregion
 
@@ -35,7 +106,7 @@ namespace FileProcessor.IntegrationTests.Common
         /// </summary>
         public TestingContext()
         {
-            this.Estates = new List<EstateDetails>();
+            this.Estates = new List<EstateDetails1>();
             this.Clients = new List<ClientDetails>();
         }
 
@@ -72,45 +143,20 @@ namespace FileProcessor.IntegrationTests.Common
         #endregion
 
         #region Methods
-
-        /// <summary>
-        /// Adds the client details.
-        /// </summary>
-        /// <param name="clientId">The client identifier.</param>
-        /// <param name="clientSecret">The client secret.</param>
-        /// <param name="grantType">Type of the grant.</param>
         public void AddClientDetails(String clientId,
                                      String clientSecret,
                                      String grantType)
         {
-            this.Clients.Add(ClientDetails.Create(clientId, clientSecret, grantType));
+            this.Clients.Add( ClientDetails.Create(clientId, clientSecret, grantType));
         }
 
-        /// <summary>
-        /// Adds the estate details.
-        /// </summary>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="estateName">Name of the estate.</param>
         public void AddEstateDetails(Guid estateId,
-                                     String estateName)
-        {
-            this.Estates.Add(EstateDetails.Create(estateId, estateName));
+                                     String estateName,
+                                     String estateReference){
+            EstateDetails estate = EstateDetails.Create(estateId, estateName, estateReference);
+            this.Estates.Add(new EstateDetails1(estate));
         }
-
-        /// <summary>
-        /// Gets all estate ids.
-        /// </summary>
-        /// <returns></returns>
-        public List<Guid> GetAllEstateIds()
-        {
-            return this.Estates.Select(e => e.EstateId).ToList();
-        }
-
-        /// <summary>
-        /// Gets the client details.
-        /// </summary>
-        /// <param name="clientId">The client identifier.</param>
-        /// <returns></returns>
+        
         public ClientDetails GetClientDetails(String clientId)
         {
             ClientDetails clientDetails = this.Clients.SingleOrDefault(c => c.ClientId == clientId);
@@ -120,93 +166,6 @@ namespace FileProcessor.IntegrationTests.Common
             return clientDetails;
         }
 
-        /// <summary>
-        /// Gets the estate details.
-        /// </summary>
-        /// <param name="tableRow">The table row.</param>
-        /// <returns></returns>
-        public EstateDetails GetEstateDetails(TableRow tableRow)
-        {
-            String estateName = SpecflowTableHelper.GetStringRowValue(tableRow, "EstateName");
-            EstateDetails estateDetails = null;
-
-            estateDetails = this.Estates.SingleOrDefault(e => e.EstateName == estateName);
-
-            if (estateDetails == null && estateName == "InvalidEstate")
-            {
-                estateDetails = EstateDetails.Create(Guid.Parse("79902550-64DF-4491-B0C1-4E78943928A3"), estateName);
-                estateDetails.AddMerchant(Guid.Parse("36AA0109-E2E3-4049-9575-F507A887BB1F"), "Test Merchant 1");
-                this.Estates.Add(estateDetails);
-            }
-
-            estateDetails.ShouldNotBeNull();
-
-            return estateDetails;
-        }
-
-        /// <summary>
-        /// Gets the estate details.
-        /// </summary>
-        /// <param name="estateName">Name of the estate.</param>
-        /// <returns></returns>
-        public EstateDetails GetEstateDetails(String estateName)
-        {
-            EstateDetails estateDetails = this.Estates.SingleOrDefault(e => e.EstateName == estateName);
-
-            estateDetails.ShouldNotBeNull();
-
-            return estateDetails;
-        }
-
-        /// <summary>
-        /// Gets the estate details.
-        /// </summary>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <returns></returns>
-        public EstateDetails GetEstateDetails(Guid estateId)
-        {
-            EstateDetails estateDetails = this.Estates.SingleOrDefault(e => e.EstateId == estateId);
-
-            estateDetails.ShouldNotBeNull();
-
-            return estateDetails;
-        }
-
         #endregion
-
-        public void GenerateFile(String fileName,
-                                 Table table)
-        {
-            StringBuilder fileBuilder = new StringBuilder();
-
-            Int32 currentRow = 1;
-            foreach (var row in table.Rows)
-            {
-                StringBuilder rowBuilder = new StringBuilder();
-                foreach (String rowValue in row.Values)
-                {
-                    rowBuilder.Append($"{rowValue},");
-                }
-                // remove the trailing comma
-                rowBuilder.Remove(rowBuilder.Length - 1, 1);
-                if (currentRow < table.Rows.Count)
-                {
-                    rowBuilder.Append("\n");
-                }
-
-                fileBuilder.Append(rowBuilder.ToString());
-                currentRow++;
-            }
-
-            Directory.CreateDirectory("/home/runner/specflow");
-            String filepath = $"/home/runner/specflow/{fileName}";
-            // Should have the whole file here
-            using (StreamWriter sw = new StreamWriter(filepath))
-            {
-                sw.WriteAsync(fileBuilder.ToString());
-            }
-
-            this.UploadFile = filepath;
-        }
     }
 }
