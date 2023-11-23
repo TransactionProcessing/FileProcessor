@@ -35,7 +35,7 @@ namespace FileProcessor.IntegrationTests.Common
         /// The estate client
         /// </summary>
         public IEstateClient EstateClient;
-
+        public HttpClient TestHostHttpClient;
         /// <summary>
         /// The security service client
         /// </summary>
@@ -67,15 +67,26 @@ namespace FileProcessor.IntegrationTests.Common
         
         #region Methods
 
-        public override async Task StartContainersForScenarioRun(String scenarioName)
+        public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices)
         {
-            await base.StartContainersForScenarioRun(scenarioName);
+            await base.StartContainersForScenarioRun(scenarioName, dockerServices);
 
             // Setup the base address resolvers
             String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementPort}";
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
+
+            HttpClientHandler clientHandler = new HttpClientHandler
+                                              {
+                                                  ServerCertificateCustomValidationCallback = (message,
+                                                                                               certificate2,
+                                                                                               arg3,
+                                                                                               arg4) =>
+                                                                                              {
+                                                                                                  return true;
+                                                                                              }
+                                              };
 
             var httpMessageHandler = new SocketsHttpHandler
                                      {
@@ -92,33 +103,33 @@ namespace FileProcessor.IntegrationTests.Common
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
+            this.TestHostHttpClient = new HttpClient(clientHandler);
+            this.TestHostHttpClient.BaseAddress = new Uri($"http://127.0.0.1:{this.TestHostServicePort}");
         }
         
-        private async Task RemoveEstateReadModel()
-        {
-            List<Guid> estateIdList = this.TestingContext.GetAllEstateIds();
+        //private async Task RemoveEstateReadModel()
+        //{
+        //    List<Guid> estateIdList = this.TestingContext.GetAllEstateIds();
 
-            foreach (Guid estateId in estateIdList)
-            {
-                String databaseName = $"EstateReportingReadModel{estateId}";
+        //    foreach (Guid estateId in estateIdList)
+        //    {
+        //        String databaseName = $"EstateReportingReadModel{estateId}";
 
-                await Retry.For(async () =>
-                {
-                    // Build the connection string (to master)
-                    //String connectionString = Setup.GetLocalConnectionString(databaseName);
-                    //EstateReportingSqlServerContext context = new EstateReportingSqlServerContext(connectionString);
-                    //await context.Database.EnsureDeletedAsync(CancellationToken.None);
-                });
-            }
-        }
+        //        await Retry.For(async () =>
+        //        {
+        //            // Build the connection string (to master)
+        //            //String connectionString = Setup.GetLocalConnectionString(databaseName);
+        //            //EstateReportingSqlServerContext context = new EstateReportingSqlServerContext(connectionString);
+        //            //await context.Database.EnsureDeletedAsync(CancellationToken.None);
+        //        });
+        //    }
+        //}
 
         /// <summary>
         /// Stops the containers for scenario run.
         /// </summary>
         public override async Task StopContainersForScenarioRun()
         {
-            await RemoveEstateReadModel().ConfigureAwait(false);
-
             await base.StopContainersForScenarioRun();
         }
 

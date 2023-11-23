@@ -10,14 +10,14 @@ Background:
 	| fileProcessor | File Processor REST Scope | A scope for File Processor REST |
 
 	Given the following api resources exist
-	| ResourceName         | DisplayName                | Secret  | Scopes               | UserClaims                 |
+	| Name         | DisplayName                | Secret  | Scopes               | UserClaims                 |
 	| estateManagement     | Estate Managememt REST     | Secret1 | estateManagement     | MerchantId, EstateId, role |
 	| transactionProcessor | Transaction Processor REST | Secret1 | transactionProcessor |                            |
 	| voucherManagement    | Voucher Management REST    | Secret1 | voucherManagement    |                            |
 	| fileProcessor        | File Processor REST        | Secret1 | fileProcessor        |                            |
 
 	Given the following clients exist
-	| ClientId      | ClientName     | Secret  | AllowedScopes    | AllowedGrantTypes  |
+	| ClientId      | ClientName     | Secret  | Scopes    | GrantTypes  |
 	| serviceClient | Service Client | Secret1 | estateManagement,transactionProcessor,voucherManagement,fileProcessor | client_credentials |
 
 	Given I have a token to access the estate management and transaction processor resources

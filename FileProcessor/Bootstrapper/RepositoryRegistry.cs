@@ -19,6 +19,7 @@ using Shared.EntityFramework.ConnectionStringConfiguration;
 using Shared.EventStore.Aggregate;
 using Shared.EventStore.EventStore;
 using Shared.EventStore.Extensions;
+using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
 using Shared.Repositories;
 
@@ -59,7 +60,7 @@ public class RepositoryRegistry : ServiceRegistry
                                                                                        }
                                                                       };
 
-            this.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
+            //this.AddEventStoreProjectionManagerClient(Startup.ConfigureEventStoreSettings);
             this.AddEventStorePersistentSubscriptionsClient(Startup.ConfigureEventStoreSettings);
 
             if (insecureES)
@@ -94,6 +95,10 @@ public class RepositoryRegistry : ServiceRegistry
                                                                                     };
                                                                                 });
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
+
+        this.AddSingleton<Func<String, Int32, ISubscriptionRepository>>(cont => (esConnString, cacheDuration) => {
+                                                                                    return SubscriptionRepository.Create(esConnString, cacheDuration);
+                                                                                });
     }
 
     #endregion
