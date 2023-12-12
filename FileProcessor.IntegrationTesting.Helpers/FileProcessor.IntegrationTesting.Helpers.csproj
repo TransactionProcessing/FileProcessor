@@ -8,12 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.11.1" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="2023.11.3" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2023.12.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FileProcessor.Client\FileProcessor.Client.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\FileProcessor.Client\FileProcessor.Client.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All" />
   </ItemGroup>
 
 	<Target Name="IncludeP2PAssets">
