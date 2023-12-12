@@ -80,7 +80,7 @@ namespace FileProcessor.Testing
                                           TestData.FilePath,
                                           TestData.FileUploadedDateTime);
 
-        public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
+        public static FileLineAddedEvent FileLineAddedEvent => new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.LineNumber, TestData.FileLine);
 
         public static String GetSafaricomDetailLine(String customerAccountNumber, String amount)
         {

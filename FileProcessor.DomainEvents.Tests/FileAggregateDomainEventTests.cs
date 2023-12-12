@@ -34,7 +34,7 @@ namespace FileProcessor.DomainEvents.Tests
         [Fact]
         public void FileLineAddedEvent_CanBeCreated_IsCreated()
         {
-            FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.FileLine);
+            FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.LineNumber, TestData.FileLine);
 
             fileLineAddedEvent.FileLine.ShouldBe(TestData.FileLine);
             fileLineAddedEvent.EstateId.ShouldBe(TestData.EstateId);
@@ -46,7 +46,7 @@ namespace FileProcessor.DomainEvents.Tests
         public void FileLineProcessingSuccessfulEvent_CanBeCreated_IsCreated()
         {
             FileLineProcessingSuccessfulEvent fileLineProcessingSuccessfulEvent =
-                new FileLineProcessingSuccessfulEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.TransactionId);
+                new FileLineProcessingSuccessfulEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.LineNumber, TestData.TransactionId);
 
             fileLineProcessingSuccessfulEvent.FileId.ShouldBe(TestData.FileId);
             fileLineProcessingSuccessfulEvent.LineNumber.ShouldBe(TestData.LineNumber);
@@ -58,7 +58,7 @@ namespace FileProcessor.DomainEvents.Tests
         public void FileLineProcessingFailedEvent_CanBeCreated_IsCreated()
         {
             FileLineProcessingFailedEvent fileLineProcessingFailedEvent =
-                new FileLineProcessingFailedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.TransactionId,
+                new FileLineProcessingFailedEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.LineNumber, TestData.TransactionId,
                                                   TestData.ResponseCode, TestData.ResponseMessage);
 
             fileLineProcessingFailedEvent.FileId.ShouldBe(TestData.FileId);
@@ -73,7 +73,7 @@ namespace FileProcessor.DomainEvents.Tests
         public void FileLineProcessingIgnoredEvent_CanBeCreated_IsCreated()
         {
             FileLineProcessingIgnoredEvent fileLineProcessingIgnoredEvent =
-                new FileLineProcessingIgnoredEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber);
+                new FileLineProcessingIgnoredEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.LineNumber);
 
             fileLineProcessingIgnoredEvent.FileId.ShouldBe(TestData.FileId);
             fileLineProcessingIgnoredEvent.LineNumber.ShouldBe(TestData.LineNumber);
@@ -84,7 +84,7 @@ namespace FileProcessor.DomainEvents.Tests
         public void FileLineProcessingRejectedEvent_CanBeCreated_IsCreated()
         {
             FileLineProcessingRejectedEvent fileLineProcessingRejectedEvent =
-                new FileLineProcessingRejectedEvent(TestData.FileId, TestData.EstateId, TestData.LineNumber, TestData.RejectionReason);
+                new FileLineProcessingRejectedEvent(TestData.FileId, TestData.EstateId,TestData.MerchantId, TestData.LineNumber, TestData.RejectionReason);
 
             fileLineProcessingRejectedEvent.FileId.ShouldBe(TestData.FileId);
             fileLineProcessingRejectedEvent.LineNumber.ShouldBe(TestData.LineNumber);
@@ -96,7 +96,7 @@ namespace FileProcessor.DomainEvents.Tests
         public void FileProcessingCompletedEvent_CanBeCreated_IsCreated()
         {
             FileProcessingCompletedEvent fileProcessingCompletedEvent =
-                new FileProcessingCompletedEvent(TestData.FileId, TestData.EstateId, TestData.ProcessingCompletedDateTime);
+                new FileProcessingCompletedEvent(TestData.FileId, TestData.EstateId, TestData.MerchantId, TestData.ProcessingCompletedDateTime);
 
             fileProcessingCompletedEvent.FileId.ShouldBe(TestData.FileId);
             fileProcessingCompletedEvent.EstateId.ShouldBe(TestData.EstateId);
