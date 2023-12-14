@@ -158,7 +158,7 @@ namespace FileProcessor.FileAggregate
             }
 
             FileLineProcessingRejectedEvent fileLineProcessingRejectedEvent =
-                new FileLineProcessingRejectedEvent(aggregate.AggregateId, aggregate.MerchantId, aggregate.EstateId, lineNumber, reason);
+                new FileLineProcessingRejectedEvent(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, reason);
 
             aggregate.ApplyAndAppend(fileLineProcessingRejectedEvent);
 
@@ -178,7 +178,7 @@ namespace FileProcessor.FileAggregate
             }
 
             FileLineProcessingSuccessfulEvent fileLineProcessingSuccessfulEvent =
-                new FileLineProcessingSuccessfulEvent(aggregate.AggregateId, aggregate.MerchantId, aggregate.EstateId, lineNumber, transactionId);
+                new FileLineProcessingSuccessfulEvent(aggregate.AggregateId, aggregate.EstateId,aggregate.MerchantId, lineNumber, transactionId);
 
             aggregate.ApplyAndAppend(fileLineProcessingSuccessfulEvent);
 
