@@ -140,7 +140,7 @@ namespace FileProcessor
                                               String.Empty,
                                               new DateTime());
 
-            FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, 0, String.Empty);
+            FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, Guid.Empty, 0, String.Empty);
 
             TypeProvider.LoadDomainEventsTypeDynamically(new List<String>() {
                                                                                 "Pomelo",

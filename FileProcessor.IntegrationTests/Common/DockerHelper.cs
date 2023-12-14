@@ -27,15 +27,16 @@ namespace FileProcessor.IntegrationTests.Common
     using TransactionProcessor.Client;
     using ILogger = Shared.Logger.ILogger;
 
-    public class DockerHelper : global::Shared.IntegrationTesting.DockerHelper
-    {
+    public class DockerHelper : global::Shared.IntegrationTesting.DockerHelper{
         #region Fields
 
         /// <summary>
         /// The estate client
         /// </summary>
         public IEstateClient EstateClient;
+
         public HttpClient TestHostHttpClient;
+
         /// <summary>
         /// The security service client
         /// </summary>
@@ -47,7 +48,7 @@ namespace FileProcessor.IntegrationTests.Common
         public IFileProcessorClient FileProcessorClient;
 
         public ITransactionProcessorClient TransactionProcessorClient;
-        
+
         private readonly TestingContext TestingContext;
 
         #endregion
@@ -59,16 +60,15 @@ namespace FileProcessor.IntegrationTests.Common
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="testingContext">The testing context.</param>
-        public DockerHelper() {
+        public DockerHelper(){
             this.TestingContext = new TestingContext();
         }
 
         #endregion
-        
+
         #region Methods
 
-        public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices)
-        {
+        public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
             await base.StartContainersForScenarioRun(scenarioName, dockerServices);
 
             // Setup the base address resolvers
@@ -77,27 +77,23 @@ namespace FileProcessor.IntegrationTests.Common
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
 
-            HttpClientHandler clientHandler = new HttpClientHandler
-                                              {
-                                                  ServerCertificateCustomValidationCallback = (message,
-                                                                                               certificate2,
-                                                                                               arg3,
-                                                                                               arg4) =>
-                                                                                              {
-                                                                                                  return true;
-                                                                                              }
-                                              };
+            HttpClientHandler clientHandler = new HttpClientHandler{
+                                                                       ServerCertificateCustomValidationCallback = (message,
+                                                                                                                    certificate2,
+                                                                                                                    arg3,
+                                                                                                                    arg4) => {
+                                                                                                                       return true;
+                                                                                                                   }
+                                                                   };
 
-            var httpMessageHandler = new SocketsHttpHandler
-                                     {
-                                         SslOptions =
-                                         {
-                                             RemoteCertificateValidationCallback = (sender,
-                                                                                    certificate,
-                                                                                    chain,
-                                                                                    errors) => true,
-                                         }
-                                     };
+            var httpMessageHandler = new SocketsHttpHandler{
+                                                               SslOptions ={
+                                                                               RemoteCertificateValidationCallback = (sender,
+                                                                                                                      certificate,
+                                                                                                                      chain,
+                                                                                                                      errors) => true,
+                                                                           }
+                                                           };
             HttpClient httpClient = new HttpClient(httpMessageHandler);
             this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
@@ -107,32 +103,6 @@ namespace FileProcessor.IntegrationTests.Common
             this.TestHostHttpClient.BaseAddress = new Uri($"http://127.0.0.1:{this.TestHostServicePort}");
         }
         
-        //private async Task RemoveEstateReadModel()
-        //{
-        //    List<Guid> estateIdList = this.TestingContext.GetAllEstateIds();
-
-        //    foreach (Guid estateId in estateIdList)
-        //    {
-        //        String databaseName = $"EstateReportingReadModel{estateId}";
-
-        //        await Retry.For(async () =>
-        //        {
-        //            // Build the connection string (to master)
-        //            //String connectionString = Setup.GetLocalConnectionString(databaseName);
-        //            //EstateReportingSqlServerContext context = new EstateReportingSqlServerContext(connectionString);
-        //            //await context.Database.EnsureDeletedAsync(CancellationToken.None);
-        //        });
-        //    }
-        //}
-
-        /// <summary>
-        /// Stops the containers for scenario run.
-        /// </summary>
-        public override async Task StopContainersForScenarioRun()
-        {
-            await base.StopContainersForScenarioRun();
-        }
-
         #endregion
     }
 }
