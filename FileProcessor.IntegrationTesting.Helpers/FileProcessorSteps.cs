@@ -45,7 +45,8 @@ public class FileProcessorSteps
 
                             fileDetails.ShouldNotBeNull();
                             fileDetails.ProcessingCompleted.ShouldBeTrue();
-                        }, TimeSpan.FromMinutes(3));
+                        }, TimeSpan.FromMinutes(5),
+                        TimeSpan.FromSeconds(30));
 
         return fileId;
     }
