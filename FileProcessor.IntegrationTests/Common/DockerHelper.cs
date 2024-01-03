@@ -51,6 +51,8 @@ namespace FileProcessor.IntegrationTests.Common
 
         private readonly TestingContext TestingContext;
 
+        public EventStoreProjectionManagementClient ProjectionManagementClient;
+
         #endregion
 
         #region Constructors
@@ -101,6 +103,8 @@ namespace FileProcessor.IntegrationTests.Common
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
             this.TestHostHttpClient = new HttpClient(clientHandler);
             this.TestHostHttpClient.BaseAddress = new Uri($"http://127.0.0.1:{this.TestHostServicePort}");
+
+            this.ProjectionManagementClient = new EventStoreProjectionManagementClient(ConfigureEventStoreSettings());
         }
         
         #endregion

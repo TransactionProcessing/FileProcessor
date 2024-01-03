@@ -31,6 +31,8 @@ namespace FileProcessor.IntegrationTests.Steps
     using Contract = Common.Contract;
     using Product = Common.Product;
     using SpecflowTableHelper = Common.SpecflowTableHelper;
+    using Newtonsoft.Json.Linq;
+    using System.Text.Json;
 
     [Binding]
     [Scope(Tag = "shared")]
@@ -259,6 +261,22 @@ namespace FileProcessor.IntegrationTests.Steps
             }
         }
 
+        [When(@"I add the following contracts to the following merchants")]
+        public async Task WhenIAddTheFollowingContractsToTheFollowingMerchants(Table table)
+        {
+            List<EstateDetails> estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
+            List<(EstateDetails, Guid, Guid)> requests = table.Rows.ToAddContractToMerchantRequests(estates);
+            await this.EstateManagementSteps.WhenIAddTheFollowingContractsToTheFollowingMerchants(this.TestingContext.AccessToken, requests);
+        }
+
+        private async Task<Decimal> GetMerchantBalance(Guid merchantId)
+        {
+            JsonElement jsonElement = (JsonElement)await this.TestingContext.DockerHelper.ProjectionManagementClient.GetStateAsync<dynamic>("MerchantBalanceProjection", $"MerchantBalance-{merchantId:N}");
+            JObject jsonObject = JObject.Parse(jsonElement.GetRawText());
+            decimal balanceValue = jsonObject.SelectToken("merchant.balance").Value<decimal>();
+            return balanceValue;
+        }
+
         [Given(@"I make the following manual merchant deposits")]
         public async Task GivenIMakeTheFollowingManualMerchantDeposits(Table table)
         {
@@ -267,16 +285,16 @@ namespace FileProcessor.IntegrationTests.Steps
 
             foreach ((EstateDetails, Guid, MakeMerchantDepositRequest) request in requests)
             {
-                MerchantBalanceResponse previousMerchantBalance = await this.TestingContext.DockerHelper.TransactionProcessorClient.GetMerchantBalance(this.TestingContext.AccessToken,
-                                                                                                                                                       request.Item1.EstateId, request.Item2, CancellationToken.None);
+                Decimal previousMerchantBalance = await this.GetMerchantBalance(request.Item2);
 
                 await this.EstateManagementSteps.GivenIMakeTheFollowingManualMerchantDeposits(this.TestingContext.AccessToken, request);
 
                 await Retry.For(async () => {
-                                    MerchantBalanceResponse currentMerchantBalance = await this.TestingContext.DockerHelper.TransactionProcessorClient.GetMerchantBalance(this.TestingContext.AccessToken, request.Item1.EstateId, request.Item2, CancellationToken.None);
-                                    currentMerchantBalance.AvailableBalance.ShouldBe(previousMerchantBalance.AvailableBalance + request.Item3.Amount);
+                    Decimal currentMerchantBalance = await this.GetMerchantBalance(request.Item2);
 
-                                    this.TestingContext.Logger.LogInformation($"Deposit Reference {request.Item3.Reference} made for Merchant Id {request.Item2}");
+                    currentMerchantBalance.ShouldBe(previousMerchantBalance + request.Item3.Amount);
+
+                    this.TestingContext.Logger.LogInformation($"Deposit Reference {request.Item3.Reference} made for Merchant Id {request.Item2}");
                                 });
             }
         }
