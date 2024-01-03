@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.11.1" />
+    <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.12.2-build66" />
     <PackageReference Include="Shared.IntegrationTesting" Version="2023.12.2" />
   </ItemGroup>
 

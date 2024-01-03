@@ -11,11 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.11.1" />
-	  <PackageReference Include="EventStoreProjections" Version="2023.10.1" />
+	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.12.2-build66" />
+	  <PackageReference Include="EventStoreProjections" Version="2023.12.3" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
-	  <PackageReference Include="EstateManagement.Client" Version="2023.11.1" />
+	  <PackageReference Include="EstateManagement.Client" Version="2023.12.2-build66" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.7" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
@@ -27,7 +27,7 @@
 	  <PackageReference Include="SpecFlow" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
 	  <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
-	  <PackageReference Include="TransactionProcessor.Client" Version="2023.11.2" />
+	  <PackageReference Include="TransactionProcessor.Client" Version="2023.12.3-build79" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

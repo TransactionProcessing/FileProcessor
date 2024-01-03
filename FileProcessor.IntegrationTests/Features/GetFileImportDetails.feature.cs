@@ -329,25 +329,48 @@ namespace FileProcessor.IntegrationTests.Features
  testRunner.Given("I have assigned the following devices to the merchants", ((string)(null)), table12, "Given ");
 #line hidden
             TechTalk.SpecFlow.Table table13 = new TechTalk.SpecFlow.Table(new string[] {
+                        "EstateName",
+                        "MerchantName",
+                        "ContractDescription"});
+            table13.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Test Merchant 1",
+                        "Safaricom Contract"});
+            table13.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Test Merchant 1",
+                        "Hospital 1 Contract"});
+            table13.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Test Merchant 2",
+                        "Safaricom Contract"});
+            table13.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Test Merchant 2",
+                        "Hospital 1 Contract"});
+#line 67
+ testRunner.When("I add the following contracts to the following merchants", ((string)(null)), table13, "When ");
+#line hidden
+            TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
                         "Reference",
                         "Amount",
                         "DateTime",
                         "MerchantName",
                         "EstateName"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Deposit1",
                         "300.00",
                         "Today",
                         "Test Merchant 1",
                         "Test Estate 1"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Deposit1",
                         "300.00",
                         "Today",
                         "Test Merchant 2",
                         "Test Estate 1"});
-#line 67
- testRunner.Given("I make the following manual merchant deposits", ((string)(null)), table13, "Given ");
+#line 74
+ testRunner.Given("I make the following manual merchant deposits", ((string)(null)), table14, "Given ");
 #line hidden
         }
         
@@ -366,7 +389,7 @@ namespace FileProcessor.IntegrationTests.Features
                     "PRTest"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get File Import Log Details", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 73
+#line 80
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -379,138 +402,138 @@ this.ScenarioInitialize(scenarioInfo);
 #line 4
 this.FeatureBackground();
 #line hidden
-                TechTalk.SpecFlow.Table table14 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3"});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "H",
                             "20210508",
                             ""});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "D",
                             "07777777775",
                             "100"});
-                table14.AddRow(new string[] {
+                table15.AddRow(new string[] {
                             "T",
                             "1",
                             ""});
-#line 74
- testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table14, "Given ");
+#line 81
+ testRunner.Given("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table15, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table15 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 79
- testRunner.And("I upload this file for processing", ((string)(null)), table15, "And ");
+#line 86
+ testRunner.And("I upload this file for processing", ((string)(null)), table16, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table16 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "H",
                             "20210508",
                             ""});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "D",
                             "07777777776",
                             "150"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "T",
                             "1",
                             ""});
-#line 83
- testRunner.Given("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table16, "Given ");
+#line 90
+ testRunner.Given("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table17, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table17 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 2",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 88
- testRunner.And("I upload this file for processing", ((string)(null)), table17, "And ");
+#line 95
+ testRunner.And("I upload this file for processing", ((string)(null)), table18, "And ");
 #line hidden
-                TechTalk.SpecFlow.Table table18 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3",
                             "Column4"});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "H",
                             "20210508",
                             "",
                             ""});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "D",
                             "Hospital 1",
                             "07777777775",
                             "10"});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "D",
                             "Hospital 1",
                             "testrecipient1@recipient.com",
                             "10"});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "T",
                             "1",
                             "",
                             ""});
-#line 92
- testRunner.Given("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table18, "Given ");
+#line 99
+ testRunner.Given("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table19, "Given ");
 #line hidden
-                TechTalk.SpecFlow.Table table19 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 98
- testRunner.And("I upload this file for processing", ((string)(null)), table19, "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table20 = new TechTalk.SpecFlow.Table(new string[] {
-                            "ImportLogDate",
-                            "FileCount"});
-                table20.AddRow(new string[] {
-                            "Today",
-                            "3"});
-#line 102
- testRunner.When("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
-                        "ng data is returned", ((string)(null)), table20, "When ");
+#line 105
+ testRunner.And("I upload this file for processing", ((string)(null)), table20, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table21 = new TechTalk.SpecFlow.Table(new string[] {
-                            "MerchantName",
-                            "OriginalFileName"});
+                            "ImportLogDate",
+                            "FileCount"});
                 table21.AddRow(new string[] {
-                            "Test Merchant 1",
-                            "SafarcomTopup1.txt"});
-                table21.AddRow(new string[] {
-                            "Test Merchant 2",
-                            "SafarcomTopup2.txt"});
-                table21.AddRow(new string[] {
-                            "Test Merchant 1",
-                            "VoucherIssue1.txt"});
-#line 106
- testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
-                        "s returned", ((string)(null)), table21, "When ");
+                            "Today",
+                            "3"});
+#line 109
+ testRunner.When("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
+                        "ng data is returned", ((string)(null)), table21, "When ");
 #line hidden
                 TechTalk.SpecFlow.Table table22 = new TechTalk.SpecFlow.Table(new string[] {
+                            "MerchantName",
+                            "OriginalFileName"});
+                table22.AddRow(new string[] {
+                            "Test Merchant 1",
+                            "SafarcomTopup1.txt"});
+                table22.AddRow(new string[] {
+                            "Test Merchant 2",
+                            "SafarcomTopup2.txt"});
+                table22.AddRow(new string[] {
+                            "Test Merchant 1",
+                            "VoucherIssue1.txt"});
+#line 113
+ testRunner.When("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
+                        "s returned", ((string)(null)), table22, "When ");
+#line hidden
+                TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -518,7 +541,7 @@ this.FeatureBackground();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table22.AddRow(new string[] {
+                table23.AddRow(new string[] {
                             "True",
                             "3",
                             "3",
@@ -526,31 +549,31 @@ this.FeatureBackground();
                             "2",
                             "0",
                             "0"});
-#line 112
+#line 119
  testRunner.When("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " information is returned", ((string)(null)), table22, "When ");
+                        " information is returned", ((string)(null)), table23, "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table23 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "1",
                             "H,20210508,",
                             "Ignored"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "2",
                             "D,07777777775,100",
                             "Successful"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 116
+#line 123
  testRunner.When("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " lines are returned", ((string)(null)), table23, "When ");
+                        " lines are returned", ((string)(null)), table24, "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table24 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table25 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -558,7 +581,7 @@ this.FeatureBackground();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "True",
                             "3",
                             "3",
@@ -566,31 +589,31 @@ this.FeatureBackground();
                             "2",
                             "0",
                             "0"});
-#line 122
+#line 129
  testRunner.When("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " information is returned", ((string)(null)), table24, "When ");
+                        " information is returned", ((string)(null)), table25, "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table25 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table26 = new TechTalk.SpecFlow.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "1",
                             "H,20210508,",
                             "Ignored"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "2",
                             "D,07777777776,150",
                             "Successful"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 126
+#line 133
  testRunner.When("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " lines are returned", ((string)(null)), table25, "When ");
+                        " lines are returned", ((string)(null)), table26, "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table26 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -598,7 +621,7 @@ this.FeatureBackground();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "True",
                             "4",
                             "4",
@@ -606,33 +629,33 @@ this.FeatureBackground();
                             "2",
                             "0",
                             "0"});
-#line 132
+#line 139
  testRunner.When("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
-                        "information is returned", ((string)(null)), table26, "When ");
+                        "information is returned", ((string)(null)), table27, "When ");
 #line hidden
-                TechTalk.SpecFlow.Table table27 = new TechTalk.SpecFlow.Table(new string[] {
+                TechTalk.SpecFlow.Table table28 = new TechTalk.SpecFlow.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table27.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "1",
                             "H,20210508,,",
                             "Ignored"});
-                table27.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "2",
                             "D,Hospital 1,07777777775,10",
                             "Successful"});
-                table27.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "3",
                             "D,Hospital 1,testrecipient1@recipient.com,10",
                             "Successful"});
-                table27.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "4",
                             "T,1,,",
                             "Ignored"});
-#line 136
+#line 143
  testRunner.When("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
-                        "lines are returned", ((string)(null)), table27, "When ");
+                        "lines are returned", ((string)(null)), table28, "When ");
 #line hidden
             }
             this.ScenarioCleanup();

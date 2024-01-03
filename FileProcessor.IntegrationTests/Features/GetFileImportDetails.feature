@@ -64,6 +64,13 @@ Background:
 	| 123456780        | Test Merchant 1 | Test Estate 1 |
 	| 123456781        | Test Merchant 2 | Test Estate 1 |
 
+	When I add the following contracts to the following merchants
+	| EstateName    | MerchantName    | ContractDescription |
+	| Test Estate 1 | Test Merchant 1 | Safaricom Contract  |
+	| Test Estate 1 | Test Merchant 1 | Hospital 1 Contract |
+	| Test Estate 1 | Test Merchant 2 | Safaricom Contract  |
+	| Test Estate 1 | Test Merchant 2 | Hospital 1 Contract |
+	
 	Given I make the following manual merchant deposits 
 	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
