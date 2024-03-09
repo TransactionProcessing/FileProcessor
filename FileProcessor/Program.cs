@@ -55,22 +55,22 @@ namespace FileProcessor
                                                      webBuilder.UseConfiguration(config);
                                                      webBuilder.UseKestrel();
                                                  });
-            hostBuilder.ConfigureServices(services =>
-                                          {
-                                              services.AddHostedService<FileProcessingWorker>(provider =>
-                                                                                              {
-                                                                                                  IFileProcessorManager fileProcessorManager =
-                                                                                                      provider.GetRequiredService<IFileProcessorManager>();
-                                                                                                  IMediator mediator = provider.GetRequiredService<IMediator>();
-                                                                                                  IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
-                                                                                                  FileProcessingWorker worker =
-                                                                                                      new FileProcessingWorker(fileProcessorManager,
-                                                                                                          mediator,
-                                                                                                          fileSystem);
-                                                                                                  worker.TraceGenerated += Worker_TraceGenerated;
-                                                                                                  return worker;
-                                                                                              });
-                                          });
+            //hostBuilder.ConfigureServices(services =>
+            //                              {
+            //                                  services.AddHostedService<FileProcessingWorker>(provider =>
+            //                                                                                  {
+            //                                                                                      IFileProcessorManager fileProcessorManager =
+            //                                                                                          provider.GetRequiredService<IFileProcessorManager>();
+            //                                                                                      IMediator mediator = provider.GetRequiredService<IMediator>();
+            //                                                                                      IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
+            //                                                                                      FileProcessingWorker worker =
+            //                                                                                          new FileProcessingWorker(fileProcessorManager,
+            //                                                                                              mediator,
+            //                                                                                              fileSystem);
+            //                                                                                      worker.TraceGenerated += Worker_TraceGenerated;
+            //                                                                                      return worker;
+            //                                                                                  });
+            //                              });
 
             return hostBuilder;
         }

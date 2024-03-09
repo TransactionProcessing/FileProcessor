@@ -39,12 +39,9 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     /// 
     /// </summary>
     /// <seealso cref="UploadFileRequest" />
-    /// <seealso cref="SafaricomTopupRequest" />
     /// <seealso cref="ProcessTransactionForFileLineRequest" />
     public class FileRequestHandler : IRequestHandler<UploadFileRequest,Guid>,
                                       IRequestHandler<ProcessUploadedFileRequest>,
-                                      IRequestHandler<SafaricomTopupRequest>,
-                                      IRequestHandler<VoucherRequest>,
                                       IRequestHandler<ProcessTransactionForFileLineRequest>
     {
         private readonly IFileProcessorDomainService DomainService;
@@ -62,22 +59,11 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
         {
             await this.DomainService.ProcessUploadedFile(request, cancellationToken);
-            
-        }
-        public async Task Handle(SafaricomTopupRequest request,
-                                       CancellationToken cancellationToken) {
-            await this.DomainService.ProcessSafaricomTopup(request, cancellationToken);
         }
         
         public async Task Handle(ProcessTransactionForFileLineRequest request,
                                        CancellationToken cancellationToken) {
             await this.DomainService.ProcessTransactionForFileLine(request, cancellationToken);
-        }
-        
-        public async Task Handle(VoucherRequest request,
-                                       CancellationToken cancellationToken)
-        {
-            await this.DomainService.ProcessVoucher(request, cancellationToken);
         }
     }
 }

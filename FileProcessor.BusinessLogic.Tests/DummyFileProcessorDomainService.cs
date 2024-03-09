@@ -16,15 +16,7 @@ public class DummyFileProcessorDomainService : IFileProcessorDomainService
     public async Task ProcessUploadedFile(ProcessUploadedFileRequest request,
                                           CancellationToken cancellationToken) {
     }
-
-    public async Task ProcessSafaricomTopup(SafaricomTopupRequest request,
-                                            CancellationToken cancellationToken) {
-    }
-
-    public async Task ProcessVoucher(VoucherRequest request,
-                                     CancellationToken cancellationToken) {
-    }
-
+    
     public async Task ProcessTransactionForFileLine(ProcessTransactionForFileLineRequest request,
                                                     CancellationToken cancellationToken) {
     }

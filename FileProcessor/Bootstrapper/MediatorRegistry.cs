@@ -23,8 +23,8 @@ public class MediatorRegistry : ServiceRegistry
 
         this.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
         this.AddSingleton<IRequestHandler<ProcessUploadedFileRequest>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<SafaricomTopupRequest>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<VoucherRequest>, FileRequestHandler>();
+        //this.AddSingleton<IRequestHandler<SafaricomTopupRequest>, FileRequestHandler>();
+        //this.AddSingleton<IRequestHandler<VoucherRequest>, FileRequestHandler>();
         this.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest>, FileRequestHandler>();
     }
 

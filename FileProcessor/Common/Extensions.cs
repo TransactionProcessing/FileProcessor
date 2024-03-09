@@ -4,9 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Abstractions;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using EventStore.Client;
+using FileProcessor.BusinessLogic.Managers;
+using FIleProcessor.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,8 +58,26 @@ public static class Extensions
         }
     };
 
-    public static void PreWarm(this IApplicationBuilder applicationBuilder)
-    {
+    public static void PreWarm(this IApplicationBuilder applicationBuilder){
+        IFileSystem fileSystem = Startup.Container.GetInstance<IFileSystem>();
+        IFileProcessorManager fileProcessorManager = Startup.Container.GetInstance<IFileProcessorManager>();
+        // TODO: Do we poll here for files incase they have been left from a previous run
+        var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
+        Logger.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
+
+        fileSystem.Directory.CreateDirectory(temporaryFileLocation);
+        Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
+        var fileProfiles = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
+
+        foreach (FileProfile fileProfile in fileProfiles){
+            fileSystem.Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
+            Logger.LogInformation($"Created in progress at [{fileProfile.ListeningDirectory}//inprogress");
+            fileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
+            Logger.LogInformation($"Created ProcessedDirectory at [{fileProfile.ProcessedDirectory}]");
+            fileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
+            Logger.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
+        }
+
         Startup.LoadTypes();
 
         IConfigurationSection subscriptionConfigSection = Startup.Configuration.GetSection("AppSettings:SubscriptionConfiguration");

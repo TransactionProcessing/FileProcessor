@@ -26,8 +26,6 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             this.Requests.Add(TestData.UploadFileRequest);
             this.Requests.Add(TestData.ProcessUploadedFileRequest);
-            this.Requests.Add(TestData.SafaricomTopupRequest);
-            this.Requests.Add(TestData.VoucherRequest);
             this.Requests.Add(TestData.ProcessTransactionForFileLineRequest);
         }
 

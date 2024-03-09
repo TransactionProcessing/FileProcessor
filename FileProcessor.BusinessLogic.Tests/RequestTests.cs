@@ -39,27 +39,7 @@ namespace FileProcessor.BusinessLogic.Tests
             processUploadedFileRequest.FileProfileId.ShouldBe(TestData.FileProfileId);
             processUploadedFileRequest.FileUploadedDateTime.ShouldBe(TestData.FileUploadedDateTime);
         }
-
-        [Fact]
-        public void SafaricomTopupRequest_CanBeCreated_IsCreated()
-        {
-            SafaricomTopupRequest safaricomTopupRequest = new SafaricomTopupRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);
-
-            safaricomTopupRequest.FileId.ShouldBe(TestData.FileId);
-            safaricomTopupRequest.FileName.ShouldBe(TestData.FileName);
-            safaricomTopupRequest.FileProfileId.ShouldBe(TestData.FileProfileId);
-        }
-
-        [Fact]
-        public void VoucherRequest_CanBeCreated_IsCreated()
-        {
-            VoucherRequest voucherRequest = new VoucherRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);
-
-            voucherRequest.FileId.ShouldBe(TestData.FileId);
-            voucherRequest.FileName.ShouldBe(TestData.FileName);
-            voucherRequest.FileProfileId.ShouldBe(TestData.FileProfileId);
-        }
-
+        
         [Fact]
         public void ProcessTransactionForFileLineRequest_CanBeCreated_IsCreated()
         {

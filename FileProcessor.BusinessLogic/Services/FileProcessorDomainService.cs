@@ -155,17 +155,19 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath, request.FileUploadedDateTime);
 
         await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
+
+        await this.ProcessFile(request.FileId, request.FileProfileId, request.FilePath, cancellationToken);
     }
 
-    public async Task ProcessSafaricomTopup(SafaricomTopupRequest request,
-                                            CancellationToken cancellationToken) {
-        await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
-    }
+    //public async Task ProcessSafaricomTopup(SafaricomTopupRequest request,
+    //                                        CancellationToken cancellationToken) {
+    //    await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
+    //}
 
-    public async Task ProcessVoucher(VoucherRequest request,
-                                     CancellationToken cancellationToken) {
-        await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
-    }
+    //public async Task ProcessVoucher(VoucherRequest request,
+    //                                 CancellationToken cancellationToken) {
+    //    await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
+    //}
 
     public async Task ProcessTransactionForFileLine(ProcessTransactionForFileLineRequest request,
                                                     CancellationToken cancellationToken) {
@@ -351,21 +353,23 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
             }
 
-            inProgressFile = this.FileSystem.FileInfo.FromFileName(fileName);
+            inProgressFile = this.FileSystem.FileInfo.New(fileName);
 
             if (inProgressFile.Exists == false)
             {
-                throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
+                // We also want to check the failed folder incase this is an event replay
+                IFileInfo failedFileInfo = this.FileSystem.FileInfo.New($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+
+                if (failedFileInfo.Exists == false){
+                    throw new FileNotFoundException($"File {inProgressFile.FullName} not found");
+                }
+                // Overwrite the inprogress file info object with the file found in the failed folder
+                inProgressFile = failedFileInfo;
             }
 
             FileAggregate fileAggregate =
                 await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
-
-            if (fileAggregate.IsCreated == false)
-            {
-                throw new InvalidOperationException($"File with Id {fileId} not created");
-            }
-
+            
             String fileContent = null;
             //Open file for Read\Write
             using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
@@ -374,7 +378,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 using (StreamReader sr = new StreamReader(fs))
                 {
                     //Use ReadToEnd method to read all the content from file
-                    fileContent = await sr.ReadToEndAsync();
+                    fileContent = await sr.ReadToEndAsync(cancellationToken);
                 }
             }
 

@@ -36,12 +36,12 @@ namespace FileProcessor.BusinessLogic.Tests
                             });
         }
 
-        public async Task FileRequestHandler_SafaricomTopupRequest_RequestHandled()
-        {
-            Should.NotThrow(async () => {
-                                await this.FileRequestHandler.Handle(TestData.SafaricomTopupRequest, CancellationToken.None);
-                            });
-        }
+        //public async Task FileRequestHandler_SafaricomTopupRequest_RequestHandled()
+        //{
+        //    Should.NotThrow(async () => {
+        //                        await this.FileRequestHandler.Handle(TestData.SafaricomTopupRequest, CancellationToken.None);
+        //                    });
+        //}
 
         public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_RequestHandled()
         {
@@ -50,11 +50,11 @@ namespace FileProcessor.BusinessLogic.Tests
                             });
         }
 
-        public async Task FileRequestHandler_VoucherRequest_RequestHandled()
-        {
-            Should.NotThrow(async () => {
-                                await this.FileRequestHandler.Handle(TestData.VoucherRequest, CancellationToken.None);
-                            });
-        }
+        //public async Task FileRequestHandler_VoucherRequest_RequestHandled()
+        //{
+        //    Should.NotThrow(async () => {
+        //                        await this.FileRequestHandler.Handle(TestData.VoucherRequest, CancellationToken.None);
+        //                    });
+        //}
     }
 }
