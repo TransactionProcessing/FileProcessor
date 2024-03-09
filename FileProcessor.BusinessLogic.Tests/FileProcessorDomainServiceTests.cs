@@ -204,10 +204,17 @@ public class FileProcessorDomainServiceTests
     [Fact]
     public void FileRequestHandler_ProcessUploadedFileRequest_RequestIsHandled()
     {
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
+        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileAggregateRepository.SetupSequence(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate).ReturnsAsync(TestData.GetCreatedFileAggregate);
+
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
         ProcessUploadedFileRequest processUploadedFileRequest =
-            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePath, TestData.FileProfileId, TestData.FileUploadedDateTime);
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
         Should.NotThrow(async () =>
                         {
@@ -215,55 +222,8 @@ public class FileProcessorDomainServiceTests
                         });
     }
 
-
     [Fact]
-    public void FileRequestHandler_SafaricomTopupRequest_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
-
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
-                        });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
-    }
-
-    [Fact]
-    public void FileRequestHandler_SafaricomTopupRequest_FileAggregateNotCreated_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
-
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.Throw<InvalidOperationException>(async () =>
-                                                {
-                                                    await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
-                                                });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/failed");
-    }
-
-    [Fact]
-    public void FileRequestHandler_SafaricomTopupRequest_FileNotFound_RequestIsHandled()
+    public void FileRequestHandler_ProcessUploadedFileRequest_FileNotFound_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
 
@@ -275,17 +235,17 @@ public class FileProcessorDomainServiceTests
 
         Logger.Initialise(NullLogger.Instance);
 
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
         Should.Throw<FileNotFoundException>(async () =>
                                             {
-                                                await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
+                                                await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
                                             });
     }
 
     [Fact]
-    public async Task FileRequestHandler_SafaricomTopupRequest_NoFileProfiles_RequestIsHandled()
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_NoFileProfiles_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileNull);
 
@@ -298,17 +258,17 @@ public class FileProcessorDomainServiceTests
 
         Logger.Initialise(NullLogger.Instance);
 
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
         Should.Throw<NotFoundException>(async () =>
                                         {
-                                            await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
+                                            await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
                                         });
     }
-        
+
     [Fact]
-    public async Task FileRequestHandler_SafaricomTopupRequest_ProcessedDirectoryNotFound_RequestIsHandled()
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_ProcessedDirectoryNotFound_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
 
@@ -318,19 +278,19 @@ public class FileProcessorDomainServiceTests
 
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
-            
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
+
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
         Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
-                        });
+                                            {
+                                                await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
+                                            });
         this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
     }
-        
+
     [Fact]
-    public async Task FileRequestHandler_SafaricomTopupRequest_FailedDirectoryNotFound_RequestIsHandled()
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_FailedDirectoryNotFound_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
 
@@ -341,18 +301,18 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
 
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-            
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+
         Should.NotThrow(async () =>
                         {
-                            await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
+                            await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
                         });
         this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
     }
 
     [Fact]
-    public void FileRequestHandler_SafaricomTopupRequest_FileIsEmpty_RequestIsHandled()
+    public void FileRequestHandler_ProcessUploadedFileRequest_FileIsEmpty_RequestIsHandled()
     {
         this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
 
@@ -364,17 +324,18 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
-        SafaricomTopupRequest safaricomTopupRequest =
-            new SafaricomTopupRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
         Should.NotThrow(async () =>
                         {
-                            await this.FileProcessorDomainService.ProcessSafaricomTopup(safaricomTopupRequest, CancellationToken.None);
+                            await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
                         });
 
-        this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Never);
+        this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Once);
         this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
     }
+
 
     [Theory]
     [InlineData("Safaricom")]
@@ -813,166 +774,6 @@ public class FileProcessorDomainServiceTests
                         {
                             await this.FileProcessorDomainService.ProcessTransactionForFileLine(processTransactionForFileLineRequest, CancellationToken.None);
                         });
-    }
-
-    [Fact]
-    public void FileRequestHandler_VoucherRequest_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                        });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
-    }
-    
-    [Fact]
-    public void FileRequestHandler_VoucherRequest_FileAggregateNotCreated_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.Throw<InvalidOperationException>(async () =>
-                                                {
-                                                    await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                                                });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/failed");
-    }
-
-    [Fact]
-    public void FileRequestHandler_VoucherRequest_FileNotFound_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-
-        Logger.Initialise(NullLogger.Instance);
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.Throw<FileNotFoundException>(async () =>
-                                            {
-                                                await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                                            });
-    }
-
-    [Fact]
-    public async Task FileRequestHandler_VoucherRequest_NoFileProfiles_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileNull);
-
-        this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        Logger.Initialise(NullLogger.Instance);
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.Throw<NotFoundException>(async () =>
-                                        {
-                                            await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                                        });
-    }
-
-    [Fact]
-    public async Task FileRequestHandler_VoucherRequest_ProcessedDirectoryNotFound_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                        });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
-    }
-
-    [Fact]
-    public async Task FileRequestHandler_VoucherRequest_FailedDirectoryNotFound_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                        });
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
-    }
-
-    [Fact]
-    public void FileRequestHandler_VoucherRequest_FileIsEmpty_RequestIsHandled()
-    {
-        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileVoucher);
-
-        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData(String.Empty));
-
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/inprogress");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/processed");
-        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/voucher/failed");
-
-        VoucherRequest voucherRequest =
-            new VoucherRequest(TestData.FileId, TestData.FilePathWithName, TestData.FileProfileId);
-
-        Should.NotThrow(async () =>
-                        {
-                            await this.FileProcessorDomainService.ProcessVoucher(voucherRequest, CancellationToken.None);
-                        });
-
-        this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Never);
-        this.VerifyFileProcessing("home/txnproc/bulkfiles/voucher/processed");
     }
 
     private void VerifyFileProcessing(String filePath)

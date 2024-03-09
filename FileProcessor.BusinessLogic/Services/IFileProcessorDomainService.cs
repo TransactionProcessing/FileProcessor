@@ -15,10 +15,10 @@ namespace FileProcessor.BusinessLogic.Services
         Task ProcessUploadedFile(ProcessUploadedFileRequest request,
                                  CancellationToken cancellationToken);
 
-        Task ProcessSafaricomTopup(SafaricomTopupRequest request,
-                                         CancellationToken cancellationToken);
+        //Task ProcessSafaricomTopup(SafaricomTopupRequest request,
+        //                                 CancellationToken cancellationToken);
 
-        Task ProcessVoucher(VoucherRequest request, CancellationToken cancellationToken);
+        //Task ProcessVoucher(VoucherRequest request, CancellationToken cancellationToken);
 
         Task ProcessTransactionForFileLine(ProcessTransactionForFileLineRequest request,
                                                  CancellationToken cancellationToken);

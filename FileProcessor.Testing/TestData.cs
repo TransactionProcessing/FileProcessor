@@ -838,11 +838,7 @@ namespace FileProcessor.Testing
         public static ProcessUploadedFileRequest ProcessUploadedFileRequest =>
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePath, TestData.FileProfileId,
                                            TestData.FileUploadedDateTime);
-
-        public static SafaricomTopupRequest SafaricomTopupRequest => new SafaricomTopupRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);
-
-        public static VoucherRequest VoucherRequest => new VoucherRequest(TestData.FileId, TestData.FileName, TestData.FileProfileId);
-
+        
         public static ProcessTransactionForFileLineRequest ProcessTransactionForFileLineRequest =>
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
