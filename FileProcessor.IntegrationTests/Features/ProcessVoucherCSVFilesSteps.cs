@@ -1,5 +1,4 @@
 ﻿using System;
-using TechTalk.SpecFlow;
 
 namespace FileProcessor.IntegrationTests.Features
 {
@@ -12,9 +11,9 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
+    using Reqnroll;
     using Shared.IntegrationTesting;
     using Shouldly;
-    using SpecflowTableHelper = Common.SpecflowTableHelper;
 
     [Binding]
     [Scope(Tag = "processvouchercsv")]

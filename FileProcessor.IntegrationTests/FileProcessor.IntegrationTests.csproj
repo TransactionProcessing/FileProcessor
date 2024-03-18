@@ -11,23 +11,24 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2023.12.2-build66" />
+	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2024.3.5-build77" />
 	  <PackageReference Include="EventStoreProjections" Version="2023.12.3" />
+	  <PackageReference Include="MessagingService.IntegrationTesting.Helpers" Version="2023.11.2-build53" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
 	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
-	  <PackageReference Include="EstateManagement.Client" Version="2023.12.2-build66" />
+	  <PackageReference Include="EstateManagement.Client" Version="2024.3.5-build77" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.7" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
-    <PackageReference Include="SecurityService.Client" Version="2023.12.1" />
-    <PackageReference Include="SecurityService.IntegrationTesting.Helpers" Version="2023.12.1" />
-	  <PackageReference Include="Shared" Version="2023.12.2" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="2023.12.2" />
+    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="1.0.1" />
+    <PackageReference Include="Reqnroll.xUnit" Version="1.0.1" />
+    <PackageReference Include="SecurityService.Client" Version="2023.12.2-build58" />
+    <PackageReference Include="SecurityService.IntegrationTesting.Helpers" Version="2023.12.2-build58" />
+	  <PackageReference Include="Shared" Version="2024.3.3" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2024.3.3" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
-	  <PackageReference Include="SpecFlow" Version="3.9.74" />
-	  <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
-	  <PackageReference Include="SpecFlow.xUnit" Version="3.9.74" />
-	  <PackageReference Include="TransactionProcessor.Client" Version="2023.12.3-build79" />
+	  <PackageReference Include="TransactionProcessor.Client" Version="2024.3.3-build95" />
+	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2024.3.3-build95" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -37,17 +38,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <SpecFlowFeatureFiles Update="Features\ProcessTopupCSV.feature">
-      <Generator>SpecFlowSingleFileGenerator</Generator>
-      <LastGenOutput>ProcessTopupCSV.feature.cs</LastGenOutput>
-    </SpecFlowFeatureFiles>
-    <SpecFlowFeatureFiles Update="Features\ProcessVoucherCSV.feature">
-      <Generator>SpecFlowSingleFileGenerator</Generator>
-      <LastGenOutput>ProcessVoucherCSV.feature.cs</LastGenOutput>
-    </SpecFlowFeatureFiles>
   </ItemGroup>
 
   <ItemGroup>

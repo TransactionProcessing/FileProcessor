@@ -5,14 +5,16 @@
     using System.Data.SqlClient;
     using System.Net;
     using System.Threading;
+    using System.Threading.Tasks;
     using Ductus.FluentDocker.Builders;
     using Ductus.FluentDocker.Services;
     using Ductus.FluentDocker.Services.Extensions;
     using Microsoft.Extensions.Logging;
     using NLog;
+    using Reqnroll;
+    using Shared.IntegrationTesting;
     using Shared.Logger;
     using Shouldly;
-    using TechTalk.SpecFlow;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
 
     [Binding]
@@ -22,23 +24,18 @@
         public static INetworkService DatabaseServerNetwork;
         public static (String usename, String password) SqlCredentials = ("sa", "thisisalongpassword123!");
         public static (String url, String username, String password) DockerCredentials = ("https://www.docker.com", "stuartferguson", "Sc0tland");
-        [BeforeTestRun]
-        protected static void GlobalSetup()
+
+        public static async Task GlobalSetup(DockerHelper dockerHelper)
         {
             ShouldlyConfiguration.DefaultTaskTimeout = TimeSpan.FromMinutes(1);
-
-            DockerHelper dockerHelper = new DockerHelper();
-
-            NlogLogger logger = new NlogLogger();
-            logger.Initialise(LogManager.GetLogger("Specflow"), "Specflow");
-            LogManager.AddHiddenAssembly(typeof(NlogLogger).Assembly);
-            dockerHelper.Logger = logger;
             dockerHelper.SqlCredentials = Setup.SqlCredentials;
             dockerHelper.DockerCredentials = Setup.DockerCredentials;
             dockerHelper.SqlServerContainerName = "sharedsqlserver";
 
-            Setup.DatabaseServerNetwork = dockerHelper.SetupTestNetwork("sharednetwork", true);
-            Setup.DatabaseServerContainer = dockerHelper.SetupSqlServerContainer(Setup.DatabaseServerNetwork);
+            await Retry.For(async () => {
+                                Setup.DatabaseServerNetwork = dockerHelper.SetupTestNetwork("sharednetwork", true);
+                                Setup.DatabaseServerContainer = await dockerHelper.SetupSqlServerContainer(Setup.DatabaseServerNetwork);
+                            }, TimeSpan.FromSeconds(60));
         }
 
         public static String GetConnectionString(String databaseName)

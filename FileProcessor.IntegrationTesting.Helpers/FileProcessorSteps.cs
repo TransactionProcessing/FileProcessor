@@ -64,8 +64,8 @@ public class FileProcessorSteps
 
     public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(String accessToken, String startDateString, String endDateString, String estateName, List<EstateDetails1> estateDetailsList, List<(DateTime, Int32)> expectedImportLogs)
     {
-        DateTime queryStartDate = SpecflowTableHelper.GetDateForDateString(startDateString, DateTime.Now);
-        DateTime queryEndDate = SpecflowTableHelper.GetDateForDateString(endDateString, DateTime.Now);
+        DateTime queryStartDate = ReqnrollTableHelper.GetDateForDateString(startDateString, DateTime.Now);
+        DateTime queryEndDate = ReqnrollTableHelper.GetDateForDateString(endDateString, DateTime.Now);
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
@@ -94,7 +94,7 @@ public class FileProcessorSteps
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
-        DateTime queryStartDate = SpecflowTableHelper.GetDateForDateString(startDate, DateTime.Now);
+        DateTime queryStartDate = ReqnrollTableHelper.GetDateForDateString(startDate, DateTime.Now);
         FileImportLogList importLogList = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                            estate.EstateDetails.EstateId,
                                                                                            queryStartDate,
@@ -129,7 +129,7 @@ public class FileProcessorSteps
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
-        DateTime expectedDate = SpecflowTableHelper.GetDateForDateString(expectedDateString, DateTime.Now);
+        DateTime expectedDate = ReqnrollTableHelper.GetDateForDateString(expectedDateString, DateTime.Now);
 
         FileImportLogList? importLogs = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                          estate.EstateDetails.EstateId,
@@ -142,7 +142,7 @@ public class FileProcessorSteps
         i.ShouldNotBeNull();
     }
 
-    public async Task WhenIGetTheFileForEstateTheFollowingFileInformationIsReturned(String accessToken, String fileName, String estateName, List<EstateDetails1> estateDetailsList, SpecflowExtensions.FileProcessingSummary fileSummary){
+    public async Task WhenIGetTheFileForEstateTheFollowingFileInformationIsReturned(String accessToken, String fileName, String estateName, List<EstateDetails1> estateDetailsList, ReqnrollExtensions.FileProcessingSummary fileSummary){
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
@@ -163,7 +163,7 @@ public class FileProcessorSteps
                         }, TimeSpan.FromMinutes(4), TimeSpan.FromSeconds(30));
     }
 
-    public async Task WhenIGetTheFileForEstateTheFollowingFileLinesAreReturned(String accessToken, String fileName, String estateName, List<EstateDetails1> estateDetailsList, List<SpecflowExtensions.FileLineDetails> fileLineDetails){
+    public async Task WhenIGetTheFileForEstateTheFollowingFileLinesAreReturned(String accessToken, String fileName, String estateName, List<EstateDetails1> estateDetailsList, List<ReqnrollExtensions.FileLineDetails> fileLineDetails){
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
@@ -173,7 +173,7 @@ public class FileProcessorSteps
                             FileDetails fileDetails = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             fileDetails.ShouldNotBeNull();
 
-                            foreach (SpecflowExtensions.FileLineDetails fileLineDetail in fileLineDetails){
+                            foreach (ReqnrollExtensions.FileLineDetails fileLineDetail in fileLineDetails){
 
                                 FileLine? lineToVerify = fileDetails.FileLines.SingleOrDefault(fl => fl.LineNumber == fileLineDetail.LineNumber);
                                 lineToVerify.ShouldNotBeNull();
