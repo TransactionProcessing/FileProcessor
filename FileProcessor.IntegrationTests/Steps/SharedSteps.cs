@@ -26,13 +26,12 @@ namespace FileProcessor.IntegrationTests.Steps
     using SecurityService.IntegrationTesting.Helpers;
     using Shared.IntegrationTesting;
     using Shouldly;
-    using TechTalk.SpecFlow;
     using TransactionProcessor.DataTransferObjects;
     using Contract = Common.Contract;
     using Product = Common.Product;
-    using SpecflowTableHelper = Common.SpecflowTableHelper;
     using Newtonsoft.Json.Linq;
     using System.Text.Json;
+    using Reqnroll;
 
     [Binding]
     [Scope(Tag = "shared")]
@@ -59,13 +58,13 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I have a file named '(.*)' with the following contents")]
-        public void GivenIHaveAFileNamedWithTheFollowingContents(string fileName, Table table){
+        public void GivenIHaveAFileNamedWithTheFollowingContents(string fileName, DataTable table){
             String fileData = table.Rows.ToFileData();
             this.TestingContext.UploadFile = this.FileProcessorSteps.WriteDileToDisk(fileName, fileData);
         }
 
         [Given(@"I upload this file for processing")]
-        public async Task GivenIUploadThisFileForProcessing(Table table)
+        public async Task GivenIUploadThisFileForProcessing(DataTable table)
         {
             String filePath = TestingContext.UploadFile;
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
@@ -75,7 +74,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I upload this file for processing an error should be returned indicating the file is a duplicate")]
-        public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(Table table)
+        public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(DataTable table)
         {
             String filePath = TestingContext.UploadFile;
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
@@ -115,22 +114,10 @@ namespace FileProcessor.IntegrationTests.Steps
 
         [Given(@"I have created the following estates")]
         [When(@"I create the following estates")]
-        public async Task WhenICreateTheFollowingEstates(Table table)
+        public async Task WhenICreateTheFollowingEstates(DataTable table)
         {
             List<CreateEstateRequest> requests = table.Rows.ToCreateEstateRequests();
-
-            foreach (CreateEstateRequest request in requests)
-            {
-                // Setup the subscriptions for the estate
-                await Retry.For(async () => {
-                                    await this.TestingContext.DockerHelper
-                                              .CreateEstateSubscriptions(request.EstateName)
-                                              .ConfigureAwait(false);
-                                },
-                                retryFor: TimeSpan.FromMinutes(2),
-                                retryInterval: TimeSpan.FromSeconds(30));
-            }
-
+            
             List<EstateResponse> verifiedEstates = await this.EstateManagementSteps.WhenICreateTheFollowingEstates(this.TestingContext.AccessToken, requests);
 
             foreach (EstateResponse verifiedEstate in verifiedEstates)
@@ -143,7 +130,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I create the following api scopes")]
-        public async Task GivenICreateTheFollowingApiScopes(Table table)
+        public async Task GivenICreateTheFollowingApiScopes(DataTable table)
         {
             List<CreateApiScopeRequest> requests = table.Rows.ToCreateApiScopeRequests();
             await this.SecurityServiceSteps.GivenICreateTheFollowingApiScopes(requests);
@@ -151,7 +138,7 @@ namespace FileProcessor.IntegrationTests.Steps
         
         [Given(@"I have assigned the following  operator to the merchants")]
         [When(@"I assign the following  operator to the merchants")]
-        public async Task WhenIAssignTheFollowingOperatorToTheMerchants(Table table){
+        public async Task WhenIAssignTheFollowingOperatorToTheMerchants(DataTable table){
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, AssignOperatorRequest)> requests = table.Rows.ToAssignOperatorRequests(estates);
 
@@ -165,7 +152,7 @@ namespace FileProcessor.IntegrationTests.Steps
         
         [Given(@"I have created the following operators")]
         [When(@"I create the following operators")]
-        public async Task WhenICreateTheFollowingOperators(Table table)
+        public async Task WhenICreateTheFollowingOperators(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails estate, CreateOperatorRequest request)> requests = table.Rows.ToCreateOperatorRequests(estates);
@@ -180,7 +167,7 @@ namespace FileProcessor.IntegrationTests.Steps
 
         [Given("I create the following merchants")]
         [When(@"I create the following merchants")]
-        public async Task WhenICreateTheFollowingMerchants(Table table)
+        public async Task WhenICreateTheFollowingMerchants(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails estate, CreateMerchantRequest)> requests = table.Rows.ToCreateMerchantRequests(estates);
@@ -196,7 +183,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I create a contract with the following values")]
-        public async Task GivenICreateAContractWithTheFollowingValues(Table table)
+        public async Task GivenICreateAContractWithTheFollowingValues(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, CreateContractRequest)> requests = table.Rows.ToCreateContractRequests(estates);
@@ -204,7 +191,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [When(@"I create the following Products")]
-        public async Task WhenICreateTheFollowingProducts(Table table)
+        public async Task WhenICreateTheFollowingProducts(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
 
@@ -213,7 +200,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [When(@"I add the following Transaction Fees")]
-        public async Task WhenIAddTheFollowingTransactionFees(Table table)
+        public async Task WhenIAddTheFollowingTransactionFees(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, EstateManagement.IntegrationTesting.Helpers.Contract, EstateManagement.IntegrationTesting.Helpers.Product, AddTransactionFeeForProductToContractRequest)> requests = table.Rows.ToAddTransactionFeeForProductToContractRequests(estates);
@@ -221,14 +208,14 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"the following api resources exist")]
-        public async Task GivenTheFollowingApiResourcesExist(Table table)
+        public async Task GivenTheFollowingApiResourcesExist(DataTable table)
         {
             List<CreateApiResourceRequest> requests = table.Rows.ToCreateApiResourceRequests();
             await this.SecurityServiceSteps.GivenTheFollowingApiResourcesExist(requests);
         }
 
         [Given(@"the following clients exist")]
-        public async Task GivenTheFollowingClientsExist(Table table)
+        public async Task GivenTheFollowingClientsExist(DataTable table)
         {
             List<CreateClientRequest> requests = table.Rows.ToCreateClientRequests();
             List<(String clientId, String secret, List<String> allowedGrantTypes)> clients = await this.SecurityServiceSteps.GivenTheFollowingClientsExist(requests);
@@ -239,17 +226,17 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I have a token to access the estate management and transaction processor resources")]
-        public async Task GivenIHaveATokenToAccessTheEstateManagementAndTransactionProcessorResources(Table table)
+        public async Task GivenIHaveATokenToAccessTheEstateManagementAndTransactionProcessorResources(DataTable table)
         {
-            TableRow firstRow = table.Rows.First();
-            String clientId = SpecflowTableHelper.GetStringRowValue(firstRow, "ClientId");
+            DataTableRow firstRow = table.Rows.First();
+            String clientId = ReqnrollTableHelper.GetStringRowValue(firstRow, "ClientId");
             ClientDetails clientDetails = this.TestingContext.GetClientDetails(clientId);
 
             this.TestingContext.AccessToken = await this.SecurityServiceSteps.GetClientToken(clientDetails.ClientId, clientDetails.ClientSecret, CancellationToken.None);
         }
 
         [Given(@"I have assigned the following devices to the merchants")]
-        public async Task GivenIHaveAssignedTheFollowingDevicesToTheMerchants(Table table)
+        public async Task GivenIHaveAssignedTheFollowingDevicesToTheMerchants(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, AddMerchantDeviceRequest)> requests = table.Rows.ToAddMerchantDeviceRequests(estates);
@@ -262,7 +249,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [When(@"I add the following contracts to the following merchants")]
-        public async Task WhenIAddTheFollowingContractsToTheFollowingMerchants(Table table)
+        public async Task WhenIAddTheFollowingContractsToTheFollowingMerchants(DataTable table)
         {
             List<EstateDetails> estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, Guid)> requests = table.Rows.ToAddContractToMerchantRequests(estates);
@@ -278,7 +265,7 @@ namespace FileProcessor.IntegrationTests.Steps
         }
 
         [Given(@"I make the following manual merchant deposits")]
-        public async Task GivenIMakeTheFollowingManualMerchantDeposits(Table table)
+        public async Task GivenIMakeTheFollowingManualMerchantDeposits(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, MakeMerchantDepositRequest)> requests = table.Rows.ToMakeMerchantDepositRequest(estates);

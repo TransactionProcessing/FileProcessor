@@ -13,7 +13,6 @@ namespace FileProcessor.IntegrationTests.Common
     using EstateManagement.DataTransferObjects.Responses;
     using EstateManagement.IntegrationTesting.Helpers;
     using IntegrationTesting.Helpers;
-    using TechTalk.SpecFlow;
 
     public class ClientDetails
     {

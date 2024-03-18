@@ -12,10 +12,9 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Net.Http.Headers;
     using System.Threading;
     using Common;
+    using Reqnroll;
     using Shared.IntegrationTesting;
     using Shouldly;
-    using TechTalk.SpecFlow;
-    using SpecflowTableHelper = Common.SpecflowTableHelper;
 
     [Binding]
     [Scope(Tag = "processtopupcsv")]

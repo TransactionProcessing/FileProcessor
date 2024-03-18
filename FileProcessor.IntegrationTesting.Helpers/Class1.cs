@@ -31,4 +31,16 @@
             return this.FileImportLogFiles.Single(o => o.OriginalFileName == originalFileName).FileId;
         }
     }
+
+    public static class SubscriptionsHelper
+    {
+        public static List<(String streamName, String groupName, Int32 maxRetries)> GetSubscriptions()
+        {
+            List<(String streamName, String groupName, Int32 maxRetries)> subscriptions = new(){
+                                                                                                   ("$ce-FileImportLogAggregate", "File Processor", 0),
+                                                                                               ("$ce-FileAggregate", "File Processor", 0)
+                                                                                           };
+            return subscriptions;
+        }
+    }
 }
