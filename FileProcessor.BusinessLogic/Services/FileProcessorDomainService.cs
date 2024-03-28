@@ -92,7 +92,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         // Copy file from the temp location to file processing listening directory
-        IFileInfo file = this.FileSystem.FileInfo.FromFileName(request.FilePath);
+        IFileInfo file = this.FileSystem.FileInfo.New(request.FilePath);
         if (file.Exists == false)
         {
             throw new FileNotFoundException($"File {file.FullName} not found");

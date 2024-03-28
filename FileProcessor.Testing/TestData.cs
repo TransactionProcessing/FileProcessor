@@ -303,7 +303,7 @@ namespace FileProcessor.Testing
                 ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
-                ["EventStoreSettings:ConnectionString"] = "https://127.0.0.1:2113",
+                ["EventStoreSettings:ConnectionString"] = "esdb://127.0.0.1:2113",
                 ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
                 ["EventStoreSettings:UserName"] = "admin",
                 ["EventStoreSettings:Password"] = "changeit",
