@@ -6,6 +6,7 @@
     using System.IO;
     using System.Net.Http;
     using System.Reflection;
+    using EventStore.Client;
     using Lamar;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +29,12 @@
         /// </summary>
         public MiddlewareRegistry()
         {
-            this.AddHealthChecks().AddEventStore(Startup.EventStoreClientSettings,
-                                                 userCredentials:Startup.EventStoreClientSettings.DefaultCredentials,
+            String eventStoreConnectionString = ConfigurationReader.GetValue("EventStoreSettings", "ConnectionString");
+
+            EventStoreClientSettings eventStoreClientSettings = EventStoreClientSettings.Create(eventStoreConnectionString);
+
+            this.AddHealthChecks().AddEventStore(eventStoreClientSettings,
+                                                 userCredentials: eventStoreClientSettings.DefaultCredentials,
                                                  name:"Eventstore",
                                                  failureStatus:HealthStatus.Unhealthy,
                                                  tags:new[] {"db", "eventstore"}).AddEstateManagementService().AddTransactionProcessorService()

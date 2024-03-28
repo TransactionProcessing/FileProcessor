@@ -778,7 +778,7 @@ public class FileProcessorDomainServiceTests
 
     private void VerifyFileProcessing(String filePath)
     {
-        IDirectoryInfo directoryInfo = this.FileSystem.DirectoryInfo.FromDirectoryName(filePath);
+        IDirectoryInfo directoryInfo = this.FileSystem.DirectoryInfo.New(filePath);
         directoryInfo.GetFiles("*.*").Length.ShouldBe(1);
     }
 }

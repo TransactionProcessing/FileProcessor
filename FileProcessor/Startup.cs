@@ -88,20 +88,7 @@ namespace FileProcessor
             Startup.Configuration = builder.Build();
             Startup.WebHostEnvironment = webHostEnvironment;
         }
-
-        internal static EventStoreClientSettings EventStoreClientSettings;
-
-        public static void ConfigureEventStoreSettings(EventStoreClientSettings settings)
-        {
-            settings.ConnectivitySettings = EventStoreClientConnectivitySettings.Default;
-            settings.ConnectivitySettings.Address = new Uri(Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString"));
-            settings.ConnectivitySettings.Insecure = Startup.Configuration.GetValue<Boolean>("EventStoreSettings:Insecure");
-            
-            settings.DefaultCredentials = new UserCredentials(Startup.Configuration.GetValue<String>("EventStoreSettings:UserName"),
-                                                              Startup.Configuration.GetValue<String>("EventStoreSettings:Password"));
-            Startup.EventStoreClientSettings = settings;
-        }
-
+        
         public static Container Container;
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -110,7 +97,7 @@ namespace FileProcessor
         {
             ConfigurationReader.Initialise(Startup.Configuration);
 
-            Startup.LoadTypes();
+            TypeProvider.LoadDomainEventsTypeDynamically();
 
             services.IncludeRegistry<MediatorRegistry>();
             services.IncludeRegistry<DomainEventHandlerRegistry>();
@@ -127,27 +114,6 @@ namespace FileProcessor
 
         public static IServiceProvider ServiceProvider { get; set; }
         
-        public static void LoadTypes()
-        {
-            FileAddedToImportLogEvent fileAddedToImportLogEvent =
-                new FileAddedToImportLogEvent(Guid.Empty,
-                                              Guid.Empty,
-                                              Guid.Empty,
-                                              Guid.Empty,
-                                              Guid.Empty,
-                                              Guid.Empty,
-                                              String.Empty,
-                                              String.Empty,
-                                              new DateTime());
-
-            FileLineAddedEvent fileLineAddedEvent = new FileLineAddedEvent(Guid.Empty, Guid.Empty, Guid.Empty, 0, String.Empty);
-
-            TypeProvider.LoadDomainEventsTypeDynamically(new List<String>() {
-                                                                                "Pomelo",
-                                                                                "Microsoft"
-                                                                            });
-        }
-
         public static void LoadDomainEventsTypeDynamically(List<string> assemblyFilters = null)
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();

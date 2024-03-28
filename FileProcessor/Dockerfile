@@ -3,7 +3,7 @@
 FROM stuartferguson/txnprocbase:latest AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["FileProcessor/NuGet.Config", "."]
 COPY ["FileProcessor/FileProcessor.csproj", "FileProcessor/"]

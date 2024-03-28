@@ -14,6 +14,7 @@ using FIleProcessor.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.EventStore.Aggregate;
 using Shared.EventStore.EventHandling;
 using Shared.EventStore.Extensions;
 using Shared.EventStore.SubscriptionWorker;
@@ -78,7 +79,7 @@ public static class Extensions
             Logger.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
         }
 
-        Startup.LoadTypes();
+        TypeProvider.LoadDomainEventsTypeDynamically();
 
         IConfigurationSection subscriptionConfigSection = Startup.Configuration.GetSection("AppSettings:SubscriptionConfiguration");
         SubscriptionWorkersRoot subscriptionWorkersRoot = new SubscriptionWorkersRoot();
@@ -94,9 +95,11 @@ public static class Extensions
 
         Func<String, Int32, ISubscriptionRepository> subscriptionRepositoryResolver = Startup.Container.GetInstance<Func<String, Int32, ISubscriptionRepository>>();
 
+        EventStoreClientSettings eventStoreClientSettings = EventStoreClientSettings.Create(eventStoreConnectionString);
+
         applicationBuilder.ConfigureSubscriptionService(subscriptionWorkersRoot,
                                                         eventStoreConnectionString,
-                                                        Startup.EventStoreClientSettings,
+                                                        eventStoreClientSettings,
                                                         eventHandlerResolvers,
                                                         Extensions.log,
                                                         subscriptionRepositoryResolver,
