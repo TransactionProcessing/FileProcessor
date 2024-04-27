@@ -19,48 +19,45 @@ namespace FileProcessor.IntegrationTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [Xunit.TraitAttribute("Category", "base")]
-    [Xunit.TraitAttribute("Category", "shared")]
-    [Xunit.TraitAttribute("Category", "getfileimportdetails")]
-    public partial class GetFileImportDetailsFeature : object, Xunit.IClassFixture<GetFileImportDetailsFeature.FixtureData>, Xunit.IAsyncLifetime
+    [NUnit.Framework.TestFixtureAttribute()]
+    [NUnit.Framework.DescriptionAttribute("GetFileImportDetails")]
+    [NUnit.Framework.CategoryAttribute("base")]
+    [NUnit.Framework.CategoryAttribute("shared")]
+    [NUnit.Framework.CategoryAttribute("getfileimportdetails")]
+    public partial class GetFileImportDetailsFeature
     {
         
-        private static Reqnroll.ITestRunner testRunner;
+        private Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
                 "base",
                 "shared",
                 "getfileimportdetails"};
         
-        private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
-        
 #line 1 "GetFileImportDetails.feature"
 #line hidden
         
-        public GetFileImportDetailsFeature(GetFileImportDetailsFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        [NUnit.Framework.OneTimeSetUpAttribute()]
+        public virtual async System.Threading.Tasks.Task FeatureSetupAsync()
         {
-            this._testOutputHelper = testOutputHelper;
-        }
-        
-        public static async System.Threading.Tasks.Task FeatureSetupAsync()
-        {
-            testRunner = Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
+            testRunner = Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, NUnit.Framework.TestContext.CurrentContext.WorkerId);
             Reqnroll.FeatureInfo featureInfo = new Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "GetFileImportDetails", null, ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
-        public static async System.Threading.Tasks.Task FeatureTearDownAsync()
+        [NUnit.Framework.OneTimeTearDownAttribute()]
+        public virtual async System.Threading.Tasks.Task FeatureTearDownAsync()
         {
-            string testWorkerId = testRunner.TestWorkerId;
             await testRunner.OnFeatureEndAsync();
             testRunner = null;
-            Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.ReleaseWorker(testWorkerId);
         }
         
+        [NUnit.Framework.SetUpAttribute()]
         public async System.Threading.Tasks.Task TestInitializeAsync()
         {
         }
         
+        [NUnit.Framework.TearDownAttribute()]
         public async System.Threading.Tasks.Task TestTearDownAsync()
         {
             await testRunner.OnScenarioEndAsync();
@@ -69,7 +66,7 @@ namespace FileProcessor.IntegrationTests.Features
         public void ScenarioInitialize(Reqnroll.ScenarioInfo scenarioInfo)
         {
             testRunner.OnScenarioInitialize(scenarioInfo);
-            testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<Xunit.Abstractions.ITestOutputHelper>(_testOutputHelper);
+            testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<NUnit.Framework.TestContext>(NUnit.Framework.TestContext.CurrentContext);
         }
         
         public async System.Threading.Tasks.Task ScenarioStartAsync()
@@ -192,20 +189,32 @@ namespace FileProcessor.IntegrationTests.Features
 #line hidden
             Reqnroll.Table table7 = new Reqnroll.Table(new string[] {
                         "EstateName",
+                        "OperatorName"});
+            table7.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Safaricom"});
+            table7.AddRow(new string[] {
+                        "Test Estate 1",
+                        "Voucher"});
+#line 36
+ await testRunner.AndAsync("I have assigned the following operators to the estates", ((string)(null)), table7, "And ");
+#line hidden
+            Reqnroll.Table table8 = new Reqnroll.Table(new string[] {
+                        "EstateName",
                         "OperatorName",
                         "ContractDescription"});
-            table7.AddRow(new string[] {
+            table8.AddRow(new string[] {
                         "Test Estate 1",
                         "Safaricom",
                         "Safaricom Contract"});
-            table7.AddRow(new string[] {
+            table8.AddRow(new string[] {
                         "Test Estate 1",
                         "Voucher",
                         "Hospital 1 Contract"});
-#line 36
- await testRunner.GivenAsync("I create a contract with the following values", ((string)(null)), table7, "Given ");
+#line 41
+ await testRunner.GivenAsync("I create a contract with the following values", ((string)(null)), table8, "Given ");
 #line hidden
-            Reqnroll.Table table8 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table9 = new Reqnroll.Table(new string[] {
                         "EstateName",
                         "OperatorName",
                         "ContractDescription",
@@ -213,7 +222,7 @@ namespace FileProcessor.IntegrationTests.Features
                         "DisplayText",
                         "Value",
                         "ProductType"});
-            table8.AddRow(new string[] {
+            table9.AddRow(new string[] {
                         "Test Estate 1",
                         "Safaricom",
                         "Safaricom Contract",
@@ -221,7 +230,7 @@ namespace FileProcessor.IntegrationTests.Features
                         "Custom",
                         "",
                         "MobileTopup"});
-            table8.AddRow(new string[] {
+            table9.AddRow(new string[] {
                         "Test Estate 1",
                         "Voucher",
                         "Hospital 1 Contract",
@@ -229,10 +238,10 @@ namespace FileProcessor.IntegrationTests.Features
                         "10 KES",
                         "",
                         "Voucher"});
-#line 41
- await testRunner.WhenAsync("I create the following Products", ((string)(null)), table8, "When ");
+#line 46
+ await testRunner.WhenAsync("I create the following Products", ((string)(null)), table9, "When ");
 #line hidden
-            Reqnroll.Table table9 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table10 = new Reqnroll.Table(new string[] {
                         "EstateName",
                         "OperatorName",
                         "ContractDescription",
@@ -240,7 +249,7 @@ namespace FileProcessor.IntegrationTests.Features
                         "CalculationType",
                         "FeeDescription",
                         "Value"});
-            table9.AddRow(new string[] {
+            table10.AddRow(new string[] {
                         "Test Estate 1",
                         "Safaricom",
                         "Safaricom Contract",
@@ -248,10 +257,10 @@ namespace FileProcessor.IntegrationTests.Features
                         "Fixed",
                         "Merchant Commission",
                         "2.50"});
-#line 46
- await testRunner.WhenAsync("I add the following Transaction Fees", ((string)(null)), table9, "When ");
+#line 51
+ await testRunner.WhenAsync("I add the following Transaction Fees", ((string)(null)), table10, "When ");
 #line hidden
-            Reqnroll.Table table10 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table11 = new Reqnroll.Table(new string[] {
                         "MerchantName",
                         "AddressLine1",
                         "Town",
@@ -260,7 +269,7 @@ namespace FileProcessor.IntegrationTests.Features
                         "ContactName",
                         "EmailAddress",
                         "EstateName"});
-            table10.AddRow(new string[] {
+            table11.AddRow(new string[] {
                         "Test Merchant 1",
                         "Address Line 1",
                         "TestTown",
@@ -269,7 +278,7 @@ namespace FileProcessor.IntegrationTests.Features
                         "Test Contact 1",
                         "testcontact1@merchant1.co.uk",
                         "Test Estate 1"});
-            table10.AddRow(new string[] {
+            table11.AddRow(new string[] {
                         "Test Merchant 2",
                         "Address Line 1",
                         "TestTown",
@@ -278,124 +287,113 @@ namespace FileProcessor.IntegrationTests.Features
                         "Test Contact 1",
                         "testcontact1@merchant2.co.uk",
                         "Test Estate 1"});
-#line 50
- await testRunner.GivenAsync("I create the following merchants", ((string)(null)), table10, "Given ");
+#line 55
+ await testRunner.GivenAsync("I create the following merchants", ((string)(null)), table11, "Given ");
 #line hidden
-            Reqnroll.Table table11 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table12 = new Reqnroll.Table(new string[] {
                         "OperatorName",
                         "MerchantName",
                         "MerchantNumber",
                         "TerminalNumber",
                         "EstateName"});
-            table11.AddRow(new string[] {
+            table12.AddRow(new string[] {
                         "Safaricom",
                         "Test Merchant 1",
                         "00000001",
                         "10000001",
                         "Test Estate 1"});
-            table11.AddRow(new string[] {
+            table12.AddRow(new string[] {
                         "Voucher",
                         "Test Merchant 1",
                         "00000001",
                         "10000001",
                         "Test Estate 1"});
-            table11.AddRow(new string[] {
+            table12.AddRow(new string[] {
                         "Safaricom",
                         "Test Merchant 2",
                         "00000002",
                         "10000002",
                         "Test Estate 1"});
-            table11.AddRow(new string[] {
+            table12.AddRow(new string[] {
                         "Voucher",
                         "Test Merchant 2",
                         "00000002",
                         "10000002",
                         "Test Estate 1"});
-#line 55
- await testRunner.GivenAsync("I have assigned the following  operator to the merchants", ((string)(null)), table11, "Given ");
+#line 60
+ await testRunner.GivenAsync("I have assigned the following  operator to the merchants", ((string)(null)), table12, "Given ");
 #line hidden
-            Reqnroll.Table table12 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table13 = new Reqnroll.Table(new string[] {
                         "DeviceIdentifier",
                         "MerchantName",
                         "EstateName"});
-            table12.AddRow(new string[] {
+            table13.AddRow(new string[] {
                         "123456780",
                         "Test Merchant 1",
                         "Test Estate 1"});
-            table12.AddRow(new string[] {
+            table13.AddRow(new string[] {
                         "123456781",
                         "Test Merchant 2",
                         "Test Estate 1"});
-#line 62
- await testRunner.GivenAsync("I have assigned the following devices to the merchants", ((string)(null)), table12, "Given ");
+#line 67
+ await testRunner.GivenAsync("I have assigned the following devices to the merchants", ((string)(null)), table13, "Given ");
 #line hidden
-            Reqnroll.Table table13 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table14 = new Reqnroll.Table(new string[] {
                         "EstateName",
                         "MerchantName",
                         "ContractDescription"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Test Estate 1",
                         "Test Merchant 1",
                         "Safaricom Contract"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Test Estate 1",
                         "Test Merchant 1",
                         "Hospital 1 Contract"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Test Estate 1",
                         "Test Merchant 2",
                         "Safaricom Contract"});
-            table13.AddRow(new string[] {
+            table14.AddRow(new string[] {
                         "Test Estate 1",
                         "Test Merchant 2",
                         "Hospital 1 Contract"});
-#line 67
- await testRunner.WhenAsync("I add the following contracts to the following merchants", ((string)(null)), table13, "When ");
+#line 72
+ await testRunner.WhenAsync("I add the following contracts to the following merchants", ((string)(null)), table14, "When ");
 #line hidden
-            Reqnroll.Table table14 = new Reqnroll.Table(new string[] {
+            Reqnroll.Table table15 = new Reqnroll.Table(new string[] {
                         "Reference",
                         "Amount",
                         "DateTime",
                         "MerchantName",
                         "EstateName"});
-            table14.AddRow(new string[] {
+            table15.AddRow(new string[] {
                         "Deposit1",
                         "300.00",
                         "Today",
                         "Test Merchant 1",
                         "Test Estate 1"});
-            table14.AddRow(new string[] {
+            table15.AddRow(new string[] {
                         "Deposit1",
                         "300.00",
                         "Today",
                         "Test Merchant 2",
                         "Test Estate 1"});
-#line 74
- await testRunner.GivenAsync("I make the following manual merchant deposits", ((string)(null)), table14, "Given ");
+#line 79
+ await testRunner.GivenAsync("I make the following manual merchant deposits", ((string)(null)), table15, "Given ");
 #line hidden
         }
         
-        async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
-        {
-            await this.TestInitializeAsync();
-        }
-        
-        async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
-        {
-            await this.TestTearDownAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Get File Import Log Details")]
-        [Xunit.TraitAttribute("FeatureTitle", "GetFileImportDetails")]
-        [Xunit.TraitAttribute("Description", "Get File Import Log Details")]
-        [Xunit.TraitAttribute("Category", "PRTest")]
+        [NUnit.Framework.TestAttribute()]
+        [NUnit.Framework.DescriptionAttribute("Get File Import Log Details")]
+        [NUnit.Framework.CategoryAttribute("PRTest")]
         public async System.Threading.Tasks.Task GetFileImportLogDetails()
         {
             string[] tagsOfScenario = new string[] {
                     "PRTest"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             Reqnroll.ScenarioInfo scenarioInfo = new Reqnroll.ScenarioInfo("Get File Import Log Details", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 80
+#line 85
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((TagHelper.ContainsIgnoreTag(tagsOfScenario) || TagHelper.ContainsIgnoreTag(featureTags)))
@@ -408,138 +406,138 @@ this.ScenarioInitialize(scenarioInfo);
 #line 4
 await this.FeatureBackgroundAsync();
 #line hidden
-                Reqnroll.Table table15 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table16 = new Reqnroll.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "H",
                             "20210508",
                             ""});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "D",
                             "07777777775",
                             "100"});
-                table15.AddRow(new string[] {
+                table16.AddRow(new string[] {
                             "T",
                             "1",
                             ""});
-#line 81
- await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table15, "Given ");
+#line 86
+ await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table16, "Given ");
 #line hidden
-                Reqnroll.Table table16 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table17 = new Reqnroll.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table16.AddRow(new string[] {
+                table17.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 86
- await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table16, "And ");
+#line 91
+ await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table17, "And ");
 #line hidden
-                Reqnroll.Table table17 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table18 = new Reqnroll.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "H",
                             "20210508",
                             ""});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "D",
                             "07777777776",
                             "150"});
-                table17.AddRow(new string[] {
+                table18.AddRow(new string[] {
                             "T",
                             "1",
                             ""});
-#line 90
- await testRunner.GivenAsync("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table17, "Given ");
+#line 95
+ await testRunner.GivenAsync("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table18, "Given ");
 #line hidden
-                Reqnroll.Table table18 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table19 = new Reqnroll.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table18.AddRow(new string[] {
+                table19.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 2",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 95
- await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table18, "And ");
+#line 100
+ await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table19, "And ");
 #line hidden
-                Reqnroll.Table table19 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table20 = new Reqnroll.Table(new string[] {
                             "Column1",
                             "Column2",
                             "Column3",
                             "Column4"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "H",
                             "20210508",
                             "",
                             ""});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "D",
                             "Hospital 1",
                             "07777777775",
                             "10"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "D",
                             "Hospital 1",
                             "testrecipient1@recipient.com",
                             "10"});
-                table19.AddRow(new string[] {
+                table20.AddRow(new string[] {
                             "T",
                             "1",
                             "",
                             ""});
-#line 99
- await testRunner.GivenAsync("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table19, "Given ");
+#line 104
+ await testRunner.GivenAsync("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table20, "Given ");
 #line hidden
-                Reqnroll.Table table20 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table21 = new Reqnroll.Table(new string[] {
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
                             "UserId"});
-                table20.AddRow(new string[] {
+                table21.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 105
- await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table20, "And ");
-#line hidden
-                Reqnroll.Table table21 = new Reqnroll.Table(new string[] {
-                            "ImportLogDate",
-                            "FileCount"});
-                table21.AddRow(new string[] {
-                            "Today",
-                            "3"});
-#line 109
- await testRunner.WhenAsync("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
-                        "ng data is returned", ((string)(null)), table21, "When ");
+#line 110
+ await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table21, "And ");
 #line hidden
                 Reqnroll.Table table22 = new Reqnroll.Table(new string[] {
-                            "MerchantName",
-                            "OriginalFileName"});
+                            "ImportLogDate",
+                            "FileCount"});
                 table22.AddRow(new string[] {
-                            "Test Merchant 1",
-                            "SafarcomTopup1.txt"});
-                table22.AddRow(new string[] {
-                            "Test Merchant 2",
-                            "SafarcomTopup2.txt"});
-                table22.AddRow(new string[] {
-                            "Test Merchant 1",
-                            "VoucherIssue1.txt"});
-#line 113
- await testRunner.WhenAsync("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
-                        "s returned", ((string)(null)), table22, "When ");
+                            "Today",
+                            "3"});
+#line 114
+ await testRunner.WhenAsync("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
+                        "ng data is returned", ((string)(null)), table22, "When ");
 #line hidden
                 Reqnroll.Table table23 = new Reqnroll.Table(new string[] {
+                            "MerchantName",
+                            "OriginalFileName"});
+                table23.AddRow(new string[] {
+                            "Test Merchant 1",
+                            "SafarcomTopup1.txt"});
+                table23.AddRow(new string[] {
+                            "Test Merchant 2",
+                            "SafarcomTopup2.txt"});
+                table23.AddRow(new string[] {
+                            "Test Merchant 1",
+                            "VoucherIssue1.txt"});
+#line 118
+ await testRunner.WhenAsync("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
+                        "s returned", ((string)(null)), table23, "When ");
+#line hidden
+                Reqnroll.Table table24 = new Reqnroll.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -547,7 +545,7 @@ await this.FeatureBackgroundAsync();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table23.AddRow(new string[] {
+                table24.AddRow(new string[] {
                             "True",
                             "3",
                             "3",
@@ -555,31 +553,31 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 119
+#line 124
  await testRunner.WhenAsync("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " information is returned", ((string)(null)), table23, "When ");
+                        " information is returned", ((string)(null)), table24, "When ");
 #line hidden
-                Reqnroll.Table table24 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table25 = new Reqnroll.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "1",
                             "H,20210508,",
                             "Ignored"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "2",
                             "D,07777777775,100",
                             "Successful"});
-                table24.AddRow(new string[] {
+                table25.AddRow(new string[] {
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 123
+#line 128
  await testRunner.WhenAsync("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " lines are returned", ((string)(null)), table24, "When ");
+                        " lines are returned", ((string)(null)), table25, "When ");
 #line hidden
-                Reqnroll.Table table25 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table26 = new Reqnroll.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -587,7 +585,7 @@ await this.FeatureBackgroundAsync();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table25.AddRow(new string[] {
+                table26.AddRow(new string[] {
                             "True",
                             "3",
                             "3",
@@ -595,31 +593,31 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 129
+#line 134
  await testRunner.WhenAsync("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " information is returned", ((string)(null)), table25, "When ");
+                        " information is returned", ((string)(null)), table26, "When ");
 #line hidden
-                Reqnroll.Table table26 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table27 = new Reqnroll.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "1",
                             "H,20210508,",
                             "Ignored"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "2",
                             "D,07777777776,150",
                             "Successful"});
-                table26.AddRow(new string[] {
+                table27.AddRow(new string[] {
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 133
+#line 138
  await testRunner.WhenAsync("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
-                        " lines are returned", ((string)(null)), table26, "When ");
+                        " lines are returned", ((string)(null)), table27, "When ");
 #line hidden
-                Reqnroll.Table table27 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table28 = new Reqnroll.Table(new string[] {
                             "ProcessingCompleted",
                             "NumberOfLines",
                             "TotaLines",
@@ -627,7 +625,7 @@ await this.FeatureBackgroundAsync();
                             "IgnoredLines",
                             "FailedLines",
                             "NotProcessedLines"});
-                table27.AddRow(new string[] {
+                table28.AddRow(new string[] {
                             "True",
                             "4",
                             "4",
@@ -635,52 +633,36 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 139
+#line 144
  await testRunner.WhenAsync("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
-                        "information is returned", ((string)(null)), table27, "When ");
+                        "information is returned", ((string)(null)), table28, "When ");
 #line hidden
-                Reqnroll.Table table28 = new Reqnroll.Table(new string[] {
+                Reqnroll.Table table29 = new Reqnroll.Table(new string[] {
                             "LineNumber",
                             "Data",
                             "Result"});
-                table28.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "1",
                             "H,20210508,,",
                             "Ignored"});
-                table28.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "2",
                             "D,Hospital 1,07777777775,10",
                             "Successful"});
-                table28.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "3",
                             "D,Hospital 1,testrecipient1@recipient.com,10",
                             "Successful"});
-                table28.AddRow(new string[] {
+                table29.AddRow(new string[] {
                             "4",
                             "T,1,,",
                             "Ignored"});
-#line 143
+#line 148
  await testRunner.WhenAsync("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
-                        "lines are returned", ((string)(null)), table28, "When ");
+                        "lines are returned", ((string)(null)), table29, "When ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
-        }
-        
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "1.0.0.0")]
-        [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-        public class FixtureData : object, Xunit.IAsyncLifetime
-        {
-            
-            async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
-            {
-                await GetFileImportDetailsFeature.FeatureSetupAsync();
-            }
-            
-            async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
-            {
-                await GetFileImportDetailsFeature.FeatureTearDownAsync();
-            }
         }
     }
 }
