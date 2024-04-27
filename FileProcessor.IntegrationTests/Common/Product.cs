@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using EstateManagement.DataTransferObjects;
+    using EstateManagement.DataTransferObjects.Responses.Contract;
 
     public class Product
     {
