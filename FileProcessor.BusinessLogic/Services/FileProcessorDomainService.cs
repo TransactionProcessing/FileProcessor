@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Common;
 using EstateManagement.Client;
 using EstateManagement.DataTransferObjects.Responses;
+using EstateManagement.DataTransferObjects.Responses.Contract;
 using FileAggregate;
 using FileFormatHandlers;
 using FileImportLogAggregate;
@@ -28,6 +29,7 @@ using Shared.General;
 using Shared.Logger;
 using TransactionProcessor.Client;
 using TransactionProcessor.DataTransferObjects;
+using MerchantResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantResponse;
 
 public class FileProcessorDomainService : IFileProcessorDomainService
 {
@@ -282,7 +284,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                             TransactionType = "Sale",
                                                             ContractId = contract.ContractId,
                                                             DeviceIdentifier = merchant.Devices.First().Value,
-                                                            OperatorIdentifier = contract.OperatorName,
+                                                            OperatorId = contract.OperatorId,
                                                             ProductId = product.ProductId,
                                                             AdditionalTransactionMetadata = transactionMetadata,
                                                             TransactionSource = 2 // File based transaction

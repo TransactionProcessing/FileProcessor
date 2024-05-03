@@ -6,7 +6,8 @@ namespace FileProcessor.Testing
     using BusinessLogic.Managers;
     using BusinessLogic.Requests;
     using EstateManagement.Database.Entities;
-    using EstateManagement.DataTransferObjects.Responses;
+    using EstateManagement.DataTransferObjects.Responses.Contract;
+    using EstateManagement.DataTransferObjects.Responses.Merchant;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
     using FileAggregate;
@@ -15,7 +16,7 @@ namespace FileProcessor.Testing
     using Newtonsoft.Json;
     using SecurityService.DataTransferObjects.Responses;
     using TransactionProcessor.DataTransferObjects;
-    using ContractProduct = EstateManagement.DataTransferObjects.Responses.ContractProduct;
+    using ContractProduct = EstateManagement.DataTransferObjects.Responses.Contract.ContractProduct;
     using FileImportLog = EstateManagement.Database.Entities.FileImportLog;
     using FileLine = EstateManagement.Database.Entities.FileLine;
 
