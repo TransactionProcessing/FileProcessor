@@ -5,16 +5,16 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EstateManagement.Database" Version="2024.4.3-build103" />
+		<PackageReference Include="EstateManagement.Database" Version="2024.5.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.3" />
-		<PackageReference Include="EstateManagement.Client" Version="2024.4.3-build103" />
+		<PackageReference Include="EstateManagement.Client" Version="2024.5.1" />
 		<PackageReference Include="SecurityService.Client" Version="2024.4.2" />
 		<PackageReference Include="Shared" Version="2024.4.3" />
 		<PackageReference Include="Shared.DomainDrivenDesign" Version="2024.4.3" />
 		<PackageReference Include="MediatR" Version="12.2.0" />
 		<PackageReference Include="Shared.EventStore" Version="2024.4.3" />
 		<PackageReference Include="System.IO.Abstractions" Version="21.0.2" />
-		<PackageReference Include="TransactionProcessor.Client" Version="2024.4.3-build102" />
+		<PackageReference Include="TransactionProcessor.Client" Version="2024.5.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.3" />
 	</ItemGroup>
