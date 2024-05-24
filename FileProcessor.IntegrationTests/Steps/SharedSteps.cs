@@ -38,6 +38,7 @@ namespace FileProcessor.IntegrationTests.Steps
     using EstateManagement.DataTransferObjects.Responses.Contract;
     using EstateManagement.DataTransferObjects.Responses.Estate;
     using Reqnroll;
+    using Shared.Logger;
     using AssignOperatorRequest = EstateManagement.DataTransferObjects.Requests.Estate.AssignOperatorRequest;
     using MerchantOperatorResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantOperatorResponse;
     using MerchantResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantResponse;
@@ -79,6 +80,8 @@ namespace FileProcessor.IntegrationTests.Steps
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
             (EstateDetails1, UploadFileRequest) uploadFileRequest = table.Rows.ToUploadFileRequest(this.TestingContext.Estates, fileData);
 
+            var x = JsonConvert.SerializeObject(uploadFileRequest.Item2);
+            
             await this.FileProcessorSteps.GivenIUploadThisFileForProcessing(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item1, uploadFileRequest.Item2);
         }
 

@@ -48,6 +48,11 @@ public class FileProcessorDomainServiceTests
     private MockFileSystem FileSystem;
     public FileProcessorDomainServiceTests()
     {
+        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
+        ConfigurationReader.Initialise(configurationRoot);
+
+        Logger.Initialise(NullLogger.Instance);
+
         this.FileProcessorManager = new Mock<IFileProcessorManager>();
         this.FileImportLogAggregateRepository =
             new Mock<IAggregateRepository<FileImportLogAggregate, DomainEvent>>();
@@ -213,6 +218,10 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
+
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
@@ -233,7 +242,9 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
-        Logger.Initialise(NullLogger.Instance);
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
 
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
@@ -256,7 +267,59 @@ public class FileProcessorDomainServiceTests
 
         this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
 
-        Logger.Initialise(NullLogger.Instance);
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
+
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+
+        Should.Throw<NotFoundException>(async () =>
+                                        {
+                                            await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
+                                        });
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_OperatorNotFound_RequestIsHandled()
+    {
+        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+        this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
+
+        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
+
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.EmptyOperatorList);
+
+        ProcessUploadedFileRequest processUploadedFileRequest =
+            new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+
+        Should.Throw<NotFoundException>(async () =>
+                                        {
+                                            await this.FileProcessorDomainService.ProcessUploadedFile(processUploadedFileRequest, CancellationToken.None);
+                                        });
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_NullOperatorList_RequestIsHandled()
+    {
+        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+        this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.GetEmptyFileImportLogAggregate);
+
+        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
+
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.NullOperatorList);
 
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
@@ -279,6 +342,9 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
 
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
 
@@ -300,6 +366,10 @@ public class FileProcessorDomainServiceTests
 
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
+
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
 
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
@@ -323,6 +393,10 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
+
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse);
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
 
         ProcessUploadedFileRequest processUploadedFileRequest =
             new ProcessUploadedFileRequest(TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
@@ -360,11 +434,6 @@ public class FileProcessorDomainServiceTests
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
            
-
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -394,11 +463,7 @@ public class FileProcessorDomainServiceTests
 
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadataWithOperatorName);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-
+        
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -412,11 +477,7 @@ public class FileProcessorDomainServiceTests
     public void FileRequestHandler_ProcessTransactionLineForFileRequest_FileAggregateNotFound_RequestHandled()
     {
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-            
+           
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -430,10 +491,6 @@ public class FileProcessorDomainServiceTests
     public void FileRequestHandler_ProcessTransactionLineForFileRequest_FileAggregateWithNoLines_RequestHandled()
     {
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetCreatedFileAggregate);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
             
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
@@ -466,11 +523,7 @@ public class FileProcessorDomainServiceTests
     public void FileRequestHandler_ProcessTransactionLineForFileRequest_LineInRequestAlreadyProcessed_RequestHandled()
     {
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLinesAlreadyProcessed);
-
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-            
+           
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest1 =
             new ProcessTransactionForFileLineRequest(TestData.FileId, 1, TestData.FileLine1);
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest2 =
@@ -493,10 +546,6 @@ public class FileProcessorDomainServiceTests
     public void FileRequestHandler_ProcessTransactionForFileLineRequest_FileProfileNotFound_RequestIsHandled()
     {
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
             
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
@@ -527,10 +576,6 @@ public class FileProcessorDomainServiceTests
 
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(true);
             
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-            
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -559,10 +604,6 @@ public class FileProcessorDomainServiceTests
 
         this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse());
 
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-            
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -590,14 +631,9 @@ public class FileProcessorDomainServiceTests
             .ReturnsAsync(TestData.GetMerchantContractsResponse);
 
         this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.TokenResponse());
-
-        //Dictionary<String, String> transactionMetadata = null;
+        
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Throws<InvalidDataException>();
-
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
 
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
@@ -626,11 +662,7 @@ public class FileProcessorDomainServiceTests
 
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-            
+        
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -660,10 +692,6 @@ public class FileProcessorDomainServiceTests
 
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
             
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
@@ -695,10 +723,6 @@ public class FileProcessorDomainServiceTests
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
             
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
@@ -728,10 +752,6 @@ public class FileProcessorDomainServiceTests
 
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
-            
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
             
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
@@ -763,10 +783,6 @@ public class FileProcessorDomainServiceTests
         this.FileFormatHandler.Setup(f => f.FileLineCanBeIgnored(It.IsAny<String>())).Returns(false);
         this.FileFormatHandler.Setup(f => f.ParseFileLine(It.IsAny<String>())).Returns(TestData.TransactionMetadata);
             
-        IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
-        ConfigurationReader.Initialise(configurationRoot);
-        Logger.Initialise(NullLogger.Instance);
-
         ProcessTransactionForFileLineRequest processTransactionForFileLineRequest =
             new ProcessTransactionForFileLineRequest(TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
