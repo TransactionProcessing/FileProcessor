@@ -19,7 +19,8 @@ namespace FileProcessor.DomainEvents.Tests
                                                                      TestData.UserId,
                                                                      TestData.FileProfileId,
                                                                      TestData.FileLocation,
-                                                                     TestData.FileUploadedDateTime);
+                                                                     TestData.FileUploadedDateTime,
+                                                                     TestData.SafaricomOperatorId);
 
             fileCreatedEvent.FileId.ShouldBe(TestData.FileId);
             fileCreatedEvent.FileImportLogId.ShouldBe(TestData.FileImportLogId);
@@ -29,6 +30,7 @@ namespace FileProcessor.DomainEvents.Tests
             fileCreatedEvent.FileProfileId.ShouldBe(TestData.FileProfileId);
             fileCreatedEvent.FileLocation.ShouldBe(TestData.FileLocation);
             fileCreatedEvent.FileReceivedDateTime.ShouldBe(TestData.FileUploadedDateTime);
+            fileCreatedEvent.OperatorId.ShouldBe(TestData.SafaricomOperatorId);
         }
 
         [Fact]

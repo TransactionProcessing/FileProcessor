@@ -22,5 +22,6 @@
                                    Guid UserId,
                                    Guid FileProfileId,
                                    String FileLocation,
-                                   DateTime FileReceivedDateTime) : DomainEvent(FileId, Guid.NewGuid());
+                                   DateTime FileReceivedDateTime,
+                                   Guid OperatorId) : DomainEvent(FileId, Guid.NewGuid());
 }

@@ -8,6 +8,7 @@ namespace FileProcessor.Testing
     using EstateManagement.Database.Entities;
     using EstateManagement.DataTransferObjects.Responses.Contract;
     using EstateManagement.DataTransferObjects.Responses.Merchant;
+    using EstateManagement.DataTransferObjects.Responses.Operator;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
     using FileAggregate;
@@ -117,6 +118,21 @@ namespace FileProcessor.Testing
 
             return null;
         }
+
+        public static List<OperatorResponse> NullOperatorList => null;
+
+        public static List<OperatorResponse> EmptyOperatorList => new();
+
+        public static List<OperatorResponse> OperatorList => new(){
+                                                                     new OperatorResponse(){
+                                                                                               Name = TestData.SafaricomOperatorIdentifier,
+                                                                                               OperatorId = TestData.SafaricomOperatorId
+                                                                                           },
+                                                                     new OperatorResponse(){
+                                                                                               Name = TestData.VoucherOperatorIdentifier,
+                                                                                               OperatorId = TestData.VoucherOperatorId
+                                                                                           }
+                                                                 };
 
         public static FileProfile FileProfileSafaricom =>
             new FileProfile(TestData.SafaricomFileProfileId,
@@ -253,7 +269,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
+            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
 
             return fileAggregate;
         }
@@ -262,7 +278,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
             fileAggregate.AddFileLine("D,1,2");
 
             return fileAggregate;
@@ -272,7 +288,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
+            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
             fileAggregate.AddFileLine(String.Empty);
 
             return fileAggregate;
@@ -282,7 +298,7 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime);
+            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
             fileAggregate.AddFileLine("D,1,2");
             fileAggregate.AddFileLine("D,1,3");
             fileAggregate.AddFileLine("D,1,4");

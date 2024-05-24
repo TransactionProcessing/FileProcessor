@@ -6,6 +6,7 @@ using DataTransferObjects.Responses;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Reqnroll;
 using Shared.IntegrationTesting;
+using Shared.Logger;
 using Shouldly;
 
 public static class ReqnrollExtensions
@@ -55,6 +56,7 @@ public static class ReqnrollExtensions
         string estateName = ReqnrollTableHelper.GetStringRowValue(row, "EstateName");
         string merchantName = ReqnrollTableHelper.GetStringRowValue(row, "MerchantName");
         string fileProfileId = ReqnrollTableHelper.GetStringRowValue(row, "FileProfileId");
+        
         string userId = ReqnrollTableHelper.GetStringRowValue(row, "UserId");
         string uploadDateTime = ReqnrollTableHelper.GetStringRowValue(row, "UploadDateTime");
 

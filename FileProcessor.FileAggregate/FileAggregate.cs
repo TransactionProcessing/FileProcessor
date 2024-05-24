@@ -96,12 +96,12 @@ namespace FileProcessor.FileAggregate
             aggregate.IsCompleted = true;
         }
 
-        public static void CreateFile(this FileAggregate aggregate, Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime)
+        public static void CreateFile(this FileAggregate aggregate, Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime, Guid operatorId)
         {
             if (aggregate.IsCreated)
                 return;
 
-            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(aggregate.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation, fileReceivedDateTime);
+            FileCreatedEvent fileCreatedEvent = new FileCreatedEvent(aggregate.AggregateId, fileImportLogId, estateId, merchantId, userId, fileProfileId, fileLocation, fileReceivedDateTime, operatorId);
 
             aggregate.ApplyAndAppend(fileCreatedEvent);
         }

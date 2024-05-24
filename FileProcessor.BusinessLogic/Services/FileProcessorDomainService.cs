@@ -9,13 +9,16 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
 using Common;
 using EstateManagement.Client;
 using EstateManagement.DataTransferObjects.Responses;
 using EstateManagement.DataTransferObjects.Responses.Contract;
+using EstateManagement.DataTransferObjects.Responses.Operator;
 using FileAggregate;
 using FileFormatHandlers;
 using FileImportLogAggregate;
+using FileProcessor.DataTransferObjects.Responses;
 using FIleProcessor.Models;
 using Managers;
 using Newtonsoft.Json;
@@ -29,6 +32,8 @@ using Shared.General;
 using Shared.Logger;
 using TransactionProcessor.Client;
 using TransactionProcessor.DataTransferObjects;
+using FileDetails = FIleProcessor.Models.FileDetails;
+using FileLine = FIleProcessor.Models.FileLine;
 using MerchantResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantResponse;
 
 public class FileProcessorDomainService : IFileProcessorDomainService
@@ -154,22 +159,37 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
         FileAggregate fileAggregate = await this.FileAggregateRepository.GetLatestVersion(request.FileId, cancellationToken);
 
-        fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath, request.FileUploadedDateTime);
+        Guid operatorId = await GetOperatorIdForFileProfile(request.EstateId, request.FileProfileId, cancellationToken);
+
+        fileAggregate.CreateFile(request.FileImportLogId, request.EstateId, request.MerchantId, request.UserId, request.FileProfileId, request.FilePath, request.FileUploadedDateTime, operatorId);
 
         await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
 
         await this.ProcessFile(request.FileId, request.FileProfileId, request.FilePath, cancellationToken);
     }
 
-    //public async Task ProcessSafaricomTopup(SafaricomTopupRequest request,
-    //                                        CancellationToken cancellationToken) {
-    //    await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
-    //}
+    private async Task<Guid> GetOperatorIdForFileProfile(Guid estateId, Guid fileProfileId, CancellationToken cancellationToken){
 
-    //public async Task ProcessVoucher(VoucherRequest request,
-    //                                 CancellationToken cancellationToken) {
-    //    await this.ProcessFile(request.FileId, request.FileProfileId, request.FileName, cancellationToken);
-    //}
+        FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
+
+        if (fileProfile == null){
+            Logger.LogInformation($"file profile {fileProfileId} not  found");
+            throw new NotFoundException($"file profile {fileProfileId} not  found");
+        }
+
+        this.TokenResponse = await this.GetToken(cancellationToken);
+        List<OperatorResponse> operatorList = await this.EstateClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
+        if (operatorList == null){
+            throw new NotFoundException($"No operators returned from API Call");
+        }
+
+        OperatorResponse @operator = operatorList.SingleOrDefault(o => o.Name == fileProfile.OperatorName);
+        if (@operator == null){
+            throw new NotFoundException($"No operator record found with name [{fileProfile.OperatorName}]");
+        }
+
+        return @operator.OperatorId;
+    }
 
     public async Task ProcessTransactionForFileLine(ProcessTransactionForFileLineRequest request,
                                                     CancellationToken cancellationToken) {
