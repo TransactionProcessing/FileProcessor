@@ -30,6 +30,8 @@ namespace FileProcessor.Testing
         public static Guid FileId = Guid.Parse("5F7F45D6-0604-46C7-AA88-EAA885A6B208");
         public static Guid FileId1 = Guid.Parse("5F7F45D6-0604-46C7-AA88-EAA885A6B208");
         public static Guid FileId2 = Guid.Parse("4363C3C2-E5AC-4942-8A6A-5989C71B6B18");
+        public static Guid FileId3 = Guid.Parse("FD42D36A-F065-4A18-9394-35D3E2C1EEE2");
+        public static Guid FileId4 = Guid.Parse("7E86F6AB-8D95-42E1-A0A8-12AAEE896DE0");
 
         public static Guid UserId = Guid.Parse("BE52C5AC-72E5-4976-BAA0-98699E36C1EB");
 
@@ -103,7 +105,7 @@ namespace FileProcessor.Testing
         public static FileProfile FileProfileNull => null;
 
         public static Merchant Merchant => new Merchant{
-                                                           EstateReportingId = TestData.EstateReportingId,
+                                                           EstateId = TestData.EstateId,
                                                            MerchantId = TestData.MerchantId,
                                                            MerchantReportingId = TestData.MerchantReportingId,
                                                            Name = TestData.MerchantName,
@@ -762,7 +764,7 @@ namespace FileProcessor.Testing
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId1,
                                                           ImportLogDateTime = TestData.ImportLogStartDate,
-                                                          EstateReportingId = TestData.EstateReportingId,
+                                                          EstateId = TestData.EstateId,
                                                           FileImportLogReportingId = TestData.FileImportLogReportingId1
                                                       };
 
@@ -770,9 +772,9 @@ namespace FileProcessor.Testing
                                                                      {
                                                            new FileImportLogFile
                                                            {
-                                                               FileImportLogReportingId = TestData.FileImportLogReportingId1,
-                                                               FileReportingId = TestData.FileReportingId1,
-                                                               MerchantReportingId = TestData.MerchantReportingId,
+                                                               FileImportLogId = TestData.FileImportLogId1,
+                                                               FileId = TestData.FileId1,
+                                                               MerchantId = TestData.MerchantId,
                                                                FilePath = "/home/txnproc/file1.csv",
                                                                FileProfileId = TestData.FileProfileId,
                                                                OriginalFileName = "Testfile1.csv",
@@ -781,9 +783,9 @@ namespace FileProcessor.Testing
                                                            },
                                                            new FileImportLogFile
                                                            {
-                                                               FileImportLogReportingId = TestData.FileImportLogReportingId1,
-                                                               FileReportingId = TestData.FileReportingId2,
-                                                               MerchantReportingId = TestData.MerchantReportingId,
+                                                               FileImportLogId = TestData.FileImportLogId1,
+                                                               FileId = TestData.FileId2,
+                                                               MerchantId = TestData.MerchantId,
                                                                FilePath = "/home/txnproc/file2.csv",
                                                                FileProfileId = TestData.FileProfileId,
                                                                OriginalFileName = "Testfile2.csv",
@@ -796,17 +798,17 @@ namespace FileProcessor.Testing
         public static List<File> Files1 =>
             new List<File>{
                               new File(){
-                                            FileImportLogReportingId = TestData.FileImportLogReportingId1,
+                                    FileImportLogId          = TestData.FileImportLogId1,
                                             FileReportingId = TestData.FileReportingId1,
-                                            MerchantReportingId = TestData.MerchantReportingId,
+                                            MerchantId = TestData.MerchantId,
                                             FileProfileId = TestData.FileProfileId,
                                             UserId = TestData.UserId,
                                             FileId = TestData.FileId1
                                         },
                               new File{
-                                          FileImportLogReportingId = TestData.FileImportLogReportingId1,
+                                  FileImportLogId          = TestData.FileImportLogId1,
                                           FileReportingId = TestData.FileReportingId2,
-                                          MerchantReportingId = TestData.MerchantReportingId,
+                                          MerchantId = TestData.MerchantId,
                                           FileProfileId = TestData.FileProfileId,
                                           UserId = TestData.UserId,
                                           FileId = TestData.FileId2
@@ -818,7 +820,7 @@ namespace FileProcessor.Testing
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId2,
                                                           ImportLogDateTime = TestData.ImportLogEndDate,
-                                                          EstateReportingId = TestData.EstateReportingId,
+                                                          EstateId = TestData.EstateId,
                                                           FileImportLogReportingId = TestData.FileImportLogReportingId2
         };
 
@@ -826,9 +828,9 @@ namespace FileProcessor.Testing
                                                                      {
                                                            new FileImportLogFile
                                                            {
-                                                               FileImportLogReportingId = TestData.FileImportLogReportingId2,
-                                                               MerchantReportingId = TestData.MerchantReportingId,
-                                                               FileReportingId = TestData.FileReportingId3,
+                                                               FileImportLogId = TestData.FileImportLogId2,
+                                                               MerchantId = TestData.MerchantId,
+                                                               FileId = TestData.FileId,
                                                                FilePath = "/home/txnproc/file3.csv",
                                                                FileProfileId = TestData.FileProfileId,
                                                                OriginalFileName = "Testfile3.csv",
@@ -837,9 +839,9 @@ namespace FileProcessor.Testing
                                                            },
                                                            new FileImportLogFile
                                                            {
-                                                               FileImportLogReportingId = TestData.FileImportLogReportingId2,
-                                                               MerchantReportingId = TestData.MerchantReportingId,
-                                                                                              FileReportingId = TestData.FileReportingId4,
+                                                               FileImportLogId = TestData.FileImportLogId2,
+                                                               MerchantId = TestData.MerchantId,
+                                                               FileId = TestData.FileId4,
                                                                FilePath = "/home/txnproc/file4.csv",
                                                                FileProfileId = TestData.FileProfileId,
                                                                OriginalFileName = "Testfile4.csv",

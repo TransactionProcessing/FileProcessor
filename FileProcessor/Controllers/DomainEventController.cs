@@ -65,12 +65,12 @@ namespace FileProcessor.Controllers
 
             try
             {
-                Logger.LogInformation($"Processing event - ID [{domainEvent.EventId}], Type[{domainEvent.GetType().Name}]");
+                Logger.LogWarning($"Processing event - ID [{domainEvent.EventId}], Type[{domainEvent.GetType().Name}]");
 
                 if (eventHandlers == null || eventHandlers.Any() == false)
                 {
                     // Log a warning out 
-                    Logger.LogWarning($"No event handlers configured for Event Type [{domainEvent.GetType().Name}]");
+                    Logger.LogInformation($"No event handlers configured for Event Type [{domainEvent.GetType().Name}]");
                     return this.Ok();
                 }
 
@@ -82,7 +82,7 @@ namespace FileProcessor.Controllers
 
                 Task.WaitAll(tasks.ToArray());
 
-                Logger.LogInformation($"Finished processing event - ID [{domainEvent.EventId}]");
+                Logger.LogWarning($"Finished processing event - ID [{domainEvent.EventId}]");
 
                 return this.Ok();
             }

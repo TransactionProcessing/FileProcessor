@@ -107,26 +107,26 @@
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                   .Join(context.Files,
-                                                        fileImportLogFile => fileImportLogFile.FileReportingId,
-                                                        file => file.FileReportingId,
+                                                        fileImportLogFile => fileImportLogFile.FileId,
+                                                        file => file.FileId,
                                                         (fileImportLogFile, file) => new {
                                                                                              fileImportLogFile,
                                                                                              file
                                                                                          })
                                                   .Join(context.Merchants,
-                                                        file => file.file.MerchantReportingId,
-                                                        merchant => merchant.MerchantReportingId,
+                                                        file => file.file.MerchantId,
+                                                        merchant => merchant.MerchantId,
                                                         (file, merchant) => new {
                                                                                     file,
                                                                                     merchant
                                                                                 })
                                                   .AsAsyncEnumerable()
-                                                  .Where(fi => importLogQuery.Select(f => f.FileImportLogReportingId).Contains(fi.file.fileImportLogFile.FileImportLogReportingId))
+                                                  .Where(fi => importLogQuery.Select(f => f.FileImportLogId).Contains(fi.file.fileImportLogFile.FileImportLogId))
                                                   .ToListAsync(cancellationToken);
 
             if (merchantId.HasValue){
                 Merchant merchant = await context.Merchants.SingleOrDefaultAsync(m => m.MerchantId == merchantId.Value, cancellationToken:cancellationToken);
-                importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantReportingId == merchant.MerchantReportingId).ToList();
+                importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantId == merchant.MerchantId).ToList();
             }
 
             List<(FileImportLogFile, File,Merchant)> entityData = new List<(FileImportLogFile, File, Merchant)>();
@@ -157,27 +157,27 @@
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                                       .Join(context.Files,
-                                                                            fileImportLogFile => fileImportLogFile.FileReportingId,
-                                                                            file => file.FileReportingId,
+                                                                            fileImportLogFile => fileImportLogFile.FileId,
+                                                                            file => file.FileId,
                                                                             (fileImportLogFile, file) => new{
                                                                                                                 fileImportLogFile,
                                                                                                                 file
                                                                                                             })
                                                                       .Join(context.Merchants,
-                                                                            file => file.file.MerchantReportingId,
-                                                                            merchant => merchant.MerchantReportingId,
+                                                                            file => file.file.MerchantId,
+                                                                            merchant => merchant.MerchantId,
                                                                             (file, merchant) => new{
                                                                                                                                     file,
                                                                                                                                     merchant
                                                                                                                                 })
                                                                       .AsAsyncEnumerable()
-                                                                      .Where(fi => fi.file.fileImportLogFile.FileImportLogReportingId == importLogQuery.FileImportLogReportingId)
+                                                                      .Where(fi => fi.file.fileImportLogFile.FileImportLogId == importLogQuery.FileImportLogId)
                                                                       .ToListAsync(cancellationToken);
             
             if (merchantId.HasValue)
             {
                 Merchant merchant = await context.Merchants.SingleOrDefaultAsync(m => m.MerchantId == merchantId.Value, cancellationToken: cancellationToken);
-                importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantReportingId == merchant.MerchantReportingId).ToList();
+                importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantId == merchant.MerchantId).ToList();
             }
 
             List<(FileImportLogFile, File,Merchant)> entityData = new List<(FileImportLogFile, File, Merchant)>();

@@ -179,7 +179,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.Merchants.Add(new Merchant
             {
-                EstateReportingId = TestData.EstateReportingId,
+                EstateId = TestData.EstateId,
                 MerchantReportingId = TestData.MerchantReportingId,
                 MerchantId = TestData.MerchantId,
                 Name = TestData.MerchantName
@@ -207,7 +207,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
-                EstateReportingId = TestData.EstateReportingId,
+                EstateId = TestData.EstateId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
@@ -243,7 +243,7 @@ namespace FileProcessor.BusinessLogic.Tests
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
-                EstateReportingId = TestData.EstateReportingId,
+                EstateId = TestData.EstateId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
