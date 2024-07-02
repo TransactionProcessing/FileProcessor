@@ -84,7 +84,7 @@
             importLogs.Count.ShouldBe(TestData.FileImportLogs.Count);
             foreach (FileImportLog fileImportLog in sourceImportLogs){
                 FIleProcessor.Models.FileImportLog importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
-                List<(FileImportLogFile, File, Merchant)> sourceFiles = sourceImportLogFiles.Where(s => s.Item1.FileImportLogReportingId == fileImportLog.FileImportLogReportingId).ToList();
+                List<(FileImportLogFile, File, Merchant)> sourceFiles = sourceImportLogFiles.Where(s => s.Item1.FileImportLogId == fileImportLog.FileImportLogId).ToList();
                 this.VerifyImportLog(fileImportLog, sourceFiles, importLog);
             }
         }

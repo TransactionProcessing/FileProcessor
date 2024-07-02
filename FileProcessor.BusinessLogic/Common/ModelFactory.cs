@@ -36,7 +36,7 @@
                 model.EstateId = estateId;
                 model.Files = new List<ImportLogFile>();
 
-                IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == fileImportLog.FileImportLogReportingId);
+                IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == fileImportLog.FileImportLogId);
 
                 foreach ((FileImportLogFile, File, Merchant) importLogFile in currentImportLogFiles)
                 {
@@ -75,7 +75,7 @@
             model.EstateId = estateId;
             model.Files = new List<ImportLogFile>();
 
-            IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogReportingId == importLog.FileImportLogReportingId);
+            IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == importLog.FileImportLogId);
 
             foreach ((FileImportLogFile, File,Merchant) importLogFile in currentImportLogFiles)
             {

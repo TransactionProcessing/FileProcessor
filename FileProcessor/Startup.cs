@@ -139,6 +139,12 @@ namespace FileProcessor
 
             if (env.IsDevelopment())
             {
+                var developmentNlogConfigFilename = "nlog.development.config";
+                if (System.IO.File.Exists(Path.Combine(env.ContentRootPath, developmentNlogConfigFilename)))
+                {
+                    nlogConfigFilename = developmentNlogConfigFilename;
+                }
+
                 app.UseDeveloperExceptionPage();
             }
 
@@ -149,11 +155,7 @@ namespace FileProcessor
 
             Logger.Initialise(logger);
 
-            Action<String> loggerAction = message =>
-                                          {
-                                              Logger.LogInformation(message);
-                                          };
-            Startup.Configuration.LogConfiguration(loggerAction);
+            Startup.Configuration.LogConfiguration(Logger.LogWarning);
 
             ConfigurationReader.Initialise(Startup.Configuration);
 

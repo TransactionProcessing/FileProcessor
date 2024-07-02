@@ -323,7 +323,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                                           })
                                                      };
 
-        Logger.LogInformation(serialisedRequestMessage.SerialisedData);
+        Logger.LogDebug(serialisedRequestMessage.SerialisedData);
 
         // Send request to transaction processor
         SerialisedMessage serialisedResponseMessage = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, serialisedRequestMessage, cancellationToken);
@@ -365,13 +365,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             // Check the processed/failed directories exist
             if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false)
             {
-                Logger.LogWarning($"Creating Directory {fileProfile.ProcessedDirectory} as not found");
+                Logger.LogInformation($"Creating Directory {fileProfile.ProcessedDirectory} as not found");
                 this.FileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
             }
 
             if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false)
             {
-                Logger.LogWarning($"Creating Directory {fileProfile.FailedDirectory} as not found");
+                Logger.LogInformation($"Creating Directory {fileProfile.FailedDirectory} as not found");
                 this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
             }
 
@@ -416,8 +416,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
             }
 
-            Logger.LogInformation(
-                                  $"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
+            Logger.LogInformation($"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
 
             // TODO: Move file now
             inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
@@ -483,21 +482,19 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // Get a token to talk to the estate service
         String clientId = ConfigurationReader.GetValue("AppSettings", "ClientId");
         String clientSecret = ConfigurationReader.GetValue("AppSettings", "ClientSecret");
-        Logger.LogInformation($"Client Id is {clientId}");
-        Logger.LogInformation($"Client Secret is {clientSecret}");
 
         if (this.TokenResponse == null)
         {
             TokenResponse token = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            Logger.LogInformation($"Token is {token.AccessToken}");
+            Logger.LogDebug($"Token is {token.AccessToken}");
             return token;
         }
 
         if (this.TokenResponse.Expires.UtcDateTime.Subtract(DateTime.UtcNow) < TimeSpan.FromMinutes(2))
         {
-            Logger.LogInformation($"Token is about to expire at {this.TokenResponse.Expires.DateTime:O}");
+            Logger.LogDebug($"Token is about to expire at {this.TokenResponse.Expires.DateTime:O}");
             TokenResponse token = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            Logger.LogInformation($"Token is {token.AccessToken}");
+            Logger.LogDebug($"Token is {token.AccessToken}");
             return token;
         }
 
