@@ -82,7 +82,7 @@ jobs:
       - name: Download the artifact
         uses: actions/download-artifact@v3
         with:
-          name: callbackhandler
+          name: fileprocessor
 
       - name: Remove existing  Windows service
         run: |
@@ -115,7 +115,7 @@ jobs:
       - name: Download the artifact
         uses: actions/download-artifact@v3
         with:
-          name: callbackhandler
+          name: fileprocessor
 
       - name: Remove existing  Windows service
         run: |
