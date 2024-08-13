@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  build:
+  buildlinux:
     name: "Release"
     env:
         ASPNETCORE_ENVIRONMENT: "Production"
@@ -50,92 +50,90 @@ jobs:
     - name: Publish API
       if: ${{ github.event.release.prerelease == false }}
       run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained
-
-    - name: Install Octopus CLI
-      if: ${{ github.event.release.prerelease == false }}
+    
+    - name: Build Release Package
       run: |
-        sudo apt update && sudo apt install --no-install-recommends gnupg curl ca-certificates apt-transport-https && \
-        curl -sSfL https://apt.octopus.com/public.key | sudo apt-key add - && \
-        sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" && \
-        sudo apt update && sudo apt install octopuscli
+         cd /home/runner/work/FileProcessor/FileProcessor/publishOutput
+         zip -r ../fileprocessor.zip ./*
 
-    - name: Create Zip package 🐙
-      id: package
-      uses: OctopusDeploy/create-zip-package-action@v3
+    - name: Upload the artifact
+      uses: actions/upload-artifact@v3
       with:
-        package_id: FileProcessor
-        version: ${{ steps.get_version.outputs.VERSION }}
-        base_path: /home/runner/work/FileProcessor/FileProcessor/publishOutput
-        files: "**/*"
-        output_folder: /home/runner/work/FileProcessor/FileProcessor
-
-    - name: Push a package to Octopus Deploy 🐙
-      uses: OctopusDeploy/push-package-action@v3
-      with:
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        server: ${{ secrets.OCTOPUS_URL }}
-        space: ${{ secrets.OCTOPUS_SPACE }}
-        packages: ${{ steps.package.outputs.package_file_path }}
-    
-    - name: Get Release
-      if: ${{ github.event.release.prerelease == false }}
-      id: getrelease
-      uses: octokit/request-action@v2.0.17
-      with:
-          route: GET /repos/TransactionProcessing/FileProcessor/releases/tags/${{ steps.get_version.outputs.VERSION }}
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build Release Notes
-      if: ${{ github.event.release.prerelease == false }}
-      id: buildreleasenotes
-      uses: gr2m/get-json-paths-action@v1.x
-      with:
-          json: ${{ steps.getrelease.outputs.data }}
-          releasenote: "body"
-    
-    - name: Create a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/create-release-action@v3
-      id: "create_release"
-      with:
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        server: ${{ secrets.OCTOPUS_URL }}
-        space: ${{ secrets.OCTOPUS_SPACE }}
-        project: "File Processor"
-        package_version: ${{ steps.get_version.outputs.VERSION }}
-        release_notes: ${{ steps.buildreleasenotes.outputs.releasenote }}
-        release_number: ${{ steps.get_version.outputs.VERSION }}
-        ignore_existing: true
-        channel: "Default"
-
-    - name: Deploy a release in Octopus Deploy 🐙
-      uses: OctopusDeploy/deploy-release-action@v3
-      id: "deploy_release"
-      with:
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        server: ${{ secrets.OCTOPUS_URL }}
-        space: ${{ secrets.OCTOPUS_SPACE }}
-        project: "File Processor"
-        release_number: ${{steps.create_release.outputs.release_number}}
-        environments: |
-            Staging      
-            
-    - name: Await task in Octopus Deploy 🐙
-      uses: OctopusDeploy/await-task-action@v3
-      with:
-        api_key: ${{ secrets.OCTOPUS_APIKEY }}
-        server: ${{ secrets.OCTOPUS_URL }}
-        space: ${{ secrets.OCTOPUS_SPACE }}
-        timeout_after: 300
-        polling_interval: 30
-        server_task_id: ${{ fromJson(steps.deploy_release.outputs.server_tasks)[0].serverTaskId }}
+        name: fileprocessor
+        path: fileprocessor.zip
         
     - name: Build and Publish Nuget Packages
       if: ${{ github.event.release.prerelease == false }}
       run: |
         dotnet pack "FileProcessor.File.DomainEvents\FileProcessor.File.DomainEvents.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
-        dotnet nuget push Nugets/FileProcessor.File.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
+        dotnet nuget push Nugets/FileProcessor.File.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }} --skip-duplicate
         dotnet pack "FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
-        dotnet nuget push Nugets/FileProcessor.FileImportLog.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
+        dotnet nuget push Nugets/FileProcessor.FileImportLog.DomainEvents.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }} --skip-duplicate
         dotnet pack "FileProcessor.Client\FileProcessor.Client.csproj" /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} --output Nugets -c Release
-        dotnet nuget push Nugets/FileProcessor.Client.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
+        dotnet nuget push Nugets/FileProcessor.Client.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }} --skip-duplicate
+
+  deploystaging:
+    runs-on: stagingserver
+    needs: buildlinux
+    environment: staging
+    name: "Deploy to Staging"
+    
+    steps:
+      - name: Download the artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: callbackhandler
+
+      - name: Remove existing  Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          # Check if the service exists
+          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            Stop-Service -Name $serviceName
+            sc.exe delete $serviceName
+          }
+
+      - name: Unzip the files
+        run: |
+          Expand-Archive -Path fileprocessor.zip -DestinationPath "C:\txnproc\transactionprocessing\fileprocessor" -Force
+      
+      - name: Install as a Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
+                   
+          New-Service -Name $serviceName -BinaryPathName $servicePath -Description "Transaction Processing - File Processor" -DisplayName "Transaction Processing - File Processor" -StartupType Automatic
+          Start-Service -Name $serviceName
+
+  deployproduction:
+    runs-on: productionserver
+    needs: [buildlinux, deploystaging]
+    environment: production
+    name: "Deploy to Production"
+    
+    steps:
+      - name: Download the artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: callbackhandler
+
+      - name: Remove existing  Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          # Check if the service exists
+          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            Stop-Service -Name $serviceName
+            sc.exe delete $serviceName
+          }
+
+      - name: Unzip the files
+        run: |
+          Expand-Archive -Path fileprocessor.zip -DestinationPath "C:\txnproc\transactionprocessing\fileprocessor" -Force
+      
+      - name: Install as a Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
+                   
+          New-Service -Name $serviceName -BinaryPathName $servicePath -Description "Transaction Processing - File Processor" -DisplayName "Transaction Processing - File Processor" -StartupType Automatic
+          Start-Service -Name $serviceName          
