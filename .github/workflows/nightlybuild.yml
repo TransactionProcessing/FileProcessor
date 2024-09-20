@@ -47,7 +47,7 @@ jobs:
     - name: Run Integration Tests        
       run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj"
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4.4.0
       if: ${{ failure() }}
       with:
         name: tracelogs
