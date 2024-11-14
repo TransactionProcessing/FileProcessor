@@ -1,4 +1,4 @@
-﻿namespace FIleProcessor.Models
+﻿namespace FileProcessor.Models
 {
     /// <summary>
     /// 

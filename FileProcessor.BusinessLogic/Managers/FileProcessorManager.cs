@@ -1,4 +1,7 @@
-﻿namespace FileProcessor.BusinessLogic.Managers
+﻿using FileProcessor.Models;
+using SimpleResults;
+
+namespace FileProcessor.BusinessLogic.Managers
 {
     using System;
     using System.Collections.Generic;
@@ -10,12 +13,12 @@
     using EstateManagement.Database.Contexts;
     using EstateManagement.Database.Entities;
     using FileAggregate;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Microsoft.EntityFrameworkCore;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
     using Shared.Exceptions;
-    using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileImportLog = FileProcessor.Models.FileImportLog;
 
     /// <summary>
     /// 
@@ -63,38 +66,23 @@
 
         #region Methods
 
-        /// <summary>
-        /// Gets all file profiles.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async Task<List<FileProfile>> GetAllFileProfiles(CancellationToken cancellationToken)
+        public async Task<Result<List<FileProfile>>> GetAllFileProfiles(CancellationToken cancellationToken)
         {
-            return this.FileProfiles;
+            return Result.Success(this.FileProfiles);
         }
 
-        /// <summary>
-        /// Gets the file profile.
-        /// </summary>
-        /// <param name="fileProfileId">The file profile identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async Task<FileProfile> GetFileProfile(Guid fileProfileId,
-                                                      CancellationToken cancellationToken)
+        public async Task<Result<FileProfile>> GetFileProfile(Guid fileProfileId,
+                                                              CancellationToken cancellationToken)
         {
-            return this.FileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
+            FileProfile fileProfile = this.FileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
+            if (fileProfile == null)
+                return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
+
+            return Result.Success(fileProfile);
+
         }
 
-        /// <summary>
-        /// Gets the file import logs.
-        /// </summary>
-        /// <param name="estateId"></param>
-        /// <param name="startDateTime">The start date time.</param>
-        /// <param name="endDateTime">The end date time.</param>
-        /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async Task<List<FileImportLog>> GetFileImportLogs(Guid estateId,
+        public async Task<Result<List<FileImportLog>>> GetFileImportLogs(Guid estateId,
                                                                  DateTime startDateTime,
                                                                  DateTime endDateTime,
                                                                  Guid? merchantId,
@@ -134,18 +122,11 @@
                 entityData.Add((file.file.fileImportLogFile, file.file.file, file.merchant));
             }
 
-            return this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            List<FileImportLog> model = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            return Result.Success(model);
         }
 
-        /// <summary>
-        /// Gets the file import log files.
-        /// </summary>
-        /// <param name="fileImportLogId">The file import log identifier.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async Task<FileImportLog> GetFileImportLog(Guid fileImportLogId, 
+        public async Task<Result<FileImportLog>> GetFileImportLog(Guid fileImportLogId, 
                                                                      Guid estateId, 
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken)
@@ -189,23 +170,20 @@
             return this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
         }
 
-        /// <summary>
-        /// Gets the file.
-        /// </summary>
-        /// <param name="fileId">The file identifier.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async Task<FileDetails> GetFile(Guid fileId,
+        public async Task<Result<FileDetails>> GetFile(Guid fileId,
             Guid estateId,
             CancellationToken cancellationToken)
         {
-            FileAggregate fileAggregate =
+            Result<FileAggregate> fileAggregateResult=
                 await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
 
+            if (fileAggregateResult.IsFailed)
+                return ResultHelpers.CreateFailure(fileAggregateResult);
+
+            FileAggregate fileAggregate = fileAggregateResult.Data;
             if (fileAggregate.IsCreated == false)
             {
-                throw new NotFoundException($"File with Id [{fileId}] not found");
+                return Result.NotFound($"File with Id [{fileId}] not found");
             }
 
             FileDetails fileDetails = fileAggregate.GetFile();
@@ -221,7 +199,7 @@
             }
 
             EstateSecurityUser userDetails = await context.EstateSecurityUsers.AsAsyncEnumerable()
-                .SingleOrDefaultAsync(u => u.SecurityUserId == fileDetails.UserId);
+                .SingleOrDefaultAsync(u => u.SecurityUserId == fileDetails.UserId, cancellationToken: cancellationToken);
             if (userDetails != null)
             {
                 fileDetails.UserEmailAddress = userDetails.EmailAddress;
@@ -233,7 +211,7 @@
                 fileDetails.FileProfileName = fileProfile.Name;
             }
 
-            return fileDetails;
+            return Result.Success(fileDetails);
         }
 
         #endregion

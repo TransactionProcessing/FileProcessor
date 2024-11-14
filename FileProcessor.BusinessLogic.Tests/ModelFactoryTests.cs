@@ -3,7 +3,7 @@
     using System.Linq;
     using Common;
     using EstateManagement.Database.Entities;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Shouldly;
     using Testing;
     using Xunit;
@@ -17,7 +17,7 @@
             IModelFactory modelFactory = new ModelFactory();
             List<(FileImportLogFile, File, Merchant)> files = new List<(FileImportLogFile, File, Merchant)>();
             files.Add((TestData.FileImportLog1Files[0], TestData.Files1[0], TestData.Merchant));
-            FIleProcessor.Models.FileImportLog result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs.First(), files);
+            FileProcessor.Models.FileImportLog result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs.First(), files);
             this.VerifyImportLog(TestData.FileImportLogs.First(), files, result);
         }
 
@@ -25,7 +25,7 @@
         public void ModelFactory_ConvertFrom_FileImportLog_NoFiles_IsConverted(){
             IModelFactory modelFactory = new ModelFactory();
             List<(FileImportLogFile, File, Merchant)> files = new List<(FileImportLogFile, File, Merchant)>();
-            FIleProcessor.Models.FileImportLog result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs.First(), files);
+            FileProcessor.Models.FileImportLog result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs.First(), files);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(), files, result);
         }
@@ -36,7 +36,7 @@
             List<FileImportLog> fileImportLogs = new List<FileImportLog>();
             List<(FileImportLogFile, File, Merchant)> files = new List<(FileImportLogFile, File, Merchant)>();
 
-            List<FIleProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, fileImportLogs, files);
+            List<FileProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, fileImportLogs, files);
 
             result.ShouldNotBeNull();
             result.ShouldBeEmpty();
@@ -48,7 +48,7 @@
             List<(FileImportLogFile, File, Merchant)> files = new List<(FileImportLogFile, File, Merchant)>();
             files.Add((TestData.FileImportLog1Files[0], TestData.Files1[0], TestData.Merchant));
             files.Add((TestData.FileImportLog1Files[1], TestData.Files1[1], TestData.Merchant));
-            List<FIleProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs, files);
+            List<FileProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs, files);
 
             this.VerifyImportLogs(TestData.FileImportLogs, files, result);
         }
@@ -57,12 +57,12 @@
         public void ModelFactory_ConvertFrom_FileImportLogs_NoFiles_IsConverted(){
             IModelFactory modelFactory = new ModelFactory();
             List<(FileImportLogFile, File, Merchant)> files = new List<(FileImportLogFile, File, Merchant)>();
-            List<FIleProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs, files);
+            List<FileProcessor.Models.FileImportLog> result = modelFactory.ConvertFrom(TestData.EstateId, TestData.FileImportLogs, files);
 
             this.VerifyImportLogs(TestData.FileImportLogs, files, result);
         }
 
-        private void VerifyImportLog(FileImportLog sourceImportLog, List<(FileImportLogFile, File, Merchant)> sourceFiles, FIleProcessor.Models.FileImportLog importLog){
+        private void VerifyImportLog(FileImportLog sourceImportLog, List<(FileImportLogFile, File, Merchant)> sourceFiles, FileProcessor.Models.FileImportLog importLog){
             importLog.ShouldNotBeNull();
             importLog.FileImportLogDateTime.ShouldBe(sourceImportLog.ImportLogDateTime);
             importLog.Files.Count.ShouldBe(sourceFiles.Count);
@@ -78,12 +78,12 @@
             }
         }
 
-        private void VerifyImportLogs(List<FileImportLog> sourceImportLogs, List<(FileImportLogFile, File, Merchant)> sourceImportLogFiles, List<FIleProcessor.Models.FileImportLog> importLogs){
+        private void VerifyImportLogs(List<FileImportLog> sourceImportLogs, List<(FileImportLogFile, File, Merchant)> sourceImportLogFiles, List<FileProcessor.Models.FileImportLog> importLogs){
             importLogs.ShouldNotBeNull();
             importLogs.ShouldNotBeEmpty();
             importLogs.Count.ShouldBe(TestData.FileImportLogs.Count);
             foreach (FileImportLog fileImportLog in sourceImportLogs){
-                FIleProcessor.Models.FileImportLog importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
+                FileProcessor.Models.FileImportLog importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 List<(FileImportLogFile, File, Merchant)> sourceFiles = sourceImportLogFiles.Where(s => s.Item1.FileImportLogId == fileImportLog.FileImportLogId).ToList();
                 this.VerifyImportLog(fileImportLog, sourceFiles, importLog);
             }

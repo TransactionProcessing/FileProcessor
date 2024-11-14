@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using EstateManagement.Database.Entities;
-    using FIleProcessor.Models;
-    using FileImportLog = FIleProcessor.Models.FileImportLog;
+    using FileProcessor.Models;
+    using FileImportLog = FileProcessor.Models.FileImportLog;
 
     /// <summary>
     /// 

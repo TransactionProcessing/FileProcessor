@@ -1,4 +1,8 @@
-﻿namespace FileProcessor.Bootstrapper;
+﻿using System.Collections.Generic;
+using FileProcessor.Models;
+using SimpleResults;
+
+namespace FileProcessor.Bootstrapper;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -21,11 +25,13 @@ public class MediatorRegistry : ServiceRegistry
         this.AddSingleton<IMediator, Mediator>();
         // request & notification handlers
 
-        this.AddSingleton<IRequestHandler<UploadFileRequest, Guid>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<ProcessUploadedFileRequest>, FileRequestHandler>();
-        //this.AddSingleton<IRequestHandler<SafaricomTopupRequest>, FileRequestHandler>();
-        //this.AddSingleton<IRequestHandler<VoucherRequest>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<ProcessTransactionForFileLineRequest>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<FileCommands.ProcessTransactionForFileLineCommand, Result>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<FileCommands.UploadFileCommand, Result<Guid>>, FileRequestHandler>();
+        
+        this.AddSingleton<IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>, FileRequestHandler>();
+        this.AddSingleton<IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>, FileRequestHandler>();
     }
 
     #endregion

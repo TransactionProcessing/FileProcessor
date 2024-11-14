@@ -1,3 +1,5 @@
+using SimpleResults;
+
 namespace FileProcessor.Common;
 
 using System;
@@ -10,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventStore.Client;
 using FileProcessor.BusinessLogic.Managers;
-using FIleProcessor.Models;
+using FileProcessor.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,8 +70,14 @@ public static class Extensions
 
         fileSystem.Directory.CreateDirectory(temporaryFileLocation);
         Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
-        var fileProfiles = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
+        Result<List<FileProfile>> fileProfilesResult = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
 
+        if (fileProfilesResult.IsFailed) {
+            Logger.LogWarning($"Error getting file profiles {fileProfilesResult.Message}");
+            throw new Exception(fileProfilesResult.Message);
+        }
+
+        List<FileProfile> fileProfiles = fileProfilesResult.Data;
         foreach (FileProfile fileProfile in fileProfiles){
             fileSystem.Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
             Logger.LogInformation($"Created in progress at [{fileProfile.ListeningDirectory}//inprogress");

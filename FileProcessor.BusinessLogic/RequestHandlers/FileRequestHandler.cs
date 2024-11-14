@@ -1,69 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using FileProcessor.Models;
+using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.RequestHandlers
 {
-    using System.IO;
-    using System.IO.Abstractions;
-    using System.Security.Cryptography;
     using MediatR;
     using System.Threading;
-    using Common;
-    using EstateManagement.Client;
-    using EstateManagement.DataTransferObjects.Responses;
-    using EventHandling;
-    using FileAggregate;
-    using FileFormatHandlers;
-    using FileImportLogAggregate;
-    using FIleProcessor.Models;
-    using Managers;
-    using Newtonsoft.Json;
     using Requests;
-    using SecurityService.Client;
-    using SecurityService.DataTransferObjects.Responses;
     using Services;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
-    using Shared.Exceptions;
-    using Shared.General;
-    using Shared.Logger;
-    using TransactionProcessor.Client;
-    using TransactionProcessor.DataTransferObjects;
-    using Exception = System.Exception;
+    using FileProcessor.BusinessLogic.Managers;
+    using EstateManagement.Database.Entities;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="UploadFileRequest" />
-    /// <seealso cref="ProcessTransactionForFileLineRequest" />
-    public class FileRequestHandler : IRequestHandler<UploadFileRequest,Guid>,
-                                      IRequestHandler<ProcessUploadedFileRequest>,
-                                      IRequestHandler<ProcessTransactionForFileLineRequest>
+    public class FileRequestHandler : IRequestHandler<FileCommands.ProcessTransactionForFileLineCommand,Result>,
+                                      IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>,
+                                      IRequestHandler<FileCommands.UploadFileCommand, Result<Guid>>,
+                                      IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>,
+                                      IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>,
+                                      IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>
     {
         private readonly IFileProcessorDomainService DomainService;
+        private readonly IFileProcessorManager Manager;
 
-        public FileRequestHandler(IFileProcessorDomainService domainService)
-        {
+        public FileRequestHandler(IFileProcessorDomainService domainService, IFileProcessorManager manager) {
             this.DomainService = domainService;
+            this.Manager = manager;
         }
         
-        public async Task<Guid> Handle(UploadFileRequest request,
-                                       CancellationToken cancellationToken) {
-            return await this.DomainService.UploadFile(request, cancellationToken);
+        public async Task<Result<Guid>> Handle(FileCommands.UploadFileCommand command,
+                                               CancellationToken cancellationToken) {
+            return await this.DomainService.UploadFile(command, cancellationToken);
         }
 
-        public async Task Handle(ProcessUploadedFileRequest request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(FileCommands.ProcessUploadedFileCommand command, CancellationToken cancellationToken)
         {
-            await this.DomainService.ProcessUploadedFile(request, cancellationToken);
+            return await this.DomainService.ProcessUploadedFile(command, cancellationToken);
         }
         
-        public async Task Handle(ProcessTransactionForFileLineRequest request,
-                                       CancellationToken cancellationToken) {
-            await this.DomainService.ProcessTransactionForFileLine(request, cancellationToken);
+        public async Task<Result> Handle(FileCommands.ProcessTransactionForFileLineCommand command,
+                                         CancellationToken cancellationToken) {
+            return await this.DomainService.ProcessTransactionForFileLine(command, cancellationToken);
+        }
+
+        public async Task<Result<FileDetails>> Handle(FileQueries.GetFileQuery query,
+                                                      CancellationToken cancellationToken) {
+            return await this.Manager.GetFile(query.FileId, query.EstateId, cancellationToken);
+        }
+
+        public async Task<Result<List<Models.FileImportLog>>> Handle(FileQueries.GetImportLogsQuery query,
+                                                                     CancellationToken cancellationToken) {
+            return await this.Manager.GetFileImportLogs(query.EstateId, query.StartDateTime, query.EndDateTime, query.MerchantId, cancellationToken);
+        }
+
+        public async Task<Result<Models.FileImportLog>> Handle(FileQueries.GetImportLogQuery query,
+                                                               CancellationToken cancellationToken) {
+            return await this.Manager.GetFileImportLog(query.FileImportLogId, query.EstateId, query.MerchantId, cancellationToken);
         }
     }
 }

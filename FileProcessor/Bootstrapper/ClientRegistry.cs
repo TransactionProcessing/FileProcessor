@@ -20,11 +20,16 @@ public class ClientRegistry : ServiceRegistry
     /// </summary>
     public ClientRegistry() {
         this.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
-        this.AddSingleton<IEstateClient, EstateClient>();
+        //this.AddSingleton<IEstateClient, EstateClient>();
+
         this.AddSingleton<ITransactionProcessorClient, TransactionProcessorClient>();
 
-        this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
+        //this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
+        Func<String, String> resolver(IServiceProvider container) => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; };
+        Func<String, String> resolver1() => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; };
 
+        this.AddSingleton<Func<String, String>>(resolver);
+        
         SocketsHttpHandler httpMessageHandler = new SocketsHttpHandler {
                                                                            SslOptions = {
                                                                                             RemoteCertificateValidationCallback = (sender,
@@ -36,6 +41,8 @@ public class ClientRegistry : ServiceRegistry
 
         HttpClient httpClient = new(httpMessageHandler);
         this.AddSingleton(httpClient);
+
+        this.AddSingleton<IEstateClient>(new EstateClient(resolver1(), httpClient, 2));
     }
 
     #endregion

@@ -1,12 +1,10 @@
-﻿namespace FileProcessor.Common
+﻿using FileProcessor.Models;
+
+namespace FileProcessor.Common
 {
     using System.Collections.Generic;
     using System.Linq;
     using DataTransferObjects.Responses;
-    using FIleProcessor.Models;
-    using FileDetails = FIleProcessor.Models.FileDetails;
-    using FileImportLog = FIleProcessor.Models.FileImportLog;
-    using FileLine = FIleProcessor.Models.FileLine;
     using FileImportLogResponse = DataTransferObjects.Responses.FileImportLog;
     using FileDetailsResponse = DataTransferObjects.Responses.FileDetails;
     using FileLineResponse = DataTransferObjects.Responses.FileLine;
@@ -24,11 +22,11 @@
         /// </summary>
         /// <param name="fileImportLogs">The file import logs.</param>
         /// <returns></returns>
-        public FileImportLogList ConvertFrom(List<FileImportLog> fileImportLogs)
+        public FileImportLogList ConvertFrom(List<Models.FileImportLog> fileImportLogs)
         {
             FileImportLogList result = new FileImportLogList();
             result.FileImportLogs = new List<FileImportLogResponse>();
-            foreach (FileImportLog fileImportLog in fileImportLogs)
+            foreach (Models.FileImportLog fileImportLog in fileImportLogs)
             {
                 result.FileImportLogs.Add(this.ConvertFrom(fileImportLog));
             }
@@ -41,7 +39,7 @@
         /// </summary>
         /// <param name="fileImportLog">The file import log.</param>
         /// <returns></returns>
-        public FileImportLogResponse ConvertFrom(FileImportLog fileImportLog)
+        public FileImportLogResponse ConvertFrom(Models.FileImportLog fileImportLog)
         {
             FileImportLogResponse fileImportLogResponse = new FileImportLogResponse
                                                           {
@@ -63,7 +61,7 @@
             return fileImportLogResponse;
         }
 
-        public FileDetailsResponse ConvertFrom(FileDetails fileDetails)
+        public FileDetailsResponse ConvertFrom(Models.FileDetails fileDetails)
         {
             FileDetailsResponse fileDetailsResponse = new FileDetailsResponse
                                                       {
@@ -81,7 +79,7 @@
                 FileLines = new List<FileLineResponse>()
             };
 
-            foreach (FileLine fileDetailsFileLine in fileDetails.FileLines)
+            foreach (Models.FileLine fileDetailsFileLine in fileDetails.FileLines)
             {
                 fileDetailsResponse.FileLines.Add(new FileLineResponse
                                                   {

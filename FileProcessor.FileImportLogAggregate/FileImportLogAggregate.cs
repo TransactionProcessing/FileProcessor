@@ -1,4 +1,5 @@
 ﻿using System;
+using FileProcessor.Models;
 
 namespace FileProcessor.FileImportLogAggregate
 {
@@ -6,7 +7,7 @@ namespace FileProcessor.FileImportLogAggregate
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using FileImportLog.DomainEvents;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
@@ -63,9 +64,9 @@ namespace FileProcessor.FileImportLogAggregate
                                 });
         }
 
-        public static FileImportLog GetFileImportLog(this FileImportLogAggregate aggregate)
+        public static Models.FileImportLog GetFileImportLog(this FileImportLogAggregate aggregate)
         {
-            return new FileImportLog
+            return new Models.FileImportLog
                    {
                        EstateId = aggregate.EstateId,
                        FileImportLogId = aggregate.AggregateId,
