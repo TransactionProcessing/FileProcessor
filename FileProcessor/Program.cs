@@ -55,49 +55,8 @@ namespace FileProcessor
                                                      webBuilder.UseConfiguration(config);
                                                      webBuilder.UseKestrel();
                                                  });
-            //hostBuilder.ConfigureServices(services =>
-            //                              {
-            //                                  services.AddHostedService<FileProcessingWorker>(provider =>
-            //                                                                                  {
-            //                                                                                      IFileProcessorManager fileProcessorManager =
-            //                                                                                          provider.GetRequiredService<IFileProcessorManager>();
-            //                                                                                      IMediator mediator = provider.GetRequiredService<IMediator>();
-            //                                                                                      IFileSystem fileSystem = provider.GetRequiredService<IFileSystem>();
-            //                                                                                      FileProcessingWorker worker =
-            //                                                                                          new FileProcessingWorker(fileProcessorManager,
-            //                                                                                              mediator,
-            //                                                                                              fileSystem);
-            //                                                                                      worker.TraceGenerated += Worker_TraceGenerated;
-            //                                                                                      return worker;
-            //                                                                                  });
-            //                              });
 
             return hostBuilder;
-        }
-
-        private static void Worker_TraceGenerated(string trace, LogLevel logLevel)
-        {
-            switch (logLevel)
-            {
-                case LogLevel.Trace:
-                    Logger.LogTrace(trace);
-                    break;
-                case LogLevel.Debug:
-                    Logger.LogDebug(trace);
-                    break;
-                case LogLevel.Information:
-                    Logger.LogInformation(trace);
-                    break;
-                case LogLevel.Warning:
-                    Logger.LogWarning(trace);
-                    break;
-                case LogLevel.Error:
-                    Logger.LogError(new Exception(trace));
-                    break;
-                case LogLevel.Critical:
-                    Logger.LogCritical(new Exception(trace));
-                    break;
-            }
         }
     }
 }

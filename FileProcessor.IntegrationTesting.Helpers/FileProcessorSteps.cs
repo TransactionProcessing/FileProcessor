@@ -51,15 +51,12 @@ public class FileProcessorSteps
         return fileId;
     }
 
-    public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(String accessToken, String filePath, Byte[] fileData, UploadFileRequest uploadFileRequest)
-    {
-        Should.Throw<Exception>(async () => {
-                                    await this.FileProcessorClient.UploadFile(accessToken,
-                                                                              Path.GetFileName(filePath),
-                                                                              fileData,
-                                                                              uploadFileRequest,
-                                                                              CancellationToken.None);
-                                });
+    public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(String accessToken,
+                                                                                                            String filePath,
+                                                                                                            Byte[] fileData,
+                                                                                                            UploadFileRequest uploadFileRequest) {
+        var result = await this.FileProcessorClient.UploadFile(accessToken, Path.GetFileName(filePath), fileData, uploadFileRequest, CancellationToken.None);
+        result.IsFailed.ShouldBeTrue();
     }
 
     public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(String accessToken, String startDateString, String endDateString, String estateName, List<EstateDetails1> estateDetailsList, List<(DateTime, Int32)> expectedImportLogs)

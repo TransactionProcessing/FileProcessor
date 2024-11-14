@@ -8,21 +8,21 @@ namespace FileProcessor.Tests
 {
     using Common;
     using DataTransferObjects.Responses;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Shouldly;
     using Testing;
     using Xunit;
-    using FileDetails = FIleProcessor.Models.FileDetails;
-    using FileImportLog = FIleProcessor.Models.FileImportLog;
-    using FileLine = FIleProcessor.Models.FileLine;
+    using FileDetails = FileProcessor.Models.FileDetails;
+    using FileImportLog = FileProcessor.Models.FileImportLog;
+    using FileLine = FileProcessor.Models.FileLine;
 
     public class ModelFactoryTests
     {
         [Fact]
         public void ModelFactory_ConvertFrom_FileImportLogList_IsConverted()
         {
-            List<FIleProcessor.Models.FileImportLog> importLogs = TestData.FileImportLogModels;
+            List<FileProcessor.Models.FileImportLog> importLogs = TestData.FileImportLogModels;
 
             ModelFactory modelFactory = new ModelFactory();
 
@@ -34,7 +34,7 @@ namespace FileProcessor.Tests
         [Fact]
         public void ModelFactory_ConvertFrom_FileImportLogList_WithNoFiles_IsConverted()
         {
-            List<FIleProcessor.Models.FileImportLog> importLogs = TestData.FileImportLogModels;
+            List<FileProcessor.Models.FileImportLog> importLogs = TestData.FileImportLogModels;
 
             foreach (FileImportLog fileImportLog in importLogs)
             {
@@ -51,7 +51,7 @@ namespace FileProcessor.Tests
         [Fact]
         public void ModelFactory_ConvertFrom_FileImportLog_IsConverted()
         {
-            FIleProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
+            FileProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
 
             ModelFactory modelFactory = new ModelFactory();
 
@@ -63,7 +63,7 @@ namespace FileProcessor.Tests
         [Fact]
         public void ModelFactory_ConvertFrom_FileImportLog_WithNoFiles_IsConverted()
         {
-            FIleProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
+            FileProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
             importLog.Files = new List<ImportLogFile>();
 
             ModelFactory modelFactory = new ModelFactory();
@@ -130,7 +130,7 @@ namespace FileProcessor.Tests
             }
         }
 
-        private void VerifyFileImportLogList(List<FIleProcessor.Models.FileImportLog> source, FileImportLogList fileImportLogList)
+        private void VerifyFileImportLogList(List<FileProcessor.Models.FileImportLog> source, FileImportLogList fileImportLogList)
         {
             fileImportLogList.ShouldNotBeNull();
             fileImportLogList.FileImportLogs.ShouldNotBeNull();
@@ -143,7 +143,7 @@ namespace FileProcessor.Tests
             }
         }
 
-        private void VerifyFileImportLog(FIleProcessor.Models.FileImportLog source,
+        private void VerifyFileImportLog(FileProcessor.Models.FileImportLog source,
                                      DataTransferObjects.Responses.FileImportLog fileImportLog)
         {
             fileImportLog.ShouldNotBeNull();

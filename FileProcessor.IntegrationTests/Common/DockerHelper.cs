@@ -115,7 +115,7 @@ namespace FileProcessor.IntegrationTests.Common
                                                                            }
                                                            };
             HttpClient httpClient = new HttpClient(httpMessageHandler);
-            this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient);
+            this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient, 2);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);

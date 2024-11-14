@@ -4,7 +4,7 @@ using Xunit;
 namespace FileProcessor.FileAggregate.Tests
 {
     using System.Linq;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Shared.Exceptions;
     using Shouldly;
     using Testing;

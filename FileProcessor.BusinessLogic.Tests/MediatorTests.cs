@@ -24,9 +24,9 @@ namespace FileProcessor.BusinessLogic.Tests
 
         public MediatorTests()
         {
-            this.Requests.Add(TestData.UploadFileRequest);
-            this.Requests.Add(TestData.ProcessUploadedFileRequest);
-            this.Requests.Add(TestData.ProcessTransactionForFileLineRequest);
+            this.Requests.Add(TestData.UploadFileCommand);
+            this.Requests.Add(TestData.ProcessUploadedFileCommand);
+            this.Requests.Add(TestData.ProcessTransactionForFileLineCommand);
         }
 
         [Fact]

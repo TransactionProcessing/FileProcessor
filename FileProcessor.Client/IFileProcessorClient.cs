@@ -1,4 +1,6 @@
-﻿namespace FileProcessor.Client
+﻿using SimpleResults;
+
+namespace FileProcessor.Client
 {
     using System;
     using System.Threading;
@@ -21,7 +23,7 @@
         /// <param name="fileId">The file identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<FileDetails> GetFile(String accessToken,
+        Task<Result<FileDetails>> GetFile(String accessToken,
                                   Guid estateId,
                                   Guid fileId,
                                   CancellationToken cancellationToken);
@@ -35,7 +37,7 @@
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<FileImportLog> GetFileImportLog(String accessToken,
+        Task<Result<FileImportLog>> GetFileImportLog(String accessToken,
                                              Guid fileImportLogId,
                                              Guid estateId,
                                              Guid? merchantId,
@@ -51,7 +53,7 @@
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<FileImportLogList> GetFileImportLogs(String accessToken,
+        Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
                                                   Guid estateId,
                                                   DateTime startDateTime,
                                                   DateTime endDateTime,
@@ -67,7 +69,7 @@
         /// <param name="uploadFileRequest">The upload file request.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<Guid> UploadFile(String accessToken,
+        Task<Result<Guid>> UploadFile(String accessToken,
                               String fileName,
                               Byte[] fileData,
                               UploadFileRequest uploadFileRequest,

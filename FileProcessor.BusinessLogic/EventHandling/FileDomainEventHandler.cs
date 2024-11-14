@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.EventHandling
 {
@@ -59,10 +60,10 @@ namespace FileProcessor.BusinessLogic.EventHandling
         /// </summary>
         /// <param name="domainEvent">The domain event.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        public async Task Handle(IDomainEvent domainEvent,
-                                 CancellationToken cancellationToken)
+        public async Task<Result> Handle(IDomainEvent domainEvent,
+                                         CancellationToken cancellationToken)
         {
-            await this.HandleSpecificDomainEvent((dynamic)domainEvent, cancellationToken);
+            return await this.HandleSpecificDomainEvent((dynamic)domainEvent, cancellationToken);
         }
 
         //private static Int32 TransactionNumber = 0;
@@ -72,12 +73,12 @@ namespace FileProcessor.BusinessLogic.EventHandling
         /// </summary>
         /// <param name="domainEvent">The domain event.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        private async Task HandleSpecificDomainEvent(FileLineAddedEvent domainEvent,
+        private async Task<Result> HandleSpecificDomainEvent(FileLineAddedEvent domainEvent,
                                                     CancellationToken cancellationToken)
         {
-            ProcessTransactionForFileLineRequest request = new ProcessTransactionForFileLineRequest(domainEvent.FileId, domainEvent.LineNumber, domainEvent.FileLine);
+            FileCommands.ProcessTransactionForFileLineCommand command = new (domainEvent.FileId, domainEvent.LineNumber, domainEvent.FileLine);
 
-            await this.Mediator.Send(request, cancellationToken);
+            return await this.Mediator.Send(command, cancellationToken);
         }
 
         /// <summary>
@@ -85,10 +86,10 @@ namespace FileProcessor.BusinessLogic.EventHandling
         /// </summary>
         /// <param name="domainEvent">The domain event.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        private async Task HandleSpecificDomainEvent(FileAddedToImportLogEvent domainEvent,
-                                                     CancellationToken cancellationToken)
+        private async Task<Result> HandleSpecificDomainEvent(FileAddedToImportLogEvent domainEvent,
+                                                             CancellationToken cancellationToken)
         {
-            ProcessUploadedFileRequest request = new ProcessUploadedFileRequest(domainEvent.EstateId,
+            FileCommands.ProcessUploadedFileCommand command = new (domainEvent.EstateId,
                                                                                 domainEvent.MerchantId,
                                                                                 domainEvent.FileImportLogId,
                                                                                 domainEvent.FileId,
@@ -97,7 +98,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
                                                                                 domainEvent.FileProfileId,
                                                                                 domainEvent.FileUploadedDateTime);
 
-            await this.Mediator.Send(request, cancellationToken);
+            return await this.Mediator.Send(command, cancellationToken);
         }
 
         #endregion

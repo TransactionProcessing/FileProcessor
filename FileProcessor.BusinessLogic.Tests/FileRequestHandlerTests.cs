@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FileProcessor.BusinessLogic.Managers;
 using MediatR;
 
 namespace FileProcessor.BusinessLogic.Tests
@@ -17,44 +18,32 @@ namespace FileProcessor.BusinessLogic.Tests
     {
         private Mock<IFileProcessorDomainService> FileProcessorDomainService;
         private FileRequestHandler FileRequestHandler;
+        private Mock<IFileProcessorManager> Manager;
 
         public FileRequestHandlerTests() {
             this.FileProcessorDomainService = new Mock<IFileProcessorDomainService>();
-            this.FileRequestHandler = new FileRequestHandler(this.FileProcessorDomainService.Object);
+            this.Manager = new Mock<IFileProcessorManager>();
+            this.FileRequestHandler = new FileRequestHandler(this.FileProcessorDomainService.Object, this.Manager.Object);
         }
 
         public async Task FileRequestHandler_HandleUploadFileRequest_RequestHandled() {
             Should.NotThrow(async () => {
-                                await this.FileRequestHandler.Handle(TestData.UploadFileRequest, CancellationToken.None);
+                                await this.FileRequestHandler.Handle(TestData.UploadFileCommand, CancellationToken.None);
                             });
         }
 
         public async Task FileRequestHandler_ProcessUploadedFileRequest_RequestHandled()
         {
             Should.NotThrow(async () => {
-                                await this.FileRequestHandler.Handle(TestData.ProcessUploadedFileRequest, CancellationToken.None);
+                                await this.FileRequestHandler.Handle(TestData.ProcessUploadedFileCommand, CancellationToken.None);
                             });
         }
-
-        //public async Task FileRequestHandler_SafaricomTopupRequest_RequestHandled()
-        //{
-        //    Should.NotThrow(async () => {
-        //                        await this.FileRequestHandler.Handle(TestData.SafaricomTopupRequest, CancellationToken.None);
-        //                    });
-        //}
 
         public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_RequestHandled()
         {
             Should.NotThrow(async () => {
-                                await this.FileRequestHandler.Handle(TestData.ProcessTransactionForFileLineRequest, CancellationToken.None);
+                                await this.FileRequestHandler.Handle(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
                             });
         }
-
-        //public async Task FileRequestHandler_VoucherRequest_RequestHandled()
-        //{
-        //    Should.NotThrow(async () => {
-        //                        await this.FileRequestHandler.Handle(TestData.VoucherRequest, CancellationToken.None);
-        //                    });
-        //}
     }
 }

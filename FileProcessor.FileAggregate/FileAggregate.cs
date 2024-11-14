@@ -1,4 +1,5 @@
 ﻿using System;
+using FileProcessor.Models;
 
 namespace FileProcessor.FileAggregate
 {
@@ -7,7 +8,7 @@ namespace FileProcessor.FileAggregate
     using System.Linq;
     using System.Runtime.InteropServices.ComTypes;
     using File.DomainEvents;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
     using Shared.Exceptions;

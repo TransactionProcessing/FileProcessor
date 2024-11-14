@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Services
 {
@@ -10,12 +11,12 @@ namespace FileProcessor.BusinessLogic.Services
 
     public interface IFileProcessorDomainService
     {
-        Task<Guid> UploadFile(UploadFileRequest request, CancellationToken cancellationToken);
+        Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command, CancellationToken cancellationToken);
 
-        Task ProcessUploadedFile(ProcessUploadedFileRequest request,
-                                 CancellationToken cancellationToken);
+        Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
+                                         CancellationToken cancellationToken);
         
-        Task ProcessTransactionForFileLine(ProcessTransactionForFileLineRequest request,
+        Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                  CancellationToken cancellationToken);
     }
 }

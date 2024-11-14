@@ -4,7 +4,7 @@ using Xunit;
 namespace FileProcessor.FileImportLogAggregate.Tests
 {
     using System.Linq;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Shouldly;
     using Testing;
 

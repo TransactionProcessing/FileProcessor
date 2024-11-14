@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Linq;
 using BusinessLogic.FileFormatHandlers;
-using FIleProcessor.Models;
+using FileProcessor.Models;
 using Lamar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

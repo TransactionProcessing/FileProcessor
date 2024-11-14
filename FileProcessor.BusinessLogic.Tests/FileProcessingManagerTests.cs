@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FileProcessor.Models;
+using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Tests
 {
@@ -11,7 +13,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using EstateManagement.Database.Contexts;
     using EstateManagement.Database.Entities;
     using FileAggregate;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using Managers;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -23,8 +25,8 @@ namespace FileProcessor.BusinessLogic.Tests
     using Shouldly;
     using Testing;
     using Xunit;
-    using FileImportLog = FIleProcessor.Models.FileImportLog;
-    using FileLine = FIleProcessor.Models.FileLine;
+    using FileImportLog = FileProcessor.Models.FileImportLog;
+    using FileLine = FileProcessor.Models.FileLine;
 
     public class FileProcessingManagerTests
     {
@@ -40,7 +42,8 @@ namespace FileProcessor.BusinessLogic.Tests
 
             var allFileProfiles = await manager.GetAllFileProfiles(CancellationToken.None);
             allFileProfiles.ShouldNotBeNull();
-            allFileProfiles.ShouldNotBeEmpty();
+            allFileProfiles.IsSuccess.ShouldBeTrue();
+            allFileProfiles.Data.ShouldNotBeEmpty();
         }
 
         [Fact]
@@ -55,7 +58,8 @@ namespace FileProcessor.BusinessLogic.Tests
 
             var fileProfile = await manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
             fileProfile.ShouldNotBeNull();
-            fileProfile.FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
+            fileProfile.IsSuccess.ShouldBeTrue();
+            fileProfile.Data.FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
         }
 
         [Fact]
@@ -161,15 +165,16 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
-             var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+             Result<FileDetails> fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
+             fileDetails.IsSuccess.ShouldBeTrue();
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-             fileDetails.MerchantName.ShouldBeNull();
-             fileDetails.UserEmailAddress.ShouldBeNull();
-             fileDetails.FileProfileName.ShouldBeNull();
+             fileDetails.Data.MerchantName.ShouldBeNull();
+             fileDetails.Data.UserEmailAddress.ShouldBeNull();
+             fileDetails.Data.FileProfileName.ShouldBeNull();
         }
 
         [Fact]
@@ -191,13 +196,14 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            fileDetails.IsSuccess.ShouldBeTrue();
 
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.MerchantName.ShouldBe(TestData.MerchantName);
+            fileDetails.Data.MerchantName.ShouldBe(TestData.MerchantName);
         }
 
         [Fact]
@@ -218,13 +224,13 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-
+            fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
+            fileDetails.Data.UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
         }
 
         [Fact]
@@ -254,13 +260,13 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetFileAggregateWithLines);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
             var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-
+            fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.FileProfileName.ShouldBe(TestData.SafaricomProfileName);
+            fileDetails.Data.FileProfileName.ShouldBe(TestData.SafaricomProfileName);
         }
 
         [Fact]
@@ -274,39 +280,38 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.GetEmptyFileAggregate);
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
-            Should.Throw<NotFoundException>(async () =>
-                                            {
-                                                await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-                                            });
+            var result = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+                                            result.IsFailed.ShouldBeTrue();
+                                            result.Status.ShouldBe(ResultStatus.NotFound);
         }
 
 
-        private void VerifyFile(FileAggregate source, FileDetails fileDetails)
+        private void VerifyFile(FileAggregate source, Result<FileDetails> fileDetails)
         {
             var fileModel = source.GetFile();
 
-            fileDetails.FileId.ShouldBe(fileModel.FileId);
-            fileDetails.FileImportLogId.ShouldBe(fileModel.FileImportLogId);
-            fileDetails.FileLocation.ShouldBe(fileModel.FileLocation);
-            fileDetails.FileProfileId.ShouldBe(fileModel.FileProfileId);
-            fileDetails.MerchantId.ShouldBe(fileModel.MerchantId);
-            fileDetails.ProcessingCompleted.ShouldBe(fileModel.ProcessingCompleted);
-            fileDetails.UserId.ShouldBe(fileModel.UserId);
-            fileDetails.EstateId.ShouldBe(fileModel.EstateId);
+            fileDetails.Data.FileId.ShouldBe(fileModel.FileId);
+            fileDetails.Data.FileImportLogId.ShouldBe(fileModel.FileImportLogId);
+            fileDetails.Data.FileLocation.ShouldBe(fileModel.FileLocation);
+            fileDetails.Data.FileProfileId.ShouldBe(fileModel.FileProfileId);
+            fileDetails.Data.MerchantId.ShouldBe(fileModel.MerchantId);
+            fileDetails.Data.ProcessingCompleted.ShouldBe(fileModel.ProcessingCompleted);
+            fileDetails.Data.UserId.ShouldBe(fileModel.UserId);
+            fileDetails.Data.EstateId.ShouldBe(fileModel.EstateId);
 
-            fileDetails.ProcessingSummary.ShouldNotBeNull();
-            fileDetails.ProcessingSummary.FailedLines.ShouldBe(fileModel.ProcessingSummary.FailedLines);
-            fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(fileModel.ProcessingSummary.IgnoredLines);
-            fileDetails.ProcessingSummary.NotProcessedLines.ShouldBe(fileModel.ProcessingSummary.NotProcessedLines);
-            fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(fileModel.ProcessingSummary.SuccessfullyProcessedLines);
-            fileDetails.ProcessingSummary.TotalLines.ShouldBe(fileModel.ProcessingSummary.TotalLines);
+            fileDetails.Data.ProcessingSummary.ShouldNotBeNull();
+            fileDetails.Data.ProcessingSummary.FailedLines.ShouldBe(fileModel.ProcessingSummary.FailedLines);
+            fileDetails.Data.ProcessingSummary.IgnoredLines.ShouldBe(fileModel.ProcessingSummary.IgnoredLines);
+            fileDetails.Data.ProcessingSummary.NotProcessedLines.ShouldBe(fileModel.ProcessingSummary.NotProcessedLines);
+            fileDetails.Data.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(fileModel.ProcessingSummary.SuccessfullyProcessedLines);
+            fileDetails.Data.ProcessingSummary.TotalLines.ShouldBe(fileModel.ProcessingSummary.TotalLines);
 
             foreach (FileLine fileModelFileLine in fileModel.FileLines)
             {
-                FileLine? fileLineToVerify = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == fileModelFileLine.LineNumber);
+                FileLine? fileLineToVerify = fileDetails.Data.FileLines.SingleOrDefault(f => f.LineNumber == fileModelFileLine.LineNumber);
                 fileLineToVerify.ShouldNotBeNull();
                 fileLineToVerify.LineData.ShouldBe(fileModelFileLine.LineData);
                 fileLineToVerify.TransactionId.ShouldBe(fileModelFileLine.TransactionId);
@@ -314,25 +319,24 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
 
-        private void VerifyImportLogs(List<EstateManagement.Database.Entities.FileImportLog> source,  List<FIleProcessor.Models.FileImportLog> importLogs, Guid? merchantId = null)
+        private void VerifyImportLogs(List<EstateManagement.Database.Entities.FileImportLog> source,  Result<List<FileProcessor.Models.FileImportLog>> importLogs, Guid? merchantId = null)
         {
-            importLogs.ShouldNotBeNull();
-            importLogs.ShouldNotBeEmpty();
-            importLogs.Count.ShouldBe(TestData.FileImportLogs.Count);
+            importLogs.Data.ShouldNotBeNull();
+            importLogs.Data.ShouldNotBeEmpty();
+            importLogs.Data.Count.ShouldBe(TestData.FileImportLogs.Count);
             foreach (EstateManagement.Database.Entities.FileImportLog fileImportLog in source)
             {
-                var importLog = importLogs.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
+                var importLog = importLogs.Data.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
 
-        private void VerifyImportLog(EstateManagement.Database.Entities.FileImportLog source, FIleProcessor.Models.FileImportLog importLog, Guid? merchantId = null)
+        private void VerifyImportLog(EstateManagement.Database.Entities.FileImportLog source, Result<FileProcessor.Models.FileImportLog> importLog, Guid? merchantId = null)
         {
-            importLog.ShouldNotBeNull();
-            importLog.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
-            importLog.Files.Count.ShouldBe(importLog.Files.Count);
-
-            List<ImportLogFile> filesToVerify = importLog.Files;
+            importLog.Data.ShouldNotBeNull();
+            importLog.Data.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
+            
+            List<ImportLogFile> filesToVerify = importLog.Data.Files;
             if (merchantId.HasValue)
             {
                 filesToVerify = filesToVerify.Where(f => f.MerchantId == merchantId.Value).ToList();
@@ -340,7 +344,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             foreach (ImportLogFile importLogFile in filesToVerify)
             {
-                var file = importLog.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
+                var file = importLog.Data.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
                 file.ShouldNotBeNull();
                 file.MerchantId.ShouldBe(importLogFile.MerchantId);
                 file.FilePath.ShouldBe(importLogFile.FilePath);

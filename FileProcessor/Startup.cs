@@ -27,7 +27,7 @@ namespace FileProcessor
     using EventStore.Client;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
-    using FIleProcessor.Models;
+    using FileProcessor.Models;
     using HealthChecks.UI.Client;
     using JasperFx.Core;
     using Lamar;

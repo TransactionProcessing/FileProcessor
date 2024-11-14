@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using EstateManagement.Database.Entities;
-    using FileImportLogModel = FIleProcessor.Models.FileImportLog;
+    using FileImportLogModel = FileProcessor.Models.FileImportLog;
 
     /// <summary>
     /// 

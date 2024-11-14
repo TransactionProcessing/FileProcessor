@@ -1,15 +1,21 @@
-﻿namespace FileProcessor.Controllers
+﻿using FileProcessor.BusinessLogic.Requests;
+using FileProcessor.DataTransferObjects.Responses;
+using MediatR;
+using Shared.EventStore.Aggregate;
+using SimpleResults;
+
+namespace FileProcessor.Controllers
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
-    using BusinessLogic.Managers;
     using Common;
-    using FIleProcessor.Models;
+    using Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
     /// <summary>
     /// 
@@ -22,11 +28,8 @@
     public class FileImportLogController : ControllerBase
     {
         #region Fields
-
-        /// <summary>
-        /// The manager
-        /// </summary>
-        private readonly IFileProcessorManager Manager;
+        
+        private readonly IMediator Mediator;
 
         /// <summary>
         /// The model factory
@@ -42,10 +45,10 @@
         /// </summary>
         /// <param name="manager">The manager.</param>
         /// <param name="modelFactory">The model factory.</param>
-        public FileImportLogController(IFileProcessorManager manager,
-                                       IModelFactory modelFactory)
+        public FileImportLogController(IMediator mediator,
+                                           IModelFactory modelFactory)
         {
-            this.Manager = manager;
+            this.Mediator = mediator;
             this.ModelFactory = modelFactory;
         }
 
@@ -67,11 +70,17 @@
                                                        [FromQuery] DateTime startDateTime,
                                                        [FromQuery] DateTime endDateTime,
                                                        [FromQuery] Guid? merchantId,
-                                                       CancellationToken cancellationToken)
-        {
-            List<FileImportLog> fileImportLogs = await this.Manager.GetFileImportLogs(estateId, startDateTime, endDateTime, merchantId, cancellationToken);
+                                                       CancellationToken cancellationToken) {
+            FileQueries.GetImportLogsQuery query = new(estateId, startDateTime, endDateTime, merchantId);
 
-            return this.Ok(this.ModelFactory.ConvertFrom(fileImportLogs));
+            Result<List<FileImportLog>> result = await this.Mediator.Send(query, cancellationToken);
+
+            if (result.IsFailed)
+                return ResultHelpers.CreateFailure(result).ToActionResultX();
+
+            FileImportLogList response = this.ModelFactory.ConvertFrom(result.Data);
+
+            return Result.Success(response).ToActionResultX();
         }
 
         [HttpGet]
@@ -81,18 +90,25 @@
                                                            [FromQuery] Guid? merchantId,
                                                            CancellationToken cancellationToken)
         {
-            FileImportLog fileImportLog = await this.Manager.GetFileImportLog(fileImportLogId, estateId, merchantId, cancellationToken);
+            FileQueries.GetImportLogQuery query = new(fileImportLogId, estateId, merchantId);
 
-            return this.Ok(this.ModelFactory.ConvertFrom(fileImportLog));
+            Result<FileImportLog> result = await this.Mediator.Send(query, cancellationToken);
+
+            if (result.IsFailed)
+                return ResultHelpers.CreateFailure(result).ToActionResultX();
+
+            DataTransferObjects.Responses.FileImportLog response = this.ModelFactory.ConvertFrom(result.Data);
+
+            return Result.Success(response).ToActionResultX();
         }
 
         #endregion
 
-            #region Others
+        #region Others
 
-            /// <summary>
-            /// The controller name
-            /// </summary>
+        /// <summary>
+        /// The controller name
+        /// </summary>
         public const String ControllerName = "fileImportLogs";
 
         /// <summary>

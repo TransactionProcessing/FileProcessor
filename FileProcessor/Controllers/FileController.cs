@@ -1,24 +1,23 @@
-﻿namespace FileProcessor.Controllers
+﻿using FileProcessor.BusinessLogic.Requests;
+using Shared.EventStore.Aggregate;
+using SimpleResults;
+
+namespace FileProcessor.Controllers
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
-    using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
-    using BusinessLogic.Managers;
     using Common;
     using DataTransferObjects;
-    using FIleProcessor.Models;
+    using Models;
     using MediatR;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Newtonsoft.Json;
-    using NLog;
-    using SecurityService.Client;
     using Shared.General;
 
     /// <summary>
@@ -38,10 +37,6 @@
         /// </summary>
         private readonly IMediator Mediator;
 
-        /// <summary>
-        /// The manager
-        /// </summary>
-        private readonly IFileProcessorManager Manager;
 
         private readonly IModelFactory ModelFactory;
 
@@ -54,10 +49,9 @@
         /// </summary>
         /// <param name="mediator">The mediator.</param>
         /// <param name="manager">The manager.</param>
-        public FileController(IMediator mediator, IFileProcessorManager manager, IModelFactory modelFactory)
+        public FileController(IMediator mediator, IModelFactory modelFactory)
         {
             this.Mediator = mediator;
-            this.Manager = manager;
             this.ModelFactory = modelFactory;
         }
 
@@ -98,16 +92,16 @@
             }
 
             // Create a command with the file in it
-            BusinessLogic.Requests.UploadFileRequest uploadFileRequest =
-                new BusinessLogic.Requests.UploadFileRequest(request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId, request.UploadDateTime);
+            FileCommands.UploadFileCommand command =
+                new (request.EstateId, request.MerchantId, request.UserId, fullPath, request.FileProfileId, request.UploadDateTime);
 
-            Guid fileId = await this.Mediator.Send(uploadFileRequest, cancellationToken);
+            Result<Guid> result= await this.Mediator.Send(command, cancellationToken);
             
             Shared.Logger.Logger.LogDebug($"Day is {request.UploadDateTime.Day}");
             Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
             Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
 
-            return this.Accepted(fileId);
+            return result.ToActionResultX();
         }
 
         /// <summary>
@@ -122,9 +116,18 @@
         public async Task<IActionResult> GetFile([FromRoute] Guid fileId,
                                                  [FromQuery] Guid estateId,
                                                  CancellationToken cancellationToken) {
-            FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
+            //FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
+            FileQueries.GetFileQuery query = new FileQueries.GetFileQuery(fileId, estateId);
 
-            return this.Ok(this.ModelFactory.ConvertFrom(fileDetailsModel));
+            Result<FileDetails> result = await this.Mediator.Send(query, cancellationToken);
+
+            if (result.IsFailed)
+                return ResultHelpers.CreateFailure(result).ToActionResultX();
+
+            var response = this.ModelFactory.ConvertFrom(result.Data);
+
+            return Result.Success(response).ToActionResultX();
+
         }
 
         #endregion

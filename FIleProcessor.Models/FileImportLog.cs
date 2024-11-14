@@ -1,4 +1,4 @@
-﻿namespace FIleProcessor.Models
+﻿namespace FileProcessor.Models
 {
     using System;
     using System.Collections.Generic;
