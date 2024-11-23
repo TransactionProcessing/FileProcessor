@@ -11,12 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2024.8.2-build125" />
+	  <PackageReference Include="EstateManagement.IntegrationTesting.Helpers" Version="2024.8.2-build128" />
 	  <PackageReference Include="EventStoreProjections" Version="2023.12.3" />
-	  <PackageReference Include="MessagingService.IntegrationTesting.Helpers" Version="2024.8.2-build64" />
+	  <PackageReference Include="MessagingService.IntegrationTesting.Helpers" Version="2024.8.2-build65" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
 	  <PackageReference Include="Ductus.FluentDocker" Version="2.10.59" />
-	  <PackageReference Include="EstateManagement.Client" Version="2024.8.2-build125" />
+	  <PackageReference Include="EstateManagement.Client" Version="2024.8.2-build128" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="1.0.1" />
@@ -24,13 +24,13 @@
 	  <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 	  <PackageReference Include="Reqnroll" Version="1.0.1" />
 	  <PackageReference Include="Reqnroll.NUnit" Version="1.0.1" />
-    <PackageReference Include="SecurityService.Client" Version="2024.5.1" />
-    <PackageReference Include="SecurityService.IntegrationTesting.Helpers" Version="2024.5.1" />
-	  <PackageReference Include="Shared" Version="2024.11.2" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="2024.11.2" />
+    <PackageReference Include="SecurityService.Client" Version="2024.88.2-build73" />
+    <PackageReference Include="SecurityService.IntegrationTesting.Helpers" Version="2024.88.2-build73" />
+	  <PackageReference Include="Shared" Version="2024.11.4" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2024.11.4" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
-	  <PackageReference Include="TransactionProcessor.Client" Version="2024.8.2-build118" />
-	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2024.8.2-build118" />
+	  <PackageReference Include="TransactionProcessor.Client" Version="2024.8.2-build119" />
+	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2024.8.2-build119" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

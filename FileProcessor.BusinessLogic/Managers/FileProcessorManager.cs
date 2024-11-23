@@ -1,4 +1,5 @@
 ﻿using FileProcessor.Models;
+using Shared.Results;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Managers

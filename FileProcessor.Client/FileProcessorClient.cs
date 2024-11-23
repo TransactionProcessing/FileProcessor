@@ -70,13 +70,13 @@
                 HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
 
                 // Process the response
-                Result<StringResult> result = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
                 ResponseData<FileDetails> responseData =
-                    JsonConvert.DeserializeObject<ResponseData<FileDetails>>(result.Data.StringData);
+                    JsonConvert.DeserializeObject<ResponseData<FileDetails>>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
                 response = responseData.Data;
@@ -122,13 +122,13 @@
                 HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
 
                 // Process the response
-                Result<StringResult> result = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
                 ResponseData<FileImportLog> responseData =
-                    JsonConvert.DeserializeObject<ResponseData<FileImportLog>>(result.Data.StringData);
+                    JsonConvert.DeserializeObject<ResponseData<FileImportLog>>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
                 response = responseData.Data;
@@ -178,12 +178,12 @@
                 HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
 
                 // Process the response
-                var result  = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<String> result  = await this.HandleResponseX(httpResponse, cancellationToken);
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
                 ResponseData<FileImportLogList> responseData =
-                    JsonConvert.DeserializeObject<ResponseData<FileImportLogList>>(result.Data.StringData);
+                    JsonConvert.DeserializeObject<ResponseData<FileImportLogList>>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
                 response = responseData.Data;
@@ -235,13 +235,13 @@
                 HttpResponseMessage httpResponse = await this.HttpClient.SendAsync(httpRequest, cancellationToken);
 
                 // Process the response
-                Result<StringResult> result = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
                 ResponseData<Guid> responseData =
-                    JsonConvert.DeserializeObject<ResponseData<Guid>>(result.Data.StringData);
+                    JsonConvert.DeserializeObject<ResponseData<Guid>>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
                 response = responseData.Data;

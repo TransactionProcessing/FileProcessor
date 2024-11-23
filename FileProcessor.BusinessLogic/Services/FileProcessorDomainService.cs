@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Metadata.Ecma335;
 using FileProcessor.Models;
+using Shared.Results;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Services;
@@ -40,7 +41,6 @@ using TransactionProcessor.DataTransferObjects;
 using FileDetails = FileProcessor.Models.FileDetails;
 using FileLine = FileProcessor.Models.FileLine;
 using MerchantResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantResponse;
-using ResultHelpers = Shared.EventStore.Aggregate.ResultHelpers;
 
 public class FileProcessorDomainService : IFileProcessorDomainService
 {
@@ -89,15 +89,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result<FileAggregate> fileAggregateResult =
                 DomainServiceHelper.HandleGetAggregateResult(getFileResult, fileId, isNotFoundError);
             if (fileAggregateResult.IsFailed)
-                return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(fileAggregateResult);
+                return ResultHelpers.CreateFailure(fileAggregateResult);
             FileAggregate fileAggregate = fileAggregateResult.Data;
             Result result = await action(fileAggregate);
             if (result.IsFailed)
-                return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(result);
+                return ResultHelpers.CreateFailure(result);
             Logger.LogWarning("About to save");
             Result saveResult = await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
             if (saveResult.IsFailed)
-                return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(saveResult);
+                return ResultHelpers.CreateFailure(saveResult);
             Logger.LogWarning("About to return success after save");
             return Result.Success();
         }
@@ -123,11 +123,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             FileImportLogAggregate fileImportLogAggregate = fileImportLogAggregateResult.Data;
             Result<T> result = await action(fileImportLogAggregate);
             if (result.IsFailed)
-                return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(result);
+                return ResultHelpers.CreateFailure(result);
 
             Result saveResult = await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
             if (saveResult.IsFailed)
-                return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(saveResult);
+                return ResultHelpers.CreateFailure(saveResult);
             return Result.Success(result.Data);
         }
         catch (Exception ex)
@@ -589,13 +589,13 @@ public static class DomainServiceHelper
 
         if (result.IsFailed && result.Status != ResultStatus.NotFound) {
             Logger.LogWarning("In here 1");
-            return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(result);
+            return ResultHelpers.CreateFailure(result);
         }
 
         if (result.Status == ResultStatus.NotFound && isNotFoundError)
         {
             Logger.LogWarning("In here 2");
-            return Shared.EventStore.Aggregate.ResultHelpers.CreateFailure(result);
+            return ResultHelpers.CreateFailure(result);
         }
 
         Logger.LogWarning("In here 3");

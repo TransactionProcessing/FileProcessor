@@ -2,6 +2,7 @@
 using FileProcessor.DataTransferObjects.Responses;
 using MediatR;
 using Shared.EventStore.Aggregate;
+using Shared.Results;
 using SimpleResults;
 
 namespace FileProcessor.Controllers
