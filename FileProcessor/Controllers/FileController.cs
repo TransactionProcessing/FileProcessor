@@ -1,5 +1,6 @@
 ﻿using FileProcessor.BusinessLogic.Requests;
 using Shared.EventStore.Aggregate;
+using Shared.Results;
 using SimpleResults;
 
 namespace FileProcessor.Controllers
