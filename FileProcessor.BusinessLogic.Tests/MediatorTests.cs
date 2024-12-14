@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FileProcessor.BusinessLogic.Managers;
 using Xunit;
 
 namespace FileProcessor.BusinessLogic.Tests
@@ -17,6 +18,8 @@ namespace FileProcessor.BusinessLogic.Tests
     using Lamar;
     using Microsoft.Extensions.DependencyInjection;
     using Services;
+    using Shared.DomainDrivenDesign.EventSourcing;
+    using Shared.EventStore.Aggregate;
 
     public class MediatorTests
     {
@@ -27,6 +30,9 @@ namespace FileProcessor.BusinessLogic.Tests
             this.Requests.Add(TestData.UploadFileCommand);
             this.Requests.Add(TestData.ProcessUploadedFileCommand);
             this.Requests.Add(TestData.ProcessTransactionForFileLineCommand);
+            this.Requests.Add(TestData.GetFileQuery);
+            this.Requests.Add(TestData.GetImportLogsQuery);
+            this.Requests.Add(TestData.GetImportLogQuery);
         }
 
         [Fact]
@@ -100,7 +106,23 @@ namespace FileProcessor.BusinessLogic.Tests
             services.AddSingleton<IHostEnvironment>(hostingEnvironment);
             services.AddSingleton<IConfiguration>(Startup.Configuration);
 
-            services.OverrideServices(s => { s.AddSingleton<IFileProcessorDomainService, DummyFileProcessorDomainService>(); });
+            services.OverrideServices(s => {
+                s.AddSingleton<IFileProcessorDomainService, DummyFileProcessorDomainService>();
+                s.AddSingleton<IFileProcessorManager, DummyFileProcessorManager>();
+            });
+        }
+    }
+
+    public record TestAggregate : Aggregate
+    {
+        public override void PlayEvent(IDomainEvent domainEvent)
+        {
+
+        }
+
+        protected override Object GetMetadata()
+        {
+            return new Object();
         }
     }
 }

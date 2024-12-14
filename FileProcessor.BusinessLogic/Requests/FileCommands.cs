@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using MediatR;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Requests;
 
+[ExcludeFromCodeCoverage]
 public record FileCommands {
     public record ProcessTransactionForFileLineCommand(Guid FileId, Int32 LineNumber, String FileLine)
         : IRequest<Result>;

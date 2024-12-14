@@ -38,6 +38,7 @@ namespace FileProcessor.Testing
         public static String FilePath = "home/txnproc/bulkfiles";
         public static String FilePathWithName = "home/txnproc/bulkfiles/Example.csv";
         public static String InProgressSafaricomFilePathWithName = "home/txnproc/bulkfiles/safaricom/inprogress/Example.csv";
+        public static String FailedSafaricomFilePathWithName = "home/txnproc/bulkfiles/safaricom/failed/Example.csv";
 
         public static Guid FileProfileId = Guid.Parse("D0D3A4E5-870E-42F6-AD0E-5E24252BC95E");
 
@@ -321,6 +322,7 @@ namespace FileProcessor.Testing
                 ["AppSettings:TemporaryFileLocation"] = "C:\\Temp",
                 ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
+                ["ConnectionStrings:EstateReportingReadModel"] = "EstateReportingReadModel",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
                 ["EventStoreSettings:ConnectionString"] = "esdb://127.0.0.1:2113",
                 ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
@@ -861,5 +863,12 @@ namespace FileProcessor.Testing
         public static FileCommands.ProcessTransactionForFileLineCommand ProcessTransactionForFileLineCommand =>
             new (TestData.FileId, TestData.LineNumber, TestData.FileLine);
 
+        public static FileQueries.GetFileQuery GetFileQuery => new(FileId, EstateId);
+
+        public static FileQueries.GetImportLogsQuery GetImportLogsQuery => new FileQueries.GetImportLogsQuery(EstateId, LogQueryStartDate, LogQueryEndDate, MerchantId);
+        public static FileQueries.GetImportLogQuery GetImportLogQuery => new FileQueries.GetImportLogQuery(FileImportLogId, EstateId, MerchantId);
+
+        public static DateTime LogQueryStartDate = new DateTime(2024, 12, 12);
+        public static DateTime LogQueryEndDate = new DateTime(2024, 12, 12);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using FileProcessor.Models;
 using MediatR;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Requests;
 
+[ExcludeFromCodeCoverage]
 public record FileQueries {
     public record GetFileQuery(Guid FileId, Guid EstateId) : IRequest<Result<FileDetails>>;
 

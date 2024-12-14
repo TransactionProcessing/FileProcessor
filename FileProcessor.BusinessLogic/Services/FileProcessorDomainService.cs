@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata.Ecma335;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata.Ecma335;
 using FileProcessor.Models;
 using Shared.Results;
 using SimpleResults;
@@ -346,11 +347,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(getContractsResult);
             }
 
-            var contracts = getContractsResult.Data;
+            List<ContractResponse> contracts = getContractsResult.Data;
 
             if (contracts.Any() == false)
             {
-                throw new NotFoundException($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
+                return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
             }
 
             ContractResponse? contract = null;
@@ -553,6 +554,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     private TokenResponse TokenResponse;
 
+    [ExcludeFromCodeCoverage]
     private async Task<TokenResponse> GetToken(CancellationToken cancellationToken)
     {
         // Get a token to talk to the estate service
