@@ -86,7 +86,8 @@ namespace FileProcessor.Common
                                                       LineData = fileDetailsFileLine.LineData,
                                                       LineNumber = fileDetailsFileLine.LineNumber,
                                                       ProcessingResult = this.TranslateProcessingResult(fileDetailsFileLine.ProcessingResult),
-                                                      TransactionId = fileDetailsFileLine.TransactionId
+                                                      TransactionId = fileDetailsFileLine.TransactionId,
+                                                      RejectionReason = fileDetailsFileLine.RejectedReason
                                                   });
             }
 

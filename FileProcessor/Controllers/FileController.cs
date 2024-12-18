@@ -125,7 +125,7 @@ namespace FileProcessor.Controllers
             if (result.IsFailed)
                 return ResultHelpers.CreateFailure(result).ToActionResultX();
 
-            var response = this.ModelFactory.ConvertFrom(result.Data);
+            DataTransferObjects.Responses.FileDetails response = this.ModelFactory.ConvertFrom(result.Data);
 
             return Result.Success(response).ToActionResultX();
 

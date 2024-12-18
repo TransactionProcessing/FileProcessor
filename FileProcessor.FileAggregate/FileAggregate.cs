@@ -87,6 +87,7 @@ namespace FileProcessor.FileAggregate
         
         public static void PlayEvent(this FileAggregate aggregate, FileLineProcessingFailedEvent domainEvent)
         {
+            
             FileLine fileLine = aggregate.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
             fileLine.ProcessingResult = ProcessingResult.Failed;
