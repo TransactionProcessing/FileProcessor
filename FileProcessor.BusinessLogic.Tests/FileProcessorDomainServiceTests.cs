@@ -468,6 +468,31 @@ public class FileProcessorDomainServiceTests
         this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
     }
 
+    [Fact]
+    public async Task FileRequestHandler_ProcessUploadedFileRequest_FileIsInProcessedFolder_RequestIsHandled()
+    {
+        this.FileProcessorManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.FileProfileSafaricom);
+
+        this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+        this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
+
+        this.FileSystem.AddFile(TestData.ProcessedSafaricomFilePathWithName, new MockFileData(String.Empty));
+
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/inprogress");
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/processed");
+        this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom/failed");
+
+        this.SecurityServiceClient.Setup(s => s.GetToken(It.IsAny<String>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+
+        this.EstateClient.Setup(e => e.GetOperators(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(TestData.OperatorList);
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
+        result.IsSuccess.ShouldBeTrue();
+
+        this.FileAggregateRepository.Verify(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        this.VerifyFileProcessing("home/txnproc/bulkfiles/safaricom/processed");
+    }
 
     [Theory]
     [InlineData("Safaricom")]

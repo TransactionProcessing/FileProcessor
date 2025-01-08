@@ -460,16 +460,27 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         inProgressFile = this.FileSystem.FileInfo.New(fileName);
 
         if (inProgressFile.Exists == false) {
-            // We also want to check the failed folder incase this is an event replay
+            // We also want to check the processed and failed folders incase this is an event replay
             IFileInfo failedFileInfo =
                 this.FileSystem.FileInfo.New($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+            IFileInfo processedFileInfo =
+                this.FileSystem.FileInfo.New($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
 
-            if (failedFileInfo.Exists == false) {
+            (Boolean, Boolean) fileStatus = (failedFileInfo.Exists, processedFileInfo.Exists);
+
+            IFileInfo fileInfo = fileStatus switch
+            {
+                (true, false) => failedFileInfo,
+                (false, true) => processedFileInfo,
+                _ => null
+            };
+
+            if (fileInfo == null) {
                 return Result.NotFound($"File {inProgressFile.FullName} not found");
             }
 
             // Overwrite the inprogress file info object with the file found in the failed folder
-            inProgressFile = failedFileInfo;
+            inProgressFile = fileInfo;
         }
 
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
@@ -499,10 +510,10 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Logger.LogInformation($"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
 
             // Move file now
-            inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
+            inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}", true);
         }
         else {
-            inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+            inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
         }
 
         return result;

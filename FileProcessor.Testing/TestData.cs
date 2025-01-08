@@ -39,6 +39,7 @@ namespace FileProcessor.Testing
         public static String FilePathWithName = "home/txnproc/bulkfiles/Example.csv";
         public static String InProgressSafaricomFilePathWithName = "home/txnproc/bulkfiles/safaricom/inprogress/Example.csv";
         public static String FailedSafaricomFilePathWithName = "home/txnproc/bulkfiles/safaricom/failed/Example.csv";
+        public static String ProcessedSafaricomFilePathWithName = "home/txnproc/bulkfiles/safaricom/processed/Example.csv";
 
         public static Guid FileProfileId = Guid.Parse("D0D3A4E5-870E-42F6-AD0E-5E24252BC95E");
 
