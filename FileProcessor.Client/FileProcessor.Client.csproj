@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClientProxyBase" Version="2024.11.4" />
+    <PackageReference Include="ClientProxyBase" Version="2025.1.2" />
+    <PackageReference Include="Shared.Results" Version="2025.1.2" />
   </ItemGroup>
 
   <ItemGroup>
