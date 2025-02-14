@@ -27,8 +27,8 @@
 	  <PackageReference Include="Shared" Version="2025.1.2" />
     <PackageReference Include="Shared.IntegrationTesting" Version="2025.1.2" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
-	  <PackageReference Include="TransactionProcessor.Client" Version="2025.1.5-build143" />
-	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2025.1.5-build143" />
+	  <PackageReference Include="TransactionProcessor.Client" Version="2025.1.5-build145" />
+	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2025.1.5-build145" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

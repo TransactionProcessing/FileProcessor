@@ -54,10 +54,7 @@ namespace FileProcessor.IntegrationTests.Common
             subscriptions.AddRange(MessagingService.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
             subscriptions.AddRange(TransactionProcessor.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
             subscriptions.AddRange(FileProcessor.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
-
-            // TODO: this needs moved to Estate Management nuget
-            subscriptions.Add(("$ce-FileImportLogAggregate", "Estate Management", 0));
-
+            
             foreach ((String streamName, String groupName, Int32 maxRetries) subscription in subscriptions)
             {
                 var x = subscription;
