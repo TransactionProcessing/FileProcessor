@@ -11,8 +11,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     using Requests;
     using Services;
     using FileProcessor.BusinessLogic.Managers;
-    using EstateManagement.Database.Entities;
-
+    
     public class FileRequestHandler : IRequestHandler<FileCommands.ProcessTransactionForFileLineCommand,Result>,
                                       IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>,
                                       IRequestHandler<FileCommands.UploadFileCommand, Result<Guid>>,

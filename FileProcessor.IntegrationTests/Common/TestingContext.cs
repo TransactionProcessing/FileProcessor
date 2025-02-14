@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TransactionProcessor.IntegrationTesting.Helpers;
 
 namespace FileProcessor.IntegrationTests.Common
 {
     using Shared.Logger;
     using Shouldly;
     using System.IO;
-    using EstateManagement.DataTransferObjects.Responses;
-    using EstateManagement.IntegrationTesting.Helpers;
     using IntegrationTesting.Helpers;
 
     public class ClientDetails

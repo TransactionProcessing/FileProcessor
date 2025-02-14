@@ -36,7 +36,7 @@ namespace FileProcessor.IntegrationTests.Common
             logger.Initialise(LogManager.GetLogger(scenarioName), scenarioName);
             LogManager.AddHiddenAssembly(typeof(NlogLogger).Assembly);
 
-            DockerServices dockerServices = DockerServices.EstateManagement | DockerServices.EventStore | DockerServices.FileProcessor | DockerServices.MessagingService |
+            DockerServices dockerServices = DockerServices.EventStore | DockerServices.FileProcessor | DockerServices.MessagingService |
                                             DockerServices.SecurityService | DockerServices.SqlServer | DockerServices.TestHost | DockerServices.TransactionProcessor |
                                             DockerServices.TestHost | DockerServices.CallbackHandler | DockerServices.TransactionProcessorAcl;
 

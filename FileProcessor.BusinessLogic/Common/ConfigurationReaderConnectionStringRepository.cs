@@ -10,7 +10,6 @@ namespace FileProcessor.BusinessLogic.Common
     using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using Microsoft.Data.SqlClient;
-    using MySqlConnector;
     using Shared.General;
     using Shared.Repositories;
 
@@ -50,10 +49,11 @@ namespace FileProcessor.BusinessLogic.Common
 
             if (databaseEngine == "MySql")
             {
-                builder = new MySqlConnectionStringBuilder(connectionString)
-                {
-                    Database = databaseName
-                };
+                // TODO:
+                //builder = new MySqlConnectionStringBuilder(connectionString)
+                //{
+                //    Database = databaseName
+                //};
             }
             else
             {

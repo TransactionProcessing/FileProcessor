@@ -1,6 +1,8 @@
 ﻿using FileProcessor.Models;
 using Shared.Results;
 using SimpleResults;
+using TransactionProcessor.Database.Contexts;
+using TransactionProcessor.Database.Entities;
 
 namespace FileProcessor.BusinessLogic.Managers
 {
@@ -11,8 +13,6 @@ namespace FileProcessor.BusinessLogic.Managers
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
-    using EstateManagement.Database.Contexts;
-    using EstateManagement.Database.Entities;
     using FileAggregate;
     using FileProcessor.Models;
     using Microsoft.EntityFrameworkCore;
@@ -91,8 +91,8 @@ namespace FileProcessor.BusinessLogic.Managers
         {
             EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
-            List<EstateManagement.Database.Entities.FileImportLog> importLogQuery =
-                await context.FileImportLogs.AsAsyncEnumerable().Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
+            List<TransactionProcessor.Database.Entities.FileImportLog> importLogQuery =
+                await context.FileImportLogs.Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                   .Join(context.Files,
@@ -109,7 +109,6 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                                     file,
                                                                                     merchant
                                                                                 })
-                                                  .AsAsyncEnumerable()
                                                   .Where(fi => importLogQuery.Select(f => f.FileImportLogId).Contains(fi.file.fileImportLogFile.FileImportLogId))
                                                   .ToListAsync(cancellationToken);
 
@@ -118,7 +117,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantId == merchant.MerchantId).ToList();
             }
 
-            List<(FileImportLogFile, File,Merchant)> entityData = new List<(FileImportLogFile, File, Merchant)>();
+            List<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> entityData = new List<(FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)>();
             foreach (var file in importLogFileQuery){
                 entityData.Add((file.file.fileImportLogFile, file.file.file, file.merchant));
             }
@@ -134,8 +133,8 @@ namespace FileProcessor.BusinessLogic.Managers
         {
             EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
-            EstateManagement.Database.Entities.FileImportLog importLogQuery =
-                await context.FileImportLogs.AsAsyncEnumerable().SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
+            TransactionProcessor.Database.Entities.FileImportLog importLogQuery =
+                await context.FileImportLogs.SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                                       .Join(context.Files,
@@ -152,7 +151,6 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                                                                                     file,
                                                                                                                                     merchant
                                                                                                                                 })
-                                                                      .AsAsyncEnumerable()
                                                                       .Where(fi => fi.file.fileImportLogFile.FileImportLogId == importLogQuery.FileImportLogId)
                                                                       .ToListAsync(cancellationToken);
             
@@ -162,7 +160,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 importLogFileQuery = importLogFileQuery.Where(i => i.file.fileImportLogFile.MerchantId == merchant.MerchantId).ToList();
             }
 
-            List<(FileImportLogFile, File,Merchant)> entityData = new List<(FileImportLogFile, File, Merchant)>();
+            List<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> entityData = new List<(FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)>();
             foreach (var file in importLogFileQuery)
             {
                 entityData.Add((file.file.fileImportLogFile, file.file.file, file.merchant));
@@ -191,7 +189,7 @@ namespace FileProcessor.BusinessLogic.Managers
 
             EstateManagementGenericContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
 
-            Merchant merchant = await context.Merchants.AsAsyncEnumerable()
+            Merchant merchant = await context.Merchants
                 .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);
 
             if (merchant != null)
@@ -199,7 +197,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 fileDetails.MerchantName = merchant.Name;
             }
 
-            EstateSecurityUser userDetails = await context.EstateSecurityUsers.AsAsyncEnumerable()
+            EstateSecurityUser userDetails = await context.EstateSecurityUsers
                 .SingleOrDefaultAsync(u => u.SecurityUserId == fileDetails.UserId, cancellationToken: cancellationToken);
             if (userDetails != null)
             {

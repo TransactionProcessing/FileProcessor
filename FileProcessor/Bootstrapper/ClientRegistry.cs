@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
-using EstateManagement.Client;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityService.Client;
@@ -20,8 +19,6 @@ public class ClientRegistry : ServiceRegistry
     /// </summary>
     public ClientRegistry() {
         this.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
-        //this.AddSingleton<IEstateClient, EstateClient>();
-
         this.AddSingleton<ITransactionProcessorClient, TransactionProcessorClient>();
 
         //this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
@@ -41,8 +38,6 @@ public class ClientRegistry : ServiceRegistry
 
         HttpClient httpClient = new(httpMessageHandler);
         this.AddSingleton(httpClient);
-
-        this.AddSingleton<IEstateClient>(new EstateClient(resolver1(), httpClient, 2));
     }
 
     #endregion

@@ -1,25 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FileProcessor.IntegrationTests.Features
 {
-    using System.Configuration;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Threading;
     using Common;
-    using DataTransferObjects.Responses;
-    using EstateManagement.IntegrationTesting.Helpers;
     using IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
-    using Newtonsoft.Json;
     using Reqnroll;
-    using Shared.IntegrationTesting;
-    using Shouldly;
-    using Steps;
     using ReqnrollExtensions = IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps.ReqnrollExtensions;
 
     [Binding]
