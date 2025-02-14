@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MySqlConnector;
 
 namespace FileProcessor.BusinessLogic.Common
 {
@@ -10,7 +11,6 @@ namespace FileProcessor.BusinessLogic.Common
     using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using Microsoft.Data.SqlClient;
-    using MySqlConnector;
     using Shared.General;
     using Shared.Repositories;
 

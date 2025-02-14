@@ -1,8 +1,9 @@
-﻿namespace FileProcessor.BusinessLogic.Common
+﻿using TransactionProcessor.Database.Entities;
+
+namespace FileProcessor.BusinessLogic.Common
 {
     using System;
     using System.Collections.Generic;
-    using EstateManagement.Database.Entities;
     using FileImportLogModel = FileProcessor.Models.FileImportLog;
 
     /// <summary>
@@ -13,12 +14,14 @@
         #region Methods
         
         List<FileImportLogModel> ConvertFrom(Guid estateId,
-                                             List<EstateManagement.Database.Entities.FileImportLog> importLogs,
-                                             List<(FileImportLogFile, File, Merchant)> importLogFilesList);
+                                             List<TransactionProcessor.Database.Entities.FileImportLog> importLogs,
+                                             List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, 
+                                                 TransactionProcessor.Database.Entities.Merchant)> importLogFilesList);
         
         FileImportLogModel ConvertFrom(Guid estateId,
-                                       EstateManagement.Database.Entities.FileImportLog importLog,
-                                       List<(FileImportLogFile, File, Merchant)> importLogFilesList);
+                                       TransactionProcessor.Database.Entities.FileImportLog importLog,
+                                       List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, 
+                                           TransactionProcessor.Database.Entities.Merchant)> importLogFilesList);
 
         #endregion
     }

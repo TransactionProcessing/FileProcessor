@@ -3,6 +3,8 @@ using System.Reflection.Metadata.Ecma335;
 using FileProcessor.Models;
 using Shared.Results;
 using SimpleResults;
+using TransactionProcessor.DataTransferObjects.Responses.Contract;
+using TransactionProcessor.DataTransferObjects.Responses.Operator;
 
 namespace FileProcessor.BusinessLogic.Services;
 
@@ -17,10 +19,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using Common;
-using EstateManagement.Client;
-using EstateManagement.DataTransferObjects.Responses;
-using EstateManagement.DataTransferObjects.Responses.Contract;
-using EstateManagement.DataTransferObjects.Responses.Operator;
 using FileAggregate;
 using FileFormatHandlers;
 using FileImportLogAggregate;
@@ -41,7 +39,6 @@ using TransactionProcessor.Client;
 using TransactionProcessor.DataTransferObjects;
 using FileDetails = FileProcessor.Models.FileDetails;
 using FileLine = FileProcessor.Models.FileLine;
-using MerchantResponse = EstateManagement.DataTransferObjects.Responses.Merchant.MerchantResponse;
 
 public class FileProcessorDomainService : IFileProcessorDomainService
 {
@@ -53,8 +50,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         
     private readonly ITransactionProcessorClient TransactionProcessorClient;
         
-    private readonly IEstateClient EstateClient;
-        
     private readonly ISecurityServiceClient SecurityServiceClient;
         
     private readonly Func<String, IFileFormatHandler> FileFormatHandlerResolver;
@@ -65,7 +60,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                       IAggregateRepository<FileImportLogAggregate, DomainEvent> fileImportLogAggregateRepository,
                                       IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository,
                                       ITransactionProcessorClient transactionProcessorClient,
-                                      IEstateClient estateClient,
                                       ISecurityServiceClient securityServiceClient,
                                       Func<String, IFileFormatHandler> fileFormatHandlerResolver,
                                       IFileSystem fileSystem) {
@@ -73,7 +67,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         this.FileImportLogAggregateRepository = fileImportLogAggregateRepository;
         this.FileAggregateRepository = fileAggregateRepository;
         this.TransactionProcessorClient = transactionProcessorClient;
-        this.EstateClient = estateClient;
         this.SecurityServiceClient = securityServiceClient;
         this.FileFormatHandlerResolver = fileFormatHandlerResolver;
         this.FileSystem = fileSystem;
@@ -254,7 +247,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         var fileProfile = fileProfileResult.Data;
 
         this.TokenResponse = await this.GetToken(cancellationToken);
-        Result<List<OperatorResponse>> getOperatorsResult = await this.EstateClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
+        Result<List<OperatorResponse>> getOperatorsResult = await this.TransactionProcessorClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
         if (getOperatorsResult.IsFailed) {
             return ResultHelpers.CreateFailure(getOperatorsResult);
         }
@@ -333,7 +326,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Interlocked.Increment(ref FileProcessorDomainService.TransactionNumber);
 
             // Get the merchant details
-            var getMerchantResult = await this.EstateClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+            var getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
             if (getMerchantResult.IsFailed)
             {
                 return ResultHelpers.CreateFailure(getMerchantResult);
@@ -341,7 +334,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             var merchant = getMerchantResult.Data;
 
-            var getContractsResult = await this.EstateClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+            var getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
             if (getContractsResult.IsFailed)
             {
                 return ResultHelpers.CreateFailure(getContractsResult);

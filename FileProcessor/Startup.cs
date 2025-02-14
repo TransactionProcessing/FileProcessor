@@ -23,7 +23,6 @@ namespace FileProcessor
     using BusinessLogic.RequestHandlers;
     using BusinessLogic.Requests;
     using Common;
-    using EstateManagement.Client;
     using EventStore.Client;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;

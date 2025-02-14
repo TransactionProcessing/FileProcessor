@@ -1,13 +1,11 @@
-﻿namespace FileProcessor.Bootstrapper;
+﻿using TransactionProcessor.Database.Contexts;
+
+namespace FileProcessor.Bootstrapper;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
-using System.Net.Security;
 using BusinessLogic.Common;
 using BusinessLogic.Managers;
-using Common;
-using EstateManagement.Database.Contexts;
 using FileAggregate;
 using FileImportLogAggregate;
 using Lamar;
@@ -18,7 +16,6 @@ using Shared.EntityFramework;
 using Shared.EntityFramework.ConnectionStringConfiguration;
 using Shared.EventStore.Aggregate;
 using Shared.EventStore.EventStore;
-using Shared.EventStore.Extensions;
 using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
 using Shared.Repositories;

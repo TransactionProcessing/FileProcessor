@@ -6,7 +6,6 @@ using SimpleResults;
 namespace FileProcessor.BusinessLogic.EventHandling
 {
     using System.Threading;
-    using EstateManagement.Client;
     using File.DomainEvents;
     using FileAggregate;
     using FileImportLog.DomainEvents;

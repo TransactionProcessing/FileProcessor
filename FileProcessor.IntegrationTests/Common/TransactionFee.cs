@@ -1,9 +1,9 @@
-﻿namespace FileProcessor.IntegrationTests.Common
+﻿using TransactionProcessor.DataTransferObjects.Responses.Contract;
+
+namespace FileProcessor.IntegrationTests.Common
 {
     using System;
-    using EstateManagement.DataTransferObjects;
-    using EstateManagement.DataTransferObjects.Responses.Contract;
-
+    
     public class TransactionFee
     {
         #region Properties

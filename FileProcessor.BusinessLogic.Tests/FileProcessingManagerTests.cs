@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using FileProcessor.Models;
 using SimpleResults;
+using TransactionProcessor.Database.Contexts;
+using TransactionProcessor.Database.Entities;
 
 namespace FileProcessor.BusinessLogic.Tests
 {
     using System.Threading;
     using Common;
-    using EstateManagement.Database.Contexts;
-    using EstateManagement.Database.Entities;
     using FileAggregate;
     using FileProcessor.Models;
     using Managers;
@@ -319,19 +319,19 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
 
-        private void VerifyImportLogs(List<EstateManagement.Database.Entities.FileImportLog> source,  Result<List<FileProcessor.Models.FileImportLog>> importLogs, Guid? merchantId = null)
+        private void VerifyImportLogs(List<TransactionProcessor.Database.Entities.FileImportLog> source,  Result<List<FileProcessor.Models.FileImportLog>> importLogs, Guid? merchantId = null)
         {
             importLogs.Data.ShouldNotBeNull();
             importLogs.Data.ShouldNotBeEmpty();
             importLogs.Data.Count.ShouldBe(TestData.FileImportLogs.Count);
-            foreach (EstateManagement.Database.Entities.FileImportLog fileImportLog in source)
+            foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in source)
             {
                 var importLog = importLogs.Data.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
 
-        private void VerifyImportLog(EstateManagement.Database.Entities.FileImportLog source, Result<FileProcessor.Models.FileImportLog> importLog, Guid? merchantId = null)
+        private void VerifyImportLog(TransactionProcessor.Database.Entities.FileImportLog source, Result<FileProcessor.Models.FileImportLog> importLog, Guid? merchantId = null)
         {
             importLog.Data.ShouldNotBeNull();
             importLog.Data.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);

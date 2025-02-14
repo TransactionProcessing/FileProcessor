@@ -1,9 +1,10 @@
-﻿namespace FileProcessor.BusinessLogic.Common
+﻿using TransactionProcessor.Database.Entities;
+
+namespace FileProcessor.BusinessLogic.Common
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using EstateManagement.Database.Entities;
     using FileProcessor.Models;
     using FileImportLog = FileProcessor.Models.FileImportLog;
 
@@ -22,12 +23,12 @@
         /// <param name="importLogFilesList">The import log files list.</param>
         /// <returns></returns>
         public List<FileImportLog> ConvertFrom(Guid estateId,
-                                               List<EstateManagement.Database.Entities.FileImportLog> importLogs,
-                                               List<(FileImportLogFile, File, Merchant)> importLogFilesList)
+                                               List<TransactionProcessor.Database.Entities.FileImportLog> importLogs,
+                                               List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)> importLogFilesList)
         {
             List<FileImportLog> models = new List<FileImportLog>();
 
-            foreach (EstateManagement.Database.Entities.FileImportLog fileImportLog in importLogs)
+            foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in importLogs)
             {
                 FileImportLog model = new FileImportLog();
 
@@ -36,9 +37,9 @@
                 model.EstateId = estateId;
                 model.Files = new List<ImportLogFile>();
 
-                IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == fileImportLog.FileImportLogId);
+                IEnumerable<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == fileImportLog.FileImportLogId);
 
-                foreach ((FileImportLogFile, File, Merchant) importLogFile in currentImportLogFiles)
+                foreach ((FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant) importLogFile in currentImportLogFiles)
                 {
                     model.Files.Add(new ImportLogFile
                                     {
@@ -65,8 +66,8 @@
         /// <param name="importLogFilesList">The import log files list.</param>
         /// <returns></returns>
         public FileImportLog ConvertFrom(Guid estateId,
-                                         EstateManagement.Database.Entities.FileImportLog importLog,
-                                         List<(FileImportLogFile, File, Merchant)> importLogFilesList)
+                                         TransactionProcessor.Database.Entities.FileImportLog importLog,
+                                         List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)> importLogFilesList)
         {
             FileImportLog model = new FileImportLog();
 
@@ -75,9 +76,9 @@
             model.EstateId = estateId;
             model.Files = new List<ImportLogFile>();
 
-            IEnumerable<(FileImportLogFile, File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == importLog.FileImportLogId);
+            IEnumerable<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> currentImportLogFiles = importLogFilesList.Where(fi => fi.Item1.FileImportLogId == importLog.FileImportLogId);
 
-            foreach ((FileImportLogFile, File,Merchant) importLogFile in currentImportLogFiles)
+            foreach ((FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant) importLogFile in currentImportLogFiles)
             {
                 model.Files.Add(new ImportLogFile
                                 {

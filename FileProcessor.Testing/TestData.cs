@@ -1,25 +1,21 @@
 ﻿using System;
+using FileProcessor.DataTransferObjects.Responses;
+using TransactionProcessor.DataTransferObjects.Responses.Contract;
+using TransactionProcessor.DataTransferObjects.Responses.Merchant;
+using TransactionProcessor.DataTransferObjects.Responses.Operator;
 
 namespace FileProcessor.Testing
 {
     using System.Collections.Generic;
-    using BusinessLogic.Managers;
     using BusinessLogic.Requests;
-    using EstateManagement.Database.Entities;
-    using EstateManagement.DataTransferObjects.Responses.Contract;
-    using EstateManagement.DataTransferObjects.Responses.Merchant;
-    using EstateManagement.DataTransferObjects.Responses.Operator;
     using File.DomainEvents;
-    using FileImportLog.DomainEvents;
     using FileAggregate;
+    using FileImportLog.DomainEvents;
     using FileImportLogAggregate;
     using FileProcessor.Models;
     using Newtonsoft.Json;
     using SecurityService.DataTransferObjects.Responses;
     using TransactionProcessor.DataTransferObjects;
-    using ContractProduct = EstateManagement.DataTransferObjects.Responses.Contract.ContractProduct;
-    using FileImportLog = EstateManagement.Database.Entities.FileImportLog;
-    using FileLine = EstateManagement.Database.Entities.FileLine;
 
     public class TestData
     {
@@ -106,7 +102,8 @@ namespace FileProcessor.Testing
 
         public static FileProfile FileProfileNull => null;
 
-        public static Merchant Merchant => new Merchant{
+        public static TransactionProcessor.Database.Entities.Merchant Merchant => new TransactionProcessor.Database.Entities.Merchant
+        {
                                                            EstateId = TestData.EstateId,
                                                            MerchantId = TestData.MerchantId,
                                                            MerchantReportingId = TestData.MerchantReportingId,
@@ -676,8 +673,8 @@ namespace FileProcessor.Testing
                                                                       }
                                                       };
 
-        public static List<FileImportLog> FileImportLogs =>
-            new List<FileImportLog>
+        public static List<TransactionProcessor.Database.Entities.FileImportLog> FileImportLogs =>
+            new List<TransactionProcessor.Database.Entities.FileImportLog>
             {
                 TestData.FileImportLog1,
                 TestData.FileImportLog2
@@ -763,7 +760,7 @@ namespace FileProcessor.Testing
             };
 
 
-        public static FileImportLog FileImportLog1 => new FileImportLog
+        public static TransactionProcessor.Database.Entities.FileImportLog FileImportLog1 => new TransactionProcessor.Database.Entities.FileImportLog
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId1,
                                                           ImportLogDateTime = TestData.ImportLogStartDate,
@@ -771,9 +768,9 @@ namespace FileProcessor.Testing
                                                           FileImportLogReportingId = TestData.FileImportLogReportingId1
                                                       };
 
-        public static List<FileImportLogFile> FileImportLog1Files => new List<FileImportLogFile>
+        public static List<TransactionProcessor.Database.Entities.FileImportLogFile> FileImportLog1Files => new List<TransactionProcessor.Database.Entities.FileImportLogFile>
                                                                      {
-                                                           new FileImportLogFile
+                                                           new TransactionProcessor.Database.Entities.FileImportLogFile
                                                            {
                                                                FileImportLogId = TestData.FileImportLogId1,
                                                                FileId = TestData.FileId1,
@@ -784,7 +781,7 @@ namespace FileProcessor.Testing
                                                                UserId = TestData.UserId,
                                                                FileUploadedDateTime = TestData.FileUploadedDateTime
                                                            },
-                                                           new FileImportLogFile
+                                                           new TransactionProcessor.Database.Entities.FileImportLogFile
                                                            {
                                                                FileImportLogId = TestData.FileImportLogId1,
                                                                FileId = TestData.FileId2,
@@ -798,9 +795,9 @@ namespace FileProcessor.Testing
 
                                                                      };
 
-        public static List<File> Files1 =>
-            new List<File>{
-                              new File(){
+        public static List<TransactionProcessor.Database.Entities.File> Files1 =>
+            new List<TransactionProcessor.Database.Entities.File>{
+                              new TransactionProcessor.Database.Entities.File(){
                                     FileImportLogId          = TestData.FileImportLogId1,
                                             FileReportingId = TestData.FileReportingId1,
                                             MerchantId = TestData.MerchantId,
@@ -808,7 +805,7 @@ namespace FileProcessor.Testing
                                             UserId = TestData.UserId,
                                             FileId = TestData.FileId1
                                         },
-                              new File{
+                              new TransactionProcessor.Database.Entities.File{
                                   FileImportLogId          = TestData.FileImportLogId1,
                                           FileReportingId = TestData.FileReportingId2,
                                           MerchantId = TestData.MerchantId,
@@ -819,7 +816,7 @@ namespace FileProcessor.Testing
 
                           };
 
-        public static FileImportLog FileImportLog2 => new FileImportLog
+        public static TransactionProcessor.Database.Entities.FileImportLog FileImportLog2 => new TransactionProcessor.Database.Entities.FileImportLog
                                                       {
                                                           FileImportLogId = TestData.FileImportLogId2,
                                                           ImportLogDateTime = TestData.ImportLogEndDate,
@@ -827,9 +824,9 @@ namespace FileProcessor.Testing
                                                           FileImportLogReportingId = TestData.FileImportLogReportingId2
         };
 
-        public static List<FileImportLogFile> FileImportLog2Files => new List<FileImportLogFile>
+        public static List<TransactionProcessor.Database.Entities.FileImportLogFile> FileImportLog2Files => new List<TransactionProcessor.Database.Entities.FileImportLogFile>
                                                                      {
-                                                           new FileImportLogFile
+                                                           new TransactionProcessor.Database.Entities.FileImportLogFile
                                                            {
                                                                FileImportLogId = TestData.FileImportLogId2,
                                                                MerchantId = TestData.MerchantId,
@@ -840,7 +837,7 @@ namespace FileProcessor.Testing
                                                                UserId = TestData.UserId,
                                                                FileUploadedDateTime = TestData.FileUploadedDateTime
                                                            },
-                                                           new FileImportLogFile
+                                                           new TransactionProcessor.Database.Entities.FileImportLogFile
                                                            {
                                                                FileImportLogId = TestData.FileImportLogId2,
                                                                MerchantId = TestData.MerchantId,

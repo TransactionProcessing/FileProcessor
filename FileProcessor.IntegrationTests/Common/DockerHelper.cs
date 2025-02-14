@@ -1,40 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FileProcessor.IntegrationTests.Common
 {
-    using System.Data;
-    using System.IO;
-    using System.Net;
     using System.Net.Http;
-    using System.Threading;
     using Client;
-    using Ductus.FluentDocker.Builders;
-    using Ductus.FluentDocker.Common;
-    using Ductus.FluentDocker.Model.Builders;
-    using Ductus.FluentDocker.Services;
-    using Ductus.FluentDocker.Services.Extensions;
-    using EstateManagement.Client;
     using EventStore.Client;
-    using Microsoft.Data.SqlClient;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
     using SecurityService.Client;
     using Shared.IntegrationTesting;
-    using Shared.Logger;
     using TransactionProcessor.Client;
-    using ILogger = Shared.Logger.ILogger;
 
     public class DockerHelper : global::Shared.IntegrationTesting.DockerHelper{
         #region Fields
-
-        /// <summary>
-        /// The estate client
-        /// </summary>
-        public IEstateClient EstateClient;
-
+        
         public HttpClient TestHostHttpClient;
 
         /// <summary>
@@ -73,13 +52,9 @@ namespace FileProcessor.IntegrationTests.Common
         public override async Task CreateSubscriptions(){
             List<(String streamName, String groupName, Int32 maxRetries)> subscriptions = new();
             subscriptions.AddRange(MessagingService.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
-            subscriptions.AddRange(EstateManagement.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
             subscriptions.AddRange(TransactionProcessor.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
             subscriptions.AddRange(FileProcessor.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
-
-            // TODO: this needs moved to Estate Management nuget
-            subscriptions.Add(("$ce-FileImportLogAggregate", "Estate Management", 0));
-
+            
             foreach ((String streamName, String groupName, Int32 maxRetries) subscription in subscriptions)
             {
                 var x = subscription;
@@ -92,7 +67,6 @@ namespace FileProcessor.IntegrationTests.Common
             await base.StartContainersForScenarioRun(scenarioName, dockerServices);
 
             // Setup the base address resolvers
-            String EstateManagementBaseAddressResolver(String api) => $"http://127.0.0.1:{this.EstateManagementPort}";
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
             String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
@@ -115,7 +89,6 @@ namespace FileProcessor.IntegrationTests.Common
                                                                            }
                                                            };
             HttpClient httpClient = new HttpClient(httpMessageHandler);
-            this.EstateClient = new EstateClient(EstateManagementBaseAddressResolver, httpClient, 2);
             this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
             this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
             this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
