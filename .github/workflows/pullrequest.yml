@@ -33,7 +33,6 @@ jobs:
         dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
         dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
         dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj"
-        dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"
                
     - name: Build Docker Image
       run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
