@@ -74,6 +74,7 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             context.SaveChanges();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -97,6 +98,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            context.Files.AddRange(TestData.Files1);
+            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             context.SaveChanges();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -120,6 +123,8 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            context.Files.AddRange(TestData.Files1);
             context.SaveChanges();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
@@ -143,7 +148,9 @@ namespace FileProcessor.BusinessLogic.Tests
             context.FileImportLogs.AddRange(TestData.FileImportLogs);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
-            context.SaveChanges();
+            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName});
+            context.Files.AddRange(TestData.Files1);
+            await context.SaveChangesAsync();
 
             Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
@@ -175,6 +182,25 @@ namespace FileProcessor.BusinessLogic.Tests
              fileDetails.Data.MerchantName.ShouldBeNull();
              fileDetails.Data.UserEmailAddress.ShouldBeNull();
              fileDetails.Data.FileProfileName.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFile_FileAggregateFailed_ErrorReturned()
+        {
+            List<FileProfile> fileProfiles = new List<FileProfile>();
+            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
+            var contextFactory = this.CreateMockContextFactory();
+            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
+            IModelFactory modelFactory = new ModelFactory();
+
+            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
+                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
+            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Failure());
+            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
+
+            Result<FileDetails> fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+
+            fileDetails.IsFailed.ShouldBeTrue();
         }
 
         [Fact]

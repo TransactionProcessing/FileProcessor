@@ -803,7 +803,8 @@ namespace FileProcessor.Testing
                                             MerchantId = TestData.MerchantId,
                                             FileProfileId = TestData.FileProfileId,
                                             UserId = TestData.UserId,
-                                            FileId = TestData.FileId1
+                                            FileId = TestData.FileId1,
+                                            FileLocation = "c:\\temp\\file1.csv"
                                         },
                               new TransactionProcessor.Database.Entities.File{
                                   FileImportLogId          = TestData.FileImportLogId1,
@@ -811,7 +812,8 @@ namespace FileProcessor.Testing
                                           MerchantId = TestData.MerchantId,
                                           FileProfileId = TestData.FileProfileId,
                                           UserId = TestData.UserId,
-                                          FileId = TestData.FileId2
+                                          FileId = TestData.FileId2,
+                                          FileLocation = "c:\\temp\\file2.csv"
                                       },
 
                           };
