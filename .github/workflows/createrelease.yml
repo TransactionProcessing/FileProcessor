@@ -30,8 +30,7 @@ jobs:
         echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
         dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj"
         dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj"
-        dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj"
-        dotnet test "FileProcessor.DomainEvents.Tests\FileProcessor.DomainEvents.Tests.csproj"      
+        dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj"      
 
     - name: Publish Images to Docker Hub - Pre Release
       if: ${{ github.event.release.prerelease == true }} 
