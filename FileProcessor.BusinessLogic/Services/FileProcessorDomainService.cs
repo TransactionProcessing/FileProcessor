@@ -149,8 +149,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             }
 
             // Move the file
-            FileProfile fileProfile = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
-
+            Result<FileProfile> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
+            if (getFileProfileResult.IsFailed)
+            {
+                return ResultHelpers.CreateFailure(getFileProfileResult);
+            }
+            FileProfile fileProfile = getFileProfileResult.Data;
             if (fileProfile == null)
             {
                 return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
@@ -246,8 +250,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
         var fileProfile = fileProfileResult.Data;
 
-        this.TokenResponse = await this.GetToken(cancellationToken);
-        Result<List<OperatorResponse>> getOperatorsResult = await this.TransactionProcessorClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
+        var getTokenResult = await this.GetToken(cancellationToken);
+        if (getTokenResult.IsFailed) {
+            return ResultHelpers.CreateFailure(getTokenResult);
+        }
+        this.TokenResponse = getTokenResult.Data;
+        Result <List<OperatorResponse>> getOperatorsResult = await this.TransactionProcessorClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
         if (getOperatorsResult.IsFailed) {
             return ResultHelpers.CreateFailure(getOperatorsResult);
         }
@@ -321,7 +329,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
             }
 
-            this.TokenResponse = await this.GetToken(cancellationToken);
+            var getTokenResult = await this.GetToken(cancellationToken);
+            if (getTokenResult.IsFailed)
+            {
+                return ResultHelpers.CreateFailure(getTokenResult);
+            }
+            this.TokenResponse = getTokenResult.Data;
 
             Interlocked.Increment(ref FileProcessorDomainService.TransactionNumber);
 
@@ -559,7 +572,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     private TokenResponse TokenResponse;
 
     [ExcludeFromCodeCoverage]
-    private async Task<TokenResponse> GetToken(CancellationToken cancellationToken)
+    private async Task<Result<TokenResponse>> GetToken(CancellationToken cancellationToken)
     {
         // Get a token to talk to the estate service
         String clientId = ConfigurationReader.GetValue("AppSettings", "ClientId");
@@ -567,17 +580,27 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         if (this.TokenResponse == null)
         {
-            TokenResponse token = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            Logger.LogDebug($"Token is {token.AccessToken}");
-            return token;
+            Result<TokenResponse> getTokenResult = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
+            if (getTokenResult.IsFailed)
+            {
+                Logger.LogWarning($"Failed to get token: {getTokenResult.Message}");
+                return ResultHelpers.CreateFailure(getTokenResult);
+            }
+            
+            return getTokenResult.Data;
         }
 
         if (this.TokenResponse.Expires.UtcDateTime.Subtract(DateTime.UtcNow) < TimeSpan.FromMinutes(2))
         {
             Logger.LogDebug($"Token is about to expire at {this.TokenResponse.Expires.DateTime:O}");
-            TokenResponse token = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            Logger.LogDebug($"Token is {token.AccessToken}");
-            return token;
+            Result<TokenResponse> getTokenResult = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
+            if (getTokenResult.IsFailed)
+            {
+                Logger.LogWarning($"Failed to get token: {getTokenResult.Message}");
+                return ResultHelpers.CreateFailure(getTokenResult);
+            }
+
+            return getTokenResult.Data;
         }
 
         return this.TokenResponse;

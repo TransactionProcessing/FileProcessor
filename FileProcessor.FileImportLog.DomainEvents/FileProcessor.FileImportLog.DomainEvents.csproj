@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+	  <TargetFramework>net9.0</TargetFramework>
 	  <DebugType>None</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shared.DomainDrivenDesign" Version="2025.3.1" />
+    <PackageReference Include="Shared.DomainDrivenDesign" Version="2025.6.2" />
   </ItemGroup>
 
 </Project>
