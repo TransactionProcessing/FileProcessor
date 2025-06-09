@@ -135,6 +135,7 @@ namespace FileProcessor.Testing
                                                                                            }
                                                                  };
 
+        public static FileProfile FileProfile => FileProfileSafaricom with { FileProfileId = FileProfileId };
         public static FileProfile FileProfileSafaricom =>
             new FileProfile(TestData.SafaricomFileProfileId,
                             TestData.SafaricomProfileName,

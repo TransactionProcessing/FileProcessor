@@ -57,19 +57,10 @@ public class RepositoryRegistry : ServiceRegistry
         this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
             AggregateRepository<FileImportLogAggregate, DomainEvent>>();
 
-        this.AddSingleton<IDbContextFactory<EstateManagementGenericContext>, DbContextFactory<EstateManagementGenericContext>>();
-        this.AddSingleton<Func<String, EstateManagementGenericContext>>(cont => connectionString =>
+        this.AddSingleton<IDbContextFactory<EstateManagementContext>, DbContextFactory<EstateManagementContext>>();
+        this.AddSingleton<Func<String, EstateManagementContext>>(cont => connectionString =>
                                                                                 {
-                                                                                    String databaseEngine =
-                                                                                        ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
-
-                                                                                    return databaseEngine switch
-                                                                                    {
-                                                                                        "MySql" => new EstateManagementMySqlContext(connectionString),
-                                                                                        "SqlServer" => new EstateManagementSqlServerContext(connectionString),
-                                                                                        _ => throw new
-                                                                                            NotSupportedException($"Unsupported Database Engine {databaseEngine}")
-                                                                                    };
+                                                                                    return new EstateManagementContext(connectionString);
                                                                                 });
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
 

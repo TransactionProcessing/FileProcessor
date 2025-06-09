@@ -81,8 +81,9 @@ namespace FileProcessor.BusinessLogic.Tests
                 new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
             FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
 
-            List<FileImportLog> importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
-
+            Result<List<FileImportLog>> getFileImportLogsResult = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
+            getFileImportLogsResult.IsSuccess.ShouldBeTrue();
+            List<FileImportLog> importLogs = getFileImportLogsResult.Data;
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
         }
 
@@ -164,7 +165,10 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturned()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>();
+            List<FileProfile> fileProfiles = new List<FileProfile>
+            {
+                TestData.FileProfile
+            };
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             var contextFactory = this.CreateMockContextFactory();
             contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
@@ -181,7 +185,6 @@ namespace FileProcessor.BusinessLogic.Tests
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
              fileDetails.Data.MerchantName.ShouldBeNull();
              fileDetails.Data.UserEmailAddress.ShouldBeNull();
-             fileDetails.Data.FileProfileName.ShouldBeNull();
         }
 
         [Fact]
@@ -206,7 +209,10 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithMerchantName()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>();
+            List<FileProfile> fileProfiles = new List<FileProfile>
+            {
+                TestData.FileProfile
+            };
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.Merchants.Add(new Merchant
             {
@@ -235,7 +241,10 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithUserEmailAddress()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>();
+            List<FileProfile> fileProfiles = new List<FileProfile>
+            {
+                TestData.FileProfile
+            };
             var context = await this.GetContext(Guid.NewGuid().ToString("N"));
             context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
@@ -380,19 +389,19 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
         
-        private Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext>> CreateMockContextFactory()
+        private Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementContext>> CreateMockContextFactory()
         {
-            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementGenericContext>>();
+            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementContext>>();
         }
 
-        private async Task<EstateManagementGenericContext> GetContext(String databaseName)
+        private async Task<EstateManagementContext> GetContext(String databaseName)
         {
-            EstateManagementGenericContext context = null;
+            EstateManagementContext context = null;
             
-            DbContextOptionsBuilder<EstateManagementGenericContext> builder = new DbContextOptionsBuilder<EstateManagementGenericContext>()
+            DbContextOptionsBuilder<EstateManagementContext> builder = new DbContextOptionsBuilder<EstateManagementContext>()
                                                                               .UseInMemoryDatabase(databaseName)
                                                                               .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            context = new EstateManagementSqlServerContext(builder.Options);
+            context = new EstateManagementContext(builder.Options);
         
             return context;
         }

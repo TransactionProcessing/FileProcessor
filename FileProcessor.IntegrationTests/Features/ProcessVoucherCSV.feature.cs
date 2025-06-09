@@ -10,15 +10,13 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
+using Reqnroll;
 namespace FileProcessor.IntegrationTests.Features
 {
-    using Reqnroll;
-    using System;
-    using System.Linq;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
     [NUnit.Framework.DescriptionAttribute("Process Voucher CSV Files")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
@@ -35,41 +33,63 @@ namespace FileProcessor.IntegrationTests.Features
                 "shared",
                 "processvouchercsv"};
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Process Voucher CSV Files", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Process Voucher CSV Files", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
 #line 1 "ProcessVoucherCSV.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
-        public static async System.Threading.Tasks.Task FeatureSetupAsync()
+        public static async global::System.Threading.Tasks.Task FeatureSetupAsync()
         {
         }
         
         [NUnit.Framework.OneTimeTearDownAttribute()]
-        public static async System.Threading.Tasks.Task FeatureTearDownAsync()
+        public static async global::System.Threading.Tasks.Task FeatureTearDownAsync()
         {
         }
         
         [NUnit.Framework.SetUpAttribute()]
-        public async System.Threading.Tasks.Task TestInitializeAsync()
+        public async global::System.Threading.Tasks.Task TestInitializeAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(featureHint: featureInfo);
-            if (((testRunner.FeatureContext != null) 
-                        && (testRunner.FeatureContext.FeatureInfo.Equals(featureInfo) == false)))
+            try
             {
-                await testRunner.OnFeatureEndAsync();
+                if (((testRunner.FeatureContext != null) 
+                            && (testRunner.FeatureContext.FeatureInfo.Equals(featureInfo) == false)))
+                {
+                    await testRunner.OnFeatureEndAsync();
+                }
             }
-            if ((testRunner.FeatureContext == null))
+            finally
             {
-                await testRunner.OnFeatureStartAsync(featureInfo);
+                if (((testRunner.FeatureContext != null) 
+                            && testRunner.FeatureContext.BeforeFeatureHookFailed))
+                {
+                    throw new global::Reqnroll.ReqnrollException("Scenario skipped because of previous before feature hook error");
+                }
+                if ((testRunner.FeatureContext == null))
+                {
+                    await testRunner.OnFeatureStartAsync(featureInfo);
+                }
             }
         }
         
         [NUnit.Framework.TearDownAttribute()]
-        public async System.Threading.Tasks.Task TestTearDownAsync()
+        public async global::System.Threading.Tasks.Task TestTearDownAsync()
         {
-            await testRunner.OnScenarioEndAsync();
-            global::Reqnroll.TestRunnerManager.ReleaseTestRunner(testRunner);
+            if ((testRunner == null))
+            {
+                return;
+            }
+            try
+            {
+                await testRunner.OnScenarioEndAsync();
+            }
+            finally
+            {
+                global::Reqnroll.TestRunnerManager.ReleaseTestRunner(testRunner);
+                testRunner = null;
+            }
         }
         
         public void ScenarioInitialize(global::Reqnroll.ScenarioInfo scenarioInfo)
@@ -78,17 +98,17 @@ namespace FileProcessor.IntegrationTests.Features
             testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<NUnit.Framework.TestContext>(NUnit.Framework.TestContext.CurrentContext);
         }
         
-        public async System.Threading.Tasks.Task ScenarioStartAsync()
+        public async global::System.Threading.Tasks.Task ScenarioStartAsync()
         {
             await testRunner.OnScenarioStartAsync();
         }
         
-        public async System.Threading.Tasks.Task ScenarioCleanupAsync()
+        public async global::System.Threading.Tasks.Task ScenarioCleanupAsync()
         {
             await testRunner.CollectScenarioErrorsAsync();
         }
         
-        public virtual async System.Threading.Tasks.Task FeatureBackgroundAsync()
+        public virtual async global::System.Threading.Tasks.Task FeatureBackgroundAsync()
         {
 #line 4
 #line hidden
@@ -364,10 +384,10 @@ namespace FileProcessor.IntegrationTests.Features
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Process Voucher File with 1 detail row for recipient email")]
-        public async System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientEmail()
+        public async global::System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientEmail()
         {
             string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 1 detail row for recipient email", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 78
 this.ScenarioInitialize(scenarioInfo);
@@ -424,10 +444,10 @@ await this.FeatureBackgroundAsync();
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Process Voucher File with 1 detail row for recipient mobile")]
-        public async System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientMobile()
+        public async global::System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientMobile()
         {
             string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 1 detail row for recipient mobile", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 90
 this.ScenarioInitialize(scenarioInfo);
@@ -484,10 +504,10 @@ await this.FeatureBackgroundAsync();
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Process Voucher File with 2 detail rows")]
-        public async System.Threading.Tasks.Task ProcessVoucherFileWith2DetailRows()
+        public async global::System.Threading.Tasks.Task ProcessVoucherFileWith2DetailRows()
         {
             string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 2 detail rows", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 102
 this.ScenarioInitialize(scenarioInfo);
@@ -549,10 +569,10 @@ await this.FeatureBackgroundAsync();
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Process 2 Voucher Files")]
-        public async System.Threading.Tasks.Task Process2VoucherFiles()
+        public async global::System.Threading.Tasks.Task Process2VoucherFiles()
         {
             string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process 2 Voucher Files", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 115
 this.ScenarioInitialize(scenarioInfo);
@@ -656,11 +676,11 @@ await this.FeatureBackgroundAsync();
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("Process Duplicate Voucher Topup File with 1 detail row")]
         [NUnit.Framework.CategoryAttribute("PRTest")]
-        public async System.Threading.Tasks.Task ProcessDuplicateVoucherTopupFileWith1DetailRow()
+        public async global::System.Threading.Tasks.Task ProcessDuplicateVoucherTopupFileWith1DetailRow()
         {
             string[] tagsOfScenario = new string[] {
                     "PRTest"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Duplicate Voucher Topup File with 1 detail row", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 139
 this.ScenarioInitialize(scenarioInfo);

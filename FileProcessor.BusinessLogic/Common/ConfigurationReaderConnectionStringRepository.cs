@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MySqlConnector;
 
 namespace FileProcessor.BusinessLogic.Common
 {
@@ -41,29 +40,17 @@ namespace FileProcessor.BusinessLogic.Common
             String connectionString = string.Empty;
             String databaseName = string.Empty;
 
-            String databaseEngine = ConfigurationReader.GetValue("AppSettings", "DatabaseEngine");
-
             databaseName = $"{connectionStringIdentifier}{externalIdentifier}";
             connectionString = ConfigurationReader.GetConnectionString(connectionStringIdentifier);
 
             DbConnectionStringBuilder builder = null;
 
-            if (databaseEngine == "MySql")
+            // Default to SQL Server
+            builder = new SqlConnectionStringBuilder(connectionString)
             {
-                builder = new MySqlConnectionStringBuilder(connectionString)
-                {
-                    Database = databaseName
-                };
-            }
-            else
-            {
-                // Default to SQL Server
-                builder = new SqlConnectionStringBuilder(connectionString)
-                {
-                    InitialCatalog = databaseName
-                };
-            }
-
+                InitialCatalog = databaseName
+            };
+            
             return builder.ToString();
         }
 
