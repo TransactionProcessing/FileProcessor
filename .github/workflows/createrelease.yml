@@ -53,7 +53,7 @@ jobs:
 
     - name: Publish API
       if: ${{ github.event.release.prerelease == false }}
-      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained
+      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r linux-x64 --self-contained
     
     - name: Build Release Package
       run: |
@@ -77,7 +77,7 @@ jobs:
         dotnet nuget push Nugets/FileProcessor.Client.${{ steps.get_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }} --skip-duplicate
 
   deploystaging:
-    runs-on: stagingserver
+    runs-on: [stagingserver,linux]
     needs: buildlinux
     environment: staging
     name: "Deploy to Staging"
@@ -87,30 +87,76 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           name: fileprocessor
-
-      - name: Remove existing  Windows service
+          path: /tmp/fileprocessor # Download to a temporary directory
+  
+      - name: Remove existing service (if applicable)
         run: |
-          $serviceName = "Transaction Processing - File Processor"
-          # Check if the service exists
-          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
-            Stop-Service -Name $serviceName
-            sc.exe delete $serviceName
-          }
-
+          SERVICE_NAME="fileprocessor"
+          if systemctl is-active --quiet "$SERVICE_NAME"; then
+            echo "Stopping existing service..."
+            sudo systemctl stop "$SERVICE_NAME"
+          fi
+          if systemctl is-enabled --quiet "$SERVICE_NAME"; then
+            echo "Disabling existing service..."
+            sudo systemctl disable "$SERVICE_NAME"
+          fi
+          if [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ]; then
+            echo "Removing existing service unit file..."
+            sudo rm "/etc/systemd/system/${SERVICE_NAME}.service"
+            sudo systemctl daemon-reload
+          fi
+  
       - name: Unzip the files
         run: |
-          Expand-Archive -Path fileprocessor.zip -DestinationPath "C:\txnproc\transactionprocessing\fileprocessor" -Force
-      
-      - name: Install as a Windows service
+          sudo mkdir -p /opt/txnproc/transactionprocessing/fileprocessor
+          sudo unzip -o /tmp/fileprocessor/fileprocessor.zip -d /opt/txnproc/transactionprocessing/fileprocessor
+  
+      # IMPORTANT: Add a step to ensure the .NET runtime is installed on the server
+      # This assumes it's not already there. If your base image already has it, you can skip this.
+      - name: Install .NET Runtime
         run: |
-          $serviceName = "Transaction Processing - File Processor"
-          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
-                   
-          New-Service -Name $serviceName -BinaryPathName $servicePath -Description "Transaction Processing - File Processor" -DisplayName "Transaction Processing - File Processor" -StartupType Automatic
-          Start-Service -Name $serviceName
+          # Example for Ubuntu. Adjust based on your .NET version (e.g., 8.0, 7.0)
+          # and if you need the SDK or just the runtime.
+          # This uses Microsoft's package repository for the latest versions.
+          wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt update
+          sudo apt install -y aspnetcore-runtime-9.0
+  
+      - name: Install and Start as a Linux service
+        run: |
+          SERVICE_NAME="fileprocessor"
+          # The WorkingDirectory is crucial for .NET apps to find appsettings.json and other files
+          WORKING_DIRECTORY="/opt/txnproc/transactionprocessing/fileprocessor"
+          DLL_NAME="FileProcessor.dll" # Your application's DLL
+          SERVICE_DESCRIPTION="Transaction Processing - File Processor"
+  
+          # Create a systemd service file
+          echo "[Unit]" | sudo tee /etc/systemd/system/${SERVICE_NAME}.service
+          echo "Description=${SERVICE_DESCRIPTION}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "After=network.target" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "[Service]" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          # IMPORTANT: Use 'dotnet' to run your DLL
+          echo "ExecStart=/usr/bin/dotnet ${WORKING_DIRECTORY}/${DLL_NAME}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "WorkingDirectory=${WORKING_DIRECTORY}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "Restart=always" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "User=youruser"   # IMPORTANT: Change to a dedicated, less privileged user
+          echo "Group=yourgroup" # IMPORTANT: Change to a dedicated, less privileged group
+          echo "Environment=ASPNETCORE_ENVIRONMENT=Production" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service # Example
+          echo "" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "[Install]" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+  
+          # Reload systemd, enable, and start the service
+          sudo systemctl daemon-reload
+          sudo systemctl enable "$SERVICE_NAME"
+          sudo systemctl start "$SERVICE_NAME"
+          sudo systemctl status "$SERVICE_NAME" --no-pager # For debugging/verification
 
   deployproduction:
-    runs-on: productionserver
+    runs-on: [productionserver,linux]
     needs: [buildlinux, deploystaging]
     environment: production
     name: "Deploy to Production"
@@ -120,24 +166,70 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           name: fileprocessor
-
-      - name: Remove existing  Windows service
+          path: /tmp/fileprocessor # Download to a temporary directory
+  
+      - name: Remove existing service (if applicable)
         run: |
-          $serviceName = "Transaction Processing - File Processor"
-          # Check if the service exists
-          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
-            Stop-Service -Name $serviceName
-            sc.exe delete $serviceName
-          }
-
+          SERVICE_NAME="fileprocessor"
+          if systemctl is-active --quiet "$SERVICE_NAME"; then
+            echo "Stopping existing service..."
+            sudo systemctl stop "$SERVICE_NAME"
+          fi
+          if systemctl is-enabled --quiet "$SERVICE_NAME"; then
+            echo "Disabling existing service..."
+            sudo systemctl disable "$SERVICE_NAME"
+          fi
+          if [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ]; then
+            echo "Removing existing service unit file..."
+            sudo rm "/etc/systemd/system/${SERVICE_NAME}.service"
+            sudo systemctl daemon-reload
+          fi
+  
       - name: Unzip the files
         run: |
-          Expand-Archive -Path fileprocessor.zip -DestinationPath "C:\txnproc\transactionprocessing\fileprocessor" -Force
-      
-      - name: Install as a Windows service
+          sudo mkdir -p /opt/txnproc/transactionprocessing/fileprocessor
+          sudo unzip -o /tmp/fileprocessor/fileprocessor.zip -d /opt/txnproc/transactionprocessing/fileprocessor
+  
+      # IMPORTANT: Add a step to ensure the .NET runtime is installed on the server
+      # This assumes it's not already there. If your base image already has it, you can skip this.
+      - name: Install .NET Runtime
         run: |
-          $serviceName = "Transaction Processing - File Processor"
-          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
-                   
-          New-Service -Name $serviceName -BinaryPathName $servicePath -Description "Transaction Processing - File Processor" -DisplayName "Transaction Processing - File Processor" -StartupType Automatic
-          Start-Service -Name $serviceName          
+          # Example for Ubuntu. Adjust based on your .NET version (e.g., 8.0, 7.0)
+          # and if you need the SDK or just the runtime.
+          # This uses Microsoft's package repository for the latest versions.
+          wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt update
+          sudo apt install -y aspnetcore-runtime-9.0
+  
+      - name: Install and Start as a Linux service
+        run: |
+          SERVICE_NAME="fileprocessor"
+          # The WorkingDirectory is crucial for .NET apps to find appsettings.json and other files
+          WORKING_DIRECTORY="/opt/txnproc/transactionprocessing/fileprocessor"
+          DLL_NAME="FileProcessor.dll" # Your application's DLL
+          SERVICE_DESCRIPTION="Transaction Processing - File Processor"
+  
+          # Create a systemd service file
+          echo "[Unit]" | sudo tee /etc/systemd/system/${SERVICE_NAME}.service
+          echo "Description=${SERVICE_DESCRIPTION}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "After=network.target" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "[Service]" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          # IMPORTANT: Use 'dotnet' to run your DLL
+          echo "ExecStart=/usr/bin/dotnet ${WORKING_DIRECTORY}/${DLL_NAME}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "WorkingDirectory=${WORKING_DIRECTORY}" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "Restart=always" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "User=youruser"   # IMPORTANT: Change to a dedicated, less privileged user
+          echo "Group=yourgroup" # IMPORTANT: Change to a dedicated, less privileged group
+          echo "Environment=ASPNETCORE_ENVIRONMENT=Production" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service # Example
+          echo "" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "[Install]" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+          echo "WantedBy=multi-user.target" | sudo tee -a /etc/systemd/system/${SERVICE_NAME}.service
+  
+          # Reload systemd, enable, and start the service
+          sudo systemctl daemon-reload
+          sudo systemctl enable "$SERVICE_NAME"
+          sudo systemctl start "$SERVICE_NAME"
+          sudo systemctl status "$SERVICE_NAME" --no-pager # For debugging/verification          
