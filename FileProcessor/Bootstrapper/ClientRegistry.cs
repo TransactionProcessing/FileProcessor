@@ -1,4 +1,6 @@
-﻿namespace FileProcessor.Bootstrapper;
+﻿using ClientProxyBase;
+
+namespace FileProcessor.Bootstrapper;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -18,26 +20,14 @@ public class ClientRegistry : ServiceRegistry
     /// Initializes a new instance of the <see cref="ClientRegistry"/> class.
     /// </summary>
     public ClientRegistry() {
-        this.AddSingleton<ISecurityServiceClient, SecurityServiceClient>();
-        this.AddSingleton<ITransactionProcessorClient, TransactionProcessorClient>();
+        this.AddHttpContextAccessor();
+        this.RegisterHttpClient<ISecurityServiceClient, SecurityServiceClient>();
+        this.RegisterHttpClient<ITransactionProcessorClient, TransactionProcessorClient>();
 
         //this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
         Func<String, String> resolver(IServiceProvider container) => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; };
-        Func<String, String> resolver1() => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; };
-
-        this.AddSingleton<Func<String, String>>(resolver);
         
-        SocketsHttpHandler httpMessageHandler = new SocketsHttpHandler {
-                                                                           SslOptions = {
-                                                                                            RemoteCertificateValidationCallback = (sender,
-                                                                                                certificate,
-                                                                                                chain,
-                                                                                                errors) => true,
-                                                                                        }
-                                                                       };
-
-        HttpClient httpClient = new(httpMessageHandler);
-        this.AddSingleton(httpClient);
+        this.AddSingleton<Func<String, String>>(resolver);
     }
 
     #endregion

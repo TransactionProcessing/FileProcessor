@@ -6,9 +6,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
-		<PackageReference Include="Shared.DomainDrivenDesign" Version="2025.6.2" />
-		<PackageReference Include="Shared.EventStore" Version="2025.6.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+		<PackageReference Include="Shared.DomainDrivenDesign" Version="2025.7.9" />
+		<PackageReference Include="Shared.EventStore" Version="2025.7.9" />
 	</ItemGroup>
 
 	<ItemGroup>
