@@ -135,21 +135,10 @@ namespace FileProcessor
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            String nlogConfigFilename = "nlog.config";
-
             if (env.IsDevelopment())
             {
-                var developmentNlogConfigFilename = "nlog.development.config";
-                if (System.IO.File.Exists(Path.Combine(env.ContentRootPath, developmentNlogConfigFilename)))
-                {
-                    nlogConfigFilename = developmentNlogConfigFilename;
-                }
-
                 app.UseDeveloperExceptionPage();
             }
-
-            loggerFactory.ConfigureNLog(Path.Combine(env.ContentRootPath, nlogConfigFilename));
-            loggerFactory.AddNLog();
 
             ILogger logger = loggerFactory.CreateLogger("FileProcessor");
 
@@ -158,7 +147,7 @@ namespace FileProcessor
             Startup.Configuration.LogConfiguration(Logger.LogWarning);
 
             ConfigurationReader.Initialise(Startup.Configuration);
-
+            app.UseMiddleware<TenantMiddleware>();
             app.AddRequestLogging();
             app.AddResponseLogging();
             app.AddExceptionHandler();

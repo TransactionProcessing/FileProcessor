@@ -6,17 +6,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.5" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
-		<PackageReference Include="SecurityService.Client" Version="2025.5.2-build82" />
-		<PackageReference Include="Shared" Version="2025.6.2" />
-		<PackageReference Include="Shared.DomainDrivenDesign" Version="2025.6.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+		<PackageReference Include="SecurityService.Client" Version="2025.7.1" />
+		<PackageReference Include="Shared" Version="2025.7.9" />
+		<PackageReference Include="Shared.DomainDrivenDesign" Version="2025.7.9" />
 		<PackageReference Include="MediatR" Version="12.5.0" />
-		<PackageReference Include="Shared.EventStore" Version="2025.6.2" />
+		<PackageReference Include="Shared.EventStore" Version="2025.7.9" />
 		<PackageReference Include="System.IO.Abstractions" Version="22.0.14" />
-		<PackageReference Include="TransactionProcessor.Client" Version="2025.5.2-build186" />
+		<PackageReference Include="TransactionProcessor.Client" Version="2025.7.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
-		<PackageReference Include="TransactionProcessor.Database" Version="2025.5.2-build186" />
+		<PackageReference Include="TransactionProcessor.Database" Version="2025.7.1" />
 	</ItemGroup>
 
 	<ItemGroup>
