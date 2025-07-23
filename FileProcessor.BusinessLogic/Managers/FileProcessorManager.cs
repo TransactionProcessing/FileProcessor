@@ -6,19 +6,20 @@ using TransactionProcessor.Database.Entities;
 
 namespace FileProcessor.BusinessLogic.Managers
 {
+    using Common;
+    using FileAggregate;
+    using FileProcessor.Models;
+    using Microsoft.EntityFrameworkCore;
+    using Shared.DomainDrivenDesign.EventSourcing;
+    using Shared.EntityFramework;
+    using Shared.EventStore.Aggregate;
+    using Shared.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Common;
-    using FileAggregate;
-    using FileProcessor.Models;
-    using Microsoft.EntityFrameworkCore;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
-    using Shared.Exceptions;
     using FileImportLog = FileProcessor.Models.FileImportLog;
 
     /// <summary>
@@ -28,19 +29,15 @@ namespace FileProcessor.BusinessLogic.Managers
     public class FileProcessorManager : IFileProcessorManager
     {
         #region Fields
-
-        /// <summary>
-        /// The file profiles
-        /// </summary>
         private readonly List<FileProfile> FileProfiles;
 
-        private readonly Shared.EntityFramework.IDbContextFactory<EstateManagementContext> DbContextFactory;
+        private readonly IDbContextResolver<EstateManagementContext> Resolver;
+        private static readonly String EstateManagementDatabaseName = "TransactionProcessorReadModel";
 
         private readonly IModelFactory ModelFactory;
 
         private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
 
-        private const String ConnectionStringIdentifier = "EstateReportingReadModel";
 
         #endregion
 
@@ -53,12 +50,12 @@ namespace FileProcessor.BusinessLogic.Managers
         /// <param name="dbContextFactory">The database context factory.</param>
         /// <param name="modelFactory">The model factory.</param>
         public FileProcessorManager(List<FileProfile> fileProfiles,
-                                    Shared.EntityFramework.IDbContextFactory<EstateManagementContext> dbContextFactory,
+                                    IDbContextResolver<EstateManagementContext> resolver,
                                     IModelFactory modelFactory,
                                     IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository)
         {
             this.FileProfiles = fileProfiles;
-            this.DbContextFactory = dbContextFactory;
+            this.Resolver = resolver;
             this.ModelFactory = modelFactory;
             this.FileAggregateRepository = fileAggregateRepository;
         }
@@ -83,13 +80,20 @@ namespace FileProcessor.BusinessLogic.Managers
 
         }
 
+        private async Task<EstateManagementContext> GetContext(Guid estateId)
+        {
+            ResolvedDbContext<EstateManagementContext>? resolvedContext = this.Resolver.Resolve(EstateManagementDatabaseName, estateId.ToString());
+            return resolvedContext.Context;
+        }
+
+
         public async Task<Result<List<FileImportLog>>> GetFileImportLogs(Guid estateId,
                                                                  DateTime startDateTime,
                                                                  DateTime endDateTime,
                                                                  Guid? merchantId,
                                                                  CancellationToken cancellationToken)
         {
-            EstateManagementContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
+            EstateManagementContext context = await this.GetContext(estateId);
 
             List<TransactionProcessor.Database.Entities.FileImportLog> importLogQuery =
                 await context.FileImportLogs.Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
@@ -130,8 +134,8 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken)
         {
-            EstateManagementContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
-            
+            EstateManagementContext context = await this.GetContext(estateId);
+
             // Fetch the import log entry
             TransactionProcessor.Database.Entities.FileImportLog importLogQuery = await context.FileImportLogs
                 .SingleOrDefaultAsync(f => f.FileImportLogId == fileImportLogId, cancellationToken);
@@ -158,7 +162,8 @@ namespace FileProcessor.BusinessLogic.Managers
                 entityData.Add((file.fileImportLogFile, file.file, file.merchant));
             }
 
-            return this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            var x = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            return Result.Success(x);
         }
 
         public async Task<Result<FileDetails>> GetFile(Guid fileId,
@@ -179,7 +184,7 @@ namespace FileProcessor.BusinessLogic.Managers
 
             FileDetails fileDetails = fileAggregate.GetFile();
 
-            EstateManagementContext context = await this.DbContextFactory.GetContext(estateId, ConnectionStringIdentifier, cancellationToken);
+            EstateManagementContext context = await this.GetContext(estateId);
 
             Merchant merchant = await context.Merchants
                 .SingleOrDefaultAsync(m => m.MerchantId == fileDetails.MerchantId, cancellationToken);

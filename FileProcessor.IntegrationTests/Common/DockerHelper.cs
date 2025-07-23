@@ -63,7 +63,17 @@ namespace FileProcessor.IntegrationTests.Common
             }
         }
 
+        protected override EventStoreClientSettings ConfigureEventStoreSettings()
+        {
+            string str = $"esdb://127.0.0.1:{this.EventStoreHttpPort}?tls=false&tlsVerifyCert=false&defaultDeadline=30000";
+            if (this.IsSecureEventStore) {
+                str = $"esdb://admin:changeit@127.0.0.1:{this.EventStoreHttpPort}?tls=true&tlsVerifyCert=false&defaultDeadline=30000";
+            }
+            return EventStoreClientSettings.Create(str);
+        }
+
         public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
+            
             await base.StartContainersForScenarioRun(scenarioName, dockerServices);
 
             // Setup the base address resolvers

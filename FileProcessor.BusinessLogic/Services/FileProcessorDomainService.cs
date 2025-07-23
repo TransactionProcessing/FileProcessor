@@ -519,6 +519,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}", true);
         }
         else {
+            Logger.LogWarning($"About to move file {inProgressFile.Name} to [{fileProfile.FailedDirectory}]. Reason(s) [{String.Join(",", result.Errors)}]");
             inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
         }
 

@@ -1,62 +1,77 @@
-﻿using System;
+﻿using FileProcessor.Models;
+using SimpleResults;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FileProcessor.Models;
-using SimpleResults;
 using TransactionProcessor.Database.Contexts;
 using TransactionProcessor.Database.Entities;
 
 namespace FileProcessor.BusinessLogic.Tests
 {
-    using System.Threading;
     using Common;
     using FileAggregate;
+    using FileProcessor.Common;
     using FileProcessor.Models;
     using Managers;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
+    using Microsoft.EntityFrameworkCore.Internal;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Moq;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EntityFramework;
     using Shared.EventStore.Aggregate;
     using Shared.Exceptions;
     using Shouldly;
+    using System.Threading;
     using Testing;
     using Xunit;
     using FileImportLog = FileProcessor.Models.FileImportLog;
     using FileLine = FileProcessor.Models.FileLine;
 
-    public class FileProcessingManagerTests
-    {
+    public class FileProcessingManagerTests {
+        private Mock<IAggregateRepository<FileAggregate, DomainEvent>> FileAggregateRepository;
+        private FileProcessorManager Manager;
+        private Mock<IDbContextResolver<EstateManagementContext>> DbContextFactory;
+        private EstateManagementContext Context;
+        public FileProcessingManagerTests() {
+            List<FileProfile> fileProfiles = TestData.FileProfiles;
+            this.DbContextFactory = new Mock<IDbContextResolver<EstateManagementContext>>();
+            this.Context = this.GetContext(Guid.NewGuid().ToString("N"));
+            ServiceCollection services = new ServiceCollection();
+            services.AddTransient<EstateManagementContext>(_ => this.Context);
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceScope scope = serviceProvider.CreateScope();
+            this.DbContextFactory.Setup(d => d.Resolve(It.IsAny<String>(), It.IsAny<String>())).Returns(new ResolvedDbContext<EstateManagementContext>(scope));
+
+            var modelFactory= new Common.ModelFactory();
+            this.FileAggregateRepository = new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
+            this.Manager = new FileProcessorManager(fileProfiles, this.DbContextFactory.Object, modelFactory, this.FileAggregateRepository.Object);
+        }
+
+        private EstateManagementContext GetContext(String databaseName)
+        {
+            EstateManagementContext context = null;
+            DbContextOptionsBuilder<EstateManagementContext> builder = new DbContextOptionsBuilder<EstateManagementContext>().UseInMemoryDatabase(databaseName).ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            return new EstateManagementContext(builder.Options);
+        }
+
         [Fact]
         public async Task FileProcessingManager_GetAllFileProfiles_AllFileProfilesReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var contextFactory = this.CreateMockContextFactory();
-            Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object,modelFactory.Object, fileAggregateRepository.Object);
-
-            var allFileProfiles = await manager.GetAllFileProfiles(CancellationToken.None);
+            Result<List<FileProfile>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
             allFileProfiles.ShouldNotBeNull();
             allFileProfiles.IsSuccess.ShouldBeTrue();
             allFileProfiles.Data.ShouldNotBeEmpty();
         }
 
         [Fact]
-        public async Task FileProcessingManager_GetFileProfile_FIleProfileReturned()
+        public async Task FileProcessingManager_GetFileProfile_FileProfileReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var contextFactory = this.CreateMockContextFactory();
-            Mock<IModelFactory> modelFactory = new Mock<IModelFactory>();
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory.Object, fileAggregateRepository.Object);
-
-            var fileProfile = await manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
+            Result<FileProfile> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
             fileProfile.ShouldNotBeNull();
             fileProfile.IsSuccess.ShouldBeTrue();
             fileProfile.Data.FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
@@ -65,23 +80,13 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLogs_NoMerchantId_ImportLogsReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(),It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-            
-            context.FileImportLogs.AddRange(TestData.FileImportLogs);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
-            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
-            context.SaveChanges();
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            await this.Context.SaveChangesAsync();
 
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            Result<List<FileImportLog>> getFileImportLogsResult = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
+            Result<List<FileImportLog>> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
             List<FileImportLog> importLogs = getFileImportLogsResult.Data;
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
@@ -90,24 +95,14 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLogs_WithMerchantId_ImportLogsReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Files.AddRange(TestData.Files1);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            await this.Context.SaveChangesAsync();
 
-            context.FileImportLogs.AddRange(TestData.FileImportLogs);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
-            context.Files.AddRange(TestData.Files1);
-            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
-            context.SaveChanges();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var importLogs = await manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
+            Result<List<FileImportLog>> importLogs = await this.Manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
 
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs, TestData.MerchantId);
         }
@@ -115,24 +110,14 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLog_NoMerchantId_ImportLogReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            this.Context.Files.AddRange(TestData.Files1);
+            await this.Context.SaveChangesAsync();
 
-            context.FileImportLogs.AddRange(TestData.FileImportLogs);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
-            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
-            context.Files.AddRange(TestData.Files1);
-            context.SaveChanges();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
+            Result<FileImportLog> importLog = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(), importLog);
         }
@@ -140,24 +125,14 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLog_WithMerchantId_ImportLogReturned()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName});
+            this.Context.Files.AddRange(TestData.Files1);
+            await Context.SaveChangesAsync();
 
-            context.FileImportLogs.AddRange(TestData.FileImportLogs);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
-            context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
-            context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName});
-            context.Files.AddRange(TestData.Files1);
-            await context.SaveChangesAsync();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var importLog = await manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
+            Result<FileImportLog> importLog = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(),importLog, TestData.MerchantId);
         }
@@ -169,17 +144,9 @@ namespace FileProcessor.BusinessLogic.Tests
             {
                 TestData.FileProfile
             };
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-             Result<FileDetails> fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            
+             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
              fileDetails.IsSuccess.ShouldBeTrue();
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
@@ -190,18 +157,9 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileAggregateFailed_ErrorReturned()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>();
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Failure());
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            Result<FileDetails> fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Failure());
+            
+            Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
             fileDetails.IsFailed.ShouldBeTrue();
         }
@@ -209,29 +167,17 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithMerchantName()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>
-            {
-                TestData.FileProfile
-            };
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            context.Merchants.Add(new Merchant
+            this.Context.Merchants.Add(new Merchant
             {
                 EstateId = TestData.EstateId,
                 MerchantReportingId = TestData.MerchantReportingId,
                 MerchantId = TestData.MerchantId,
                 Name = TestData.MerchantName
             });
-            context.SaveChanges();
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            await this.Context.SaveChangesAsync();
+            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            
+            Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
 
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
@@ -241,28 +187,17 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithUserEmailAddress()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>
-            {
-                TestData.FileProfile
-            };
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            context.EstateSecurityUsers.Add(new EstateSecurityUser()
+            Context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
                 EstateId = TestData.EstateId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
-            context.SaveChanges();
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            await this.Context.SaveChangesAsync();
+            
+            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            
+            Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
             fileDetails.Data.UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
@@ -271,7 +206,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithFileProfileName()
         {
-            var fileProfiles = new List<FileProfile>
+            List<FileProfile> fileProfiles = new List<FileProfile>
             {
                 new FileProfile(TestData.FileProfileId,                 
                     TestData.SafaricomProfileName,
@@ -281,24 +216,16 @@ namespace FileProcessor.BusinessLogic.Tests
                     TestData.SafaricomLineTerminator,
                     TestData.SafaricomFileFormatHandler)
             };
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            context.EstateSecurityUsers.Add(new EstateSecurityUser()
+            Context.EstateSecurityUsers.Add(new EstateSecurityUser()
             {
                 EstateId = TestData.EstateId,
                 SecurityUserId = TestData.UserId,
                 EmailAddress = TestData.UserEmailAddress
             });
-            context.SaveChanges();
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var fileDetails = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            await Context.SaveChangesAsync();
+            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            
+            Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
             fileDetails.Data.FileProfileName.ShouldBe(TestData.SafaricomProfileName);
@@ -307,26 +234,18 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileNotFound_ErrorThrown()
         {
-            var fileProfiles = TestData.FileProfiles;
-            var context = await this.GetContext(Guid.NewGuid().ToString("N"));
-            var contextFactory = this.CreateMockContextFactory();
-            contextFactory.Setup(c => c.GetContext(It.IsAny<Guid>(), It.IsAny<String>(), It.IsAny<CancellationToken>())).ReturnsAsync(context);
-            IModelFactory modelFactory = new ModelFactory();
-
-            Mock<IAggregateRepository<FileAggregate, DomainEvent>> fileAggregateRepository =
-                new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            fileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
-            FileProcessorManager manager = new FileProcessorManager(fileProfiles, contextFactory.Object, modelFactory, fileAggregateRepository.Object);
-
-            var result = await manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-                                            result.IsFailed.ShouldBeTrue();
-                                            result.Status.ShouldBe(ResultStatus.NotFound);
+            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
+            
+            Result<FileDetails> result = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
+            
+            result.IsFailed.ShouldBeTrue();
+            result.Status.ShouldBe(ResultStatus.NotFound);
         }
 
 
         private void VerifyFile(FileAggregate source, Result<FileDetails> fileDetails)
         {
-            var fileModel = source.GetFile();
+            FileDetails fileModel = source.GetFile();
 
             fileDetails.Data.FileId.ShouldBe(fileModel.FileId);
             fileDetails.Data.FileImportLogId.ShouldBe(fileModel.FileImportLogId);
@@ -361,7 +280,7 @@ namespace FileProcessor.BusinessLogic.Tests
             importLogs.Data.Count.ShouldBe(TestData.FileImportLogs.Count);
             foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in source)
             {
-                var importLog = importLogs.Data.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
+                FileImportLog importLog = importLogs.Data.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
@@ -379,7 +298,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             foreach (ImportLogFile importLogFile in filesToVerify)
             {
-                var file = importLog.Data.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
+                ImportLogFile file = importLog.Data.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
                 file.ShouldNotBeNull();
                 file.MerchantId.ShouldBe(importLogFile.MerchantId);
                 file.FilePath.ShouldBe(importLogFile.FilePath);
@@ -389,21 +308,18 @@ namespace FileProcessor.BusinessLogic.Tests
             }
         }
         
-        private Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementContext>> CreateMockContextFactory()
-        {
-            return new Mock<Shared.EntityFramework.IDbContextFactory<EstateManagementContext>>();
-        }
-
-        private async Task<EstateManagementContext> GetContext(String databaseName)
-        {
-            EstateManagementContext context = null;
-            
-            DbContextOptionsBuilder<EstateManagementContext> builder = new DbContextOptionsBuilder<EstateManagementContext>()
-                                                                              .UseInMemoryDatabase(databaseName)
-                                                                              .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-            context = new EstateManagementContext(builder.Options);
         
-            return context;
-        }
+
+        //private async Task<EstateManagementContext> GetContext(String databaseName)
+        //{
+        //    EstateManagementContext context = null;
+            
+        //    DbContextOptionsBuilder<EstateManagementContext> builder = new DbContextOptionsBuilder<EstateManagementContext>()
+        //                                                                      .UseInMemoryDatabase(databaseName)
+        //                                                                      .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+        //    context = new EstateManagementContext(builder.Options);
+        
+        //    return context;
+        //}
     }
 }

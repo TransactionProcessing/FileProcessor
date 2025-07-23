@@ -147,7 +147,8 @@ namespace FileProcessor.Testing
 
         public static List<FileProfile> FileProfiles => new List<FileProfile>
                                                        {
-                                                           FileProfileSafaricom
+                                                           FileProfileSafaricom,
+                                                           TestData.FileProfile
                                                        };
         public static Guid SafaricomFileProfileId = Guid.Parse("079F1FF5-F51E-4BE0-AF4F-2D4862E6D34F");
         public static String SafaricomProfileName = "Safaricom Profile";
@@ -321,7 +322,7 @@ namespace FileProcessor.Testing
                 ["AppSettings:TemporaryFileLocation"] = "C:\\Temp",
                 ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
-                ["ConnectionStrings:EstateReportingReadModel"] = "EstateReportingReadModel",
+                ["ConnectionStrings:TransactionProcessorReadModel"] = "EstateReportingReadModel",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
                 ["EventStoreSettings:ConnectionString"] = "esdb://127.0.0.1:2113",
                 ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
