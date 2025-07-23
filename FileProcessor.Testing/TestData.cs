@@ -322,7 +322,7 @@ namespace FileProcessor.Testing
                 ["AppSettings:TemporaryFileLocation"] = "C:\\Temp",
                 ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
-                ["ConnectionStrings:EstateReportingReadModel"] = "EstateReportingReadModel",
+                ["ConnectionStrings:TransactionProcessorReadModel"] = "EstateReportingReadModel",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
                 ["EventStoreSettings:ConnectionString"] = "esdb://127.0.0.1:2113",
                 ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
