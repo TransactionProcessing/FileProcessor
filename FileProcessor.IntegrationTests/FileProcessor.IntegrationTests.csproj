@@ -24,8 +24,8 @@
 	  <PackageReference Include="Reqnroll.NUnit" Version="2.4.1" />
     <PackageReference Include="SecurityService.Client" Version="2025.7.1" />
     <PackageReference Include="SecurityService.IntegrationTesting.Helpers" Version="2025.7.1" />
-	  <PackageReference Include="Shared" Version="2025.7.10" />
-    <PackageReference Include="Shared.IntegrationTesting" Version="2025.7.10" />
+	  <PackageReference Include="Shared" Version="2025.7.12" />
+    <PackageReference Include="Shared.IntegrationTesting" Version="2025.7.12" />
     <PackageReference Include="Shouldly" Version="4.3.0" />
 	  <PackageReference Include="TransactionProcessor.Client" Version="2025.7.1" />
 	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2025.7.1" />
