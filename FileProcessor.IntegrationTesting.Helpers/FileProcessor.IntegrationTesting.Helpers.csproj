@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Shared.IntegrationTesting" Version="2025.7.12" />
-	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2025.7.1" />
+	  <PackageReference Include="Shared.IntegrationTesting" Version="2025.7.13" />
+	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2025.7.2" />
   </ItemGroup>
 
   <ItemGroup>
