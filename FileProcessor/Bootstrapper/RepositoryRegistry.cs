@@ -2,15 +2,15 @@
 
 namespace FileProcessor.Bootstrapper;
 
-using System;
-using System.Diagnostics.CodeAnalysis;
 using BusinessLogic.Common;
 using BusinessLogic.Managers;
 using FileAggregate;
 using FileImportLogAggregate;
 using Lamar;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shared.DomainDrivenDesign.EventSourcing;
 using Shared.EntityFramework;
 using Shared.EntityFramework.ConnectionStringConfiguration;
@@ -19,6 +19,8 @@ using Shared.EventStore.EventStore;
 using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
 using Shared.Repositories;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 [ExcludeFromCodeCoverage]
 public class RepositoryRegistry : ServiceRegistry
@@ -30,26 +32,23 @@ public class RepositoryRegistry : ServiceRegistry
     /// </summary>
     public RepositoryRegistry()
     {
-        Boolean useConnectionStringConfig = bool.Parse(ConfigurationReader.GetValue("AppSettings", "UseConnectionStringConfig"));
-
-        if (useConnectionStringConfig)
+        this.AddSingleton(typeof(IDbContextResolver<>), typeof(DbContextResolver<>));
+        if (Startup.WebHostEnvironment.IsEnvironment("IntegrationTest") || Startup.Configuration.GetValue<Boolean>("ServiceOptions:UseInMemoryDatabase") == true)
         {
-            String connectionStringConfigurationConnString = ConfigurationReader.GetConnectionString("ConnectionStringConfiguration");
-            this.AddSingleton<IConnectionStringConfigurationRepository, ConnectionStringConfigurationRepository>();
-            this.AddTransient(c => { return new ConnectionStringConfigurationContext(connectionStringConfigurationConnString); });
-
-            // TODO: Read this from a the database and set
+            this.AddDbContext<EstateManagementContext>(builder => builder.UseInMemoryDatabase("TransactionProcessorReadModel"));
         }
         else
         {
-            String connectionString = Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
-
-            this.AddEventStoreProjectionManagementClient(connectionString);
-            this.AddEventStorePersistentSubscriptionsClient(connectionString);
-
-            this.AddEventStoreClient(connectionString);
-            this.AddSingleton<IConnectionStringConfigurationRepository, ConfigurationReaderConnectionStringRepository>();
+            this.AddDbContext<EstateManagementContext>(options =>
+                options.UseSqlServer(ConfigurationReader.GetConnectionString("TransactionProcessorReadModel")));
         }
+
+        String connectionString = Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
+
+        this.AddEventStoreProjectionManagementClient(connectionString);
+        this.AddEventStorePersistentSubscriptionsClient(connectionString);
+
+        this.AddEventStoreClient(connectionString);
 
         this.AddSingleton<IEventStoreContext, EventStoreContext>();
 
@@ -57,11 +56,6 @@ public class RepositoryRegistry : ServiceRegistry
         this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
             AggregateRepository<FileImportLogAggregate, DomainEvent>>();
 
-        this.AddSingleton<IDbContextFactory<EstateManagementContext>, DbContextFactory<EstateManagementContext>>();
-        this.AddSingleton<Func<String, EstateManagementContext>>(cont => connectionString =>
-                                                                                {
-                                                                                    return new EstateManagementContext(connectionString);
-                                                                                });
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
 
         this.AddSingleton<Func<String, Int32, ISubscriptionRepository>>(cont => (esConnString, cacheDuration) => {

@@ -67,8 +67,7 @@ namespace FileProcessor.BusinessLogic.Common
         /// <returns></returns>
         public FileImportLog ConvertFrom(Guid estateId,
                                          TransactionProcessor.Database.Entities.FileImportLog importLog,
-                                         List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)> importLogFilesList)
-        {
+                                         List<(TransactionProcessor.Database.Entities.FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)> importLogFilesList) {
             FileImportLog model = new FileImportLog();
 
             model.FileImportLogId = importLog.FileImportLogId;
