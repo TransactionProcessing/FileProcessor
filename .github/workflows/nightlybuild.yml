@@ -37,14 +37,19 @@ jobs:
         dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj" /p:CollectCoverage=true /p:Exclude="[xunit*]*" /p:ExcludeByAttribute="Obsolete" /p:ExcludeByAttribute="GeneratedCodeAttribute" /p:ExcludeByAttribute="CompilerGeneratedAttribute" /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:CoverletOutput="../lcov2.info" /maxcpucount:1 /p:CoverletOutputFormat="lcov"
         dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj" /p:CollectCoverage=true /p:Exclude="[xunit*]*" /p:ExcludeByAttribute="Obsolete" /p:ExcludeByAttribute="GeneratedCodeAttribute" /p:ExcludeByAttribute="CompilerGeneratedAttribute" /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:CoverletOutput="../lcov3.info" /maxcpucount:1 /p:CoverletOutputFormat="lcov"
 
-    - name: Setup Node.js for use with actions
-      uses: actions/setup-node@v1.4.4
-    
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3  
+    - name: Install LCOV merger
+      run: npm install -g lcov-result-merger
+
+    - name: Merge LCOV reports
+      run: |
+        mkdir -p coverage
+        lcov-result-merger "*.info" > lcov.info
+
+    - name: Upload merged coverage to Codacy
+      uses: codacy/codacy-coverage-reporter-action@v1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./lcov1.info,./lcov2.info,./lcov3.info  
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: ./lcov.info
                
     - name: Build Docker Image
       run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
