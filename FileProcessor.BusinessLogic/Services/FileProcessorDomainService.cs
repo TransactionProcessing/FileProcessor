@@ -310,7 +310,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             // need to now parse the line (based on the file format), this builds the metadata
             Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
 
-            if (transactionMetadata == null)
+            if (transactionMetadata.Any() == false)
             {
                 // Line failed to parse so record this
                 fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
@@ -566,7 +566,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         catch (InvalidDataException iex)
         {
             Logger.LogWarning(iex.Message);
-            return null;
+            return new Dictionary<String, String>();
         }
     }
 

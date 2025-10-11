@@ -65,8 +65,6 @@ namespace FileProcessor.BusinessLogic.EventHandling
             return await this.HandleSpecificDomainEvent((dynamic)domainEvent, cancellationToken);
         }
 
-        //private static Int32 TransactionNumber = 0;
-
         /// <summary>
         /// Handles the specific domain event.
         /// </summary>
