@@ -24,7 +24,6 @@ public class ClientRegistry : ServiceRegistry
         this.RegisterHttpClient<ISecurityServiceClient, SecurityServiceClient>();
         this.RegisterHttpClient<ITransactionProcessorClient, TransactionProcessorClient>();
 
-        //this.AddSingleton<Func<String, String>>(container => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; });
         Func<String, String> resolver(IServiceProvider container) => serviceName => { return ConfigurationReader.GetBaseServerUri(serviceName).OriginalString; };
         
         this.AddSingleton<Func<String, String>>(resolver);

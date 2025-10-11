@@ -58,6 +58,9 @@ public static class Extensions
             case TraceEventType.Verbose:
                 Logger.LogDebug(logMessage);
                 break;
+            default:
+                Logger.LogInformation(logMessage);
+                break;
         }
     };
 
@@ -102,9 +105,7 @@ public static class Extensions
                                                                                     };
 
         Func<String, Int32, ISubscriptionRepository> subscriptionRepositoryResolver = Startup.Container.GetInstance<Func<String, Int32, ISubscriptionRepository>>();
-
-        EventStoreClientSettings eventStoreClientSettings = EventStoreClientSettings.Create(eventStoreConnectionString);
-
+        
         applicationBuilder.ConfigureSubscriptionService(subscriptionWorkersRoot,
                                                         eventStoreConnectionString,
                                                         eventHandlerResolvers,

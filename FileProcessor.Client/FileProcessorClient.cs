@@ -59,8 +59,6 @@ namespace FileProcessor.Client {
                                                Guid estateId,
                                                Guid fileId,
                                                CancellationToken cancellationToken) {
-            FileDetails response = null;
-
             String requestUri = this.BuildRequestUrl($"/api/files/{fileId}?estateId={estateId}");
 
             try {
@@ -81,7 +79,7 @@ namespace FileProcessor.Client {
                     HandleResponseContent<FileDetails>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
-                response = responseData.Data;
+                return Result.Success(responseData.Data);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -89,8 +87,6 @@ namespace FileProcessor.Client {
 
                 throw exception;
             }
-
-            return Result.Success(response);
         }
 
         /// <summary>
@@ -107,8 +103,6 @@ namespace FileProcessor.Client {
                                                           Guid estateId,
                                                           Guid? merchantId,
                                                           CancellationToken cancellationToken) {
-            FileImportLog response = null;
-
             String requestUri = this.BuildRequestUrl($"/api/fileImportLogs/{fileImportLogId}?estateId={estateId}");
 
             if (merchantId.HasValue) {
@@ -133,7 +127,7 @@ namespace FileProcessor.Client {
                     HandleResponseContent<FileImportLog>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
-                response = responseData.Data;
+                return Result.Success(responseData.Data);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -141,8 +135,6 @@ namespace FileProcessor.Client {
 
                 throw exception;
             }
-
-            return Result.Success(response);
         }
 
         /// <summary>
@@ -161,8 +153,6 @@ namespace FileProcessor.Client {
                                                                DateTime endDateTime,
                                                                Guid? merchantId,
                                                                CancellationToken cancellationToken) {
-            FileImportLogList response = null;
-
             String requestUri =
                 this.BuildRequestUrl(
                     $"/api/fileImportLogs?estateId={estateId}&startDateTime={startDateTime.Date:yyyy-MM-dd}&endDateTime={endDateTime.Date:yyyy-MM-dd}");
@@ -188,7 +178,7 @@ namespace FileProcessor.Client {
                     HandleResponseContent<FileImportLogList>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
-                response = responseData.Data;
+                return Result.Success(responseData.Data);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -196,8 +186,6 @@ namespace FileProcessor.Client {
 
                 throw exception;
             }
-
-            return Result.Success(response);
         }
 
         /// <summary>
@@ -214,7 +202,6 @@ namespace FileProcessor.Client {
                                                    Byte[] fileData,
                                                    UploadFileRequest uploadFileRequest,
                                                    CancellationToken cancellationToken) {
-            Guid response = Guid.Empty;
             try {
                 String requestUri = this.BuildRequestUrl("/api/files");
 
@@ -246,7 +233,7 @@ namespace FileProcessor.Client {
                     HandleResponseContent<Guid>(result.Data);
 
                 // call was successful so now deserialise the body to the response object
-                response = responseData.Data;
+                return Result.Success(responseData.Data);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -254,8 +241,6 @@ namespace FileProcessor.Client {
 
                 throw exception;
             }
-
-            return Result.Success(response);
         }
 
         /// <summary>
