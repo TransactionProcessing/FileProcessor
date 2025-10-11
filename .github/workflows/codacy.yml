@@ -11,7 +11,7 @@ on:
   push:
     # branches to consider in the event; optional, defaults to all
     branches:
-      - maion
+      - main
 jobs:
   sync-codacy-issues:
     runs-on: ubuntu-latest
