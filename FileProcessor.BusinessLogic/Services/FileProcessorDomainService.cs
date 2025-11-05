@@ -145,7 +145,10 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             if (fileImportLogAggregate.IsCreated == false)
             {
                 // First file of the day so create
-                fileImportLogAggregate.CreateImportLog(command.EstateId, importLogDateTime);
+                Result result = fileImportLogAggregate.CreateImportLog(command.EstateId, importLogDateTime);
+                if (result.IsFailed) {
+                    return result;
+                }
             }
 
             // Move the file
@@ -192,7 +195,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             file.MoveTo(fileDestination, overwrite: true);
 
             // Update Import log aggregate
-            fileImportLogAggregate.AddImportedFile(fileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
+            var stateResult= fileImportLogAggregate.AddImportedFile(fileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
+            if (stateResult.IsFailed)
+                return stateResult;
             
             return Result.Success(fileId);
         }, importLogId, cancellationToken, false);
