@@ -1,60 +1,29 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using ImTools;
 
 namespace FileProcessor
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.IO.Abstractions;
     using System.Reflection;
     using Bootstrapper;
-    using BusinessLogic.Common;
-    using BusinessLogic.EventHandling;
-    using BusinessLogic.FileFormatHandlers;
-    using BusinessLogic.Managers;
-    using BusinessLogic.RequestHandlers;
-    using BusinessLogic.Requests;
     using Common;
-    using EventStore.Client;
-    using File.DomainEvents;
-    using FileImportLog.DomainEvents;
-    using FileProcessor.Models;
     using HealthChecks.UI.Client;
-    using JasperFx.Core;
     using Lamar;
-    using MediatR;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
-    using Microsoft.OpenApi.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
-    using NLog.Extensions.Logging;
-    using SecurityService.Client;
     using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EntityFramework;
-    using Shared.EntityFramework.ConnectionStringConfiguration;
     using Shared.EventStore.Aggregate;
-    using Shared.EventStore.EventStore;
-    using Shared.EventStore.Extensions;
     using Shared.Extensions;
     using Shared.General;
     using Shared.Logger;
     using Shared.Middleware;
-    using Shared.Repositories;
-    using Swashbuckle.AspNetCore.Filters;
-    using TransactionProcessor.Client;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
 
     [ExcludeFromCodeCoverage]
