@@ -1,5 +1,6 @@
 ﻿using System;
 using FileProcessor.Models;
+using SimpleResults;
 
 namespace FileProcessor.FileImportLogAggregate
 {
@@ -14,33 +15,36 @@ namespace FileProcessor.FileImportLogAggregate
     using Shared.General;
 
     public static class FileImportLogAggregateExtensions{
-        public static void CreateImportLog(this FileImportLogAggregate aggregate, Guid estateId, DateTime importLogDateTime)
+        public static Result CreateImportLog(this FileImportLogAggregate aggregate, Guid estateId, DateTime importLogDateTime)
         {
             // Silently handle a duplicate create
             if (aggregate.IsCreated)
-                return;
+                return Result.Success();
 
             ImportLogCreatedEvent importLogCreatedEvent = new ImportLogCreatedEvent(aggregate.AggregateId, estateId, importLogDateTime);
 
             aggregate.ApplyAndAppend(importLogCreatedEvent);
+            return Result.Success();
         }
         
-        public static void AddImportedFile(this FileImportLogAggregate aggregate, Guid fileId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime)
+        public static Result AddImportedFile(this FileImportLogAggregate aggregate, Guid fileId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime)
         {
             if (aggregate.IsCreated == false)
             {
-                throw new InvalidOperationException("Import log has not been created");
+                return Result.Invalid("Import log has not been created");
             }
 
             if (aggregate.Files.Any(f => f.FileId == fileId))
             {
-                throw new InvalidOperationException($"Duplicate file {originalFileName} detected File Id [{fileId}]");
+                return Result.Invalid($"Duplicate file {originalFileName} detected File Id [{fileId}]");
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
                 new FileAddedToImportLogEvent(aggregate.AggregateId, fileId, aggregate.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath, fileUploadedDateTime);
 
             aggregate.ApplyAndAppend(fileAddedToImportLogEvent);
+
+            return Result.Success();
         }
 
         public static void PlayEvent(this FileImportLogAggregate aggregate, ImportLogCreatedEvent domainEvent)
