@@ -95,7 +95,8 @@ namespace FileProcessor.FileImportLogAggregate
 
         private FileImportLogAggregate(Guid aggregateId)
         {
-            Guard.ThrowIfInvalidGuid(aggregateId, "Aggregate Id cannot be an Empty Guid");
+            if (aggregateId == Guid.Empty)
+                throw new ArgumentException("Aggregate Id cannot be an Empty Guid");
 
             this.AggregateId = aggregateId;
             this.Files = new List<ImportLogFile>();

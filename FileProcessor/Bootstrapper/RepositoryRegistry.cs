@@ -13,12 +13,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shared.DomainDrivenDesign.EventSourcing;
 using Shared.EntityFramework;
-using Shared.EntityFramework.ConnectionStringConfiguration;
 using Shared.EventStore.Aggregate;
 using Shared.EventStore.EventStore;
 using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
-using Shared.Repositories;
 using System;
 using System.Diagnostics.CodeAnalysis;
 

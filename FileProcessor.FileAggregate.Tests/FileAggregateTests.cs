@@ -27,7 +27,7 @@ namespace FileProcessor.FileAggregate.Tests
         [Fact]
         public void FileAggregate_CanBeCreated_InvalidFileId_IsCreated()
         {
-            Should.Throw<ArgumentNullException>(() => { FileAggregate fileAggregate = FileAggregate.Create(Guid.Empty); });
+            Should.Throw<ArgumentException>(() => { FileAggregate fileAggregate = FileAggregate.Create(Guid.Empty); });
         }
 
         [Fact]

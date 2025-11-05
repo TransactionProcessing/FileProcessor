@@ -257,7 +257,8 @@ namespace FileProcessor.FileAggregate
         /// <param name="aggregateId">The aggregate identifier.</param>
         private FileAggregate(Guid aggregateId)
         {
-            Guard.ThrowIfInvalidGuid(aggregateId, "Aggregate Id cannot be an Empty Guid");
+            if (aggregateId== Guid.Empty)
+                throw new ArgumentException("Aggregate Id cannot be an Empty Guid");
 
             this.AggregateId = aggregateId;
             this.FileLines = new List<FileLine>();
