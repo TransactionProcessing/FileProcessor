@@ -72,7 +72,7 @@ namespace FileProcessor.Controllers
         [HttpPost]
         [DisableRequestSizeLimit]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadFile([FromForm] UploadFileRequest request,
+        public async Task<IResult> UploadFile([FromForm] UploadFileRequest request,
                                                     [FromForm] IFormCollection formCollection,
                                                     CancellationToken cancellationToken)
         {
@@ -103,7 +103,7 @@ namespace FileProcessor.Controllers
             Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
             Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
 
-            return result.ToActionResultX();
+            return ResponseFactory.FromResult(result, (r) => r);
         }
 
         /// <summary>
@@ -115,20 +115,15 @@ namespace FileProcessor.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("{fileId}")]
-        public async Task<IActionResult> GetFile([FromRoute] Guid fileId,
+        public async Task<IResult> GetFile([FromRoute] Guid fileId,
                                                  [FromQuery] Guid estateId,
                                                  CancellationToken cancellationToken) {
             //FileDetails fileDetailsModel = await this.Manager.GetFile(fileId, estateId, cancellationToken);
             FileQueries.GetFileQuery query = new FileQueries.GetFileQuery(fileId, estateId);
 
             Result<FileDetails> result = await this.Mediator.Send(query, cancellationToken);
-
-            if (result.IsFailed)
-                return ResultHelpers.CreateFailure(result).ToActionResultX();
-
-            DataTransferObjects.Responses.FileDetails response = this.ModelFactory.ConvertFrom(result.Data);
-
-            return Result.Success(response).ToActionResultX();
+            
+            return ResponseFactory.FromResult(result, (r) => this.ModelFactory.ConvertFrom(r));
 
         }
 

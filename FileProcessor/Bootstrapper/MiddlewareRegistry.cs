@@ -1,11 +1,5 @@
 ﻿namespace FileProcessor.Bootstrapper
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Net.Http;
-    using System.Reflection;
     using EventStore.Client;
     using Lamar;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,9 +9,16 @@
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using Shared.Authorisation;
     using Shared.EventStore.Extensions;
     using Shared.Extensions;
     using Shared.General;
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
+    using System.IO;
+    using System.Net.Http;
+    using System.Reflection;
 
     [ExcludeFromCodeCoverage]
     public class MiddlewareRegistry : ServiceRegistry
@@ -108,6 +109,15 @@
 
             Assembly assembly = this.GetType().GetTypeInfo().Assembly;
             this.AddMvcCore().AddApplicationPart(assembly).AddControllersAsServices();
+
+            this.AddClientCredentialsOnlyPolicy();
+            this.AddClientCredentialsHandler();
+
+            this.ConfigureHttpJsonOptions(options =>
+            {
+                options.SerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+                options.SerializerOptions.PropertyNameCaseInsensitive = true; // optional, but safer
+            });
         }
 
         #endregion
