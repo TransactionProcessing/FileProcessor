@@ -1,13 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata.Ecma335;
-using FileProcessor.Models;
+﻿using Shared.EventStore.Helpers;
+using TransactionProcessor.DataTransferObjects.Responses.Merchant;
+
+namespace FileProcessor.BusinessLogic.Services;
+
+using System.Diagnostics.CodeAnalysis;
 using Shared.Results;
 using SimpleResults;
 using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
-
-namespace FileProcessor.BusinessLogic.Services;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,15 +17,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core;
 using Common;
 using FileAggregate;
 using FileFormatHandlers;
 using FileImportLogAggregate;
-using FileProcessor.DataTransferObjects.Responses;
-using FileProcessor.Models;
+using Models;
 using Managers;
-using MediatR;
 using Newtonsoft.Json;
 using Requests;
 using SecurityService.Client;
@@ -37,8 +34,19 @@ using Shared.General;
 using Shared.Logger;
 using TransactionProcessor.Client;
 using TransactionProcessor.DataTransferObjects;
-using FileDetails = FileProcessor.Models.FileDetails;
-using FileLine = FileProcessor.Models.FileLine;
+using FileDetails = Models.FileDetails;
+using FileLine = Models.FileLine;
+
+public interface IFileProcessorDomainService
+{
+    Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command, CancellationToken cancellationToken);
+
+    Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
+                                     CancellationToken cancellationToken);
+
+    Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
+                                               CancellationToken cancellationToken);
+}
 
 public class FileProcessorDomainService : IFileProcessorDomainService
 {
@@ -153,37 +161,33 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             // Move the file
             Result<FileProfile> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
-            if (getFileProfileResult.IsFailed)
-            {
+            if (getFileProfileResult.IsFailed) {
                 return ResultHelpers.CreateFailure(getFileProfileResult);
             }
+
             FileProfile fileProfile = getFileProfileResult.Data;
-            if (fileProfile == null)
-            {
+            if (fileProfile == null) {
                 return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
             }
 
             // Copy file from the temp location to file processing listening directory
             IFileInfo file = this.FileSystem.FileInfo.New(command.FilePath);
-            if (file.Exists == false)
-            {
+            if (file.Exists == false) {
                 return Result.NotFound($"File {file.FullName} not found");
             }
+
             String originalName = file.Name;
 
-            if (this.FileSystem.Directory.Exists(fileProfile.ListeningDirectory) == false)
-            {
+            if (this.FileSystem.Directory.Exists(fileProfile.ListeningDirectory) == false) {
                 return Result.NotFound($"Directory {fileProfile.ListeningDirectory} not found");
             }
 
             // Read the file data
             String fileContent = null;
             //Open file for Read\Write
-            using (Stream fs = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
-            {
+            await using (Stream fs = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
                 //Create object of StreamReader by passing FileStream object on which it needs to operates on
-                using (StreamReader sr = new StreamReader(fs))
-                {
+                using (StreamReader sr = new StreamReader(fs)) {
                     //Use ReadToEnd method to read all the content from file
                     fileContent = await sr.ReadToEndAsync(cancellationToken);
                 }
@@ -195,7 +199,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             file.MoveTo(fileDestination, overwrite: true);
 
             // Update Import log aggregate
-            var stateResult= fileImportLogAggregate.AddImportedFile(fileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
+            Result stateResult= fileImportLogAggregate.AddImportedFile(fileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
             if (stateResult.IsFailed)
                 return stateResult;
             
@@ -231,7 +235,10 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(operatorIdResult);
 
             Logger.LogWarning("About to Create File");
-            fileAggregate.CreateFile(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.Data);
+            Result stateResult = fileAggregate.CreateFile(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.Data);
+            if (stateResult.IsFailed)
+                return stateResult;
+
             Logger.LogWarning("About to return success");
             return Result.Success();
 
@@ -253,9 +260,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Logger.LogInformation($"file profile {fileProfileId} not  found");
             return ResultHelpers.CreateFailure(fileProfileResult);
         }
-        var fileProfile = fileProfileResult.Data;
+        FileProfile fileProfile = fileProfileResult.Data;
 
-        var getTokenResult = await this.GetToken(cancellationToken);
+        Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
         if (getTokenResult.IsFailed) {
             return ResultHelpers.CreateFailure(getTokenResult);
         }
@@ -279,20 +286,17 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             FileDetails fileDetails = fileAggregate.GetFile();
 
-            if (fileDetails.FileLines.Any() == false)
-            {
+            if (fileDetails.FileLines.Any() == false) {
                 return Result.Invalid($"File Id [{command.FileId}] has no lines added");
             }
 
             FileLine fileLine = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == command.LineNumber);
 
-            if (fileLine == null)
-            {
+            if (fileLine == null) {
                 return Result.NotFound($"File Line Number {command.LineNumber} not found in File Id {command.FileId}");
             }
 
-            if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
-            {
+            if (fileLine.ProcessingResult != ProcessingResult.NotProcessed) {
                 // Line already processed
                 return Result.Success();
             }
@@ -308,17 +312,20 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
             {
                 // Write something to aggregate to say line was explicity ignored
-                fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
+                Result stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
+                if (stateResult.IsFailed)
+                    return stateResult;
                 return Result.Success();
             }
 
             // need to now parse the line (based on the file format), this builds the metadata
             Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
 
-            if (transactionMetadata.Any() == false)
-            {
+            if (transactionMetadata.Any() == false) {
                 // Line failed to parse so record this
-                fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
+                Result stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
+                if (stateResult.IsFailed)
+                    return stateResult;
                 return Result.Success();
             }
 
@@ -327,63 +334,55 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
 
             String operatorName = fileProfile.OperatorName;
-            if (transactionMetadata.ContainsKey("OperatorName"))
-            {
+            if (transactionMetadata.ContainsKey("OperatorName")) {
                 // extract the value
                 operatorName = transactionMetadata["OperatorName"];
                 transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
             }
 
-            var getTokenResult = await this.GetToken(cancellationToken);
-            if (getTokenResult.IsFailed)
-            {
+            Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
+            if (getTokenResult.IsFailed) {
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
+
             this.TokenResponse = getTokenResult.Data;
 
-            Interlocked.Increment(ref FileProcessorDomainService.TransactionNumber);
+            Interlocked.Increment(ref TransactionNumber);
 
             // Get the merchant details
-            var getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-            if (getMerchantResult.IsFailed)
-            {
+            Result<MerchantResponse> getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+            if (getMerchantResult.IsFailed) {
                 return ResultHelpers.CreateFailure(getMerchantResult);
             }
 
-            var merchant = getMerchantResult.Data;
+            MerchantResponse merchant = getMerchantResult.Data;
 
-            var getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-            if (getContractsResult.IsFailed)
-            {
+            Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+            if (getContractsResult.IsFailed) {
                 return ResultHelpers.CreateFailure(getContractsResult);
             }
 
             List<ContractResponse> contracts = getContractsResult.Data;
 
-            if (contracts.Any() == false)
-            {
+            if (contracts.Any() == false) {
                 return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
             }
 
             ContractResponse? contract = null;
-            if (fileProfile.OperatorName == "Voucher")
-            {
+            if (fileProfile.OperatorName == "Voucher") {
                 contract = contracts.SingleOrDefault(c => c.Description.Contains(operatorName));
             }
-            else
-            {
+            else {
                 contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
             }
 
-            if (contract == null)
-            {
+            if (contract == null) {
                 return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
             }
 
             ContractProduct? product = contract.Products.SingleOrDefault(p => p.Value == null); // TODO: Is this enough or should the name be used and stored in file profile??
 
-            if (product == null)
-            {
+            if (product == null) {
                 return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
             }
 
@@ -393,7 +392,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 EstateId = fileDetails.EstateId,
                 MerchantId = fileDetails.MerchantId,
                 TransactionDateTime = fileDetails.FileReceivedDateTime,
-                TransactionNumber = FileProcessorDomainService.TransactionNumber.ToString(),
+                TransactionNumber = TransactionNumber.ToString(),
                 TransactionType = "Sale",
                 ContractId = contract.ContractId,
                 DeviceIdentifier = merchant.Devices.First().Value,
@@ -422,19 +421,22 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result<SerialisedMessage> result= await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, serialisedRequestMessage, cancellationToken);
             if (result.IsFailed)
                 return ResultHelpers.CreateFailure(result);
-            var serialisedResponseMessage = result.Data;
+            SerialisedMessage serialisedResponseMessage = result.Data;
 
             // Get the sale transaction response
             SaleTransactionResponse saleTransactionResponse = JsonConvert.DeserializeObject<SaleTransactionResponse>(serialisedResponseMessage.SerialisedData);
 
-            if (saleTransactionResponse.ResponseCode == "0000")
-            {
+            if (saleTransactionResponse.ResponseCode == "0000") {
                 // record response against file line in file aggregate
-                fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleTransactionResponse.TransactionId);
+                Result stateResult = fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleTransactionResponse.TransactionId);
+                if (stateResult.IsFailed)
+                    return stateResult;
             }
             else
             {
-                fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleTransactionResponse.TransactionId, saleTransactionResponse.ResponseCode, saleTransactionResponse.ResponseMessage);
+                Result stateResult = fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleTransactionResponse.TransactionId, saleTransactionResponse.ResponseCode, saleTransactionResponse.ResponseMessage);
+                if (stateResult.IsFailed)
+                    return stateResult;
             }
 
             return Result.Success();
@@ -510,7 +512,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
 
                 foreach (String fileLine in fileLines) {
-                    fileAggregate.AddFileLine(fileLine.Trim());
+                    Result stateResult = fileAggregate.AddFileLine(fileLine.Trim());
+                    if (stateResult.IsFailed)
+                        return stateResult;
                 }
             }
 
@@ -610,36 +614,5 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         return this.TokenResponse;
-    }
-}
-
-public static class DomainServiceHelper
-{
-    public static Result<T> HandleGetAggregateResult<T>(Result<T> result, Guid aggregateId, bool isNotFoundError = true)
-        where T : Aggregate, new()  // Constraint: T is a subclass of Aggregate and has a parameterless constructor
-    {
-        Logger.LogWarning($"Result is {JsonConvert.SerializeObject(result)}");
-        Logger.LogWarning($"aggregateId is {aggregateId}");
-        Logger.LogWarning($"isNotFoundError is {isNotFoundError}");
-
-        if (result.IsFailed && result.Status != ResultStatus.NotFound) {
-            Logger.LogWarning("In here 1");
-            return ResultHelpers.CreateFailure(result);
-        }
-
-        if (result.Status == ResultStatus.NotFound && isNotFoundError)
-        {
-            Logger.LogWarning("In here 2");
-            return ResultHelpers.CreateFailure(result);
-        }
-
-        Logger.LogWarning("In here 3");
-        T aggregate = result.Status switch
-        {
-            ResultStatus.NotFound => new T { AggregateId = aggregateId },  // Set AggregateId when creating a new instance
-            _ => result.Data
-        };
-
-        return Result.Success(aggregate);
     }
 }
