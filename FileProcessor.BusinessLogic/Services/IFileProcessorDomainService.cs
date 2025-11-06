@@ -9,14 +9,5 @@ namespace FileProcessor.BusinessLogic.Services
     using MediatR;
     using Requests;
 
-    public interface IFileProcessorDomainService
-    {
-        Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command, CancellationToken cancellationToken);
-
-        Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
-                                         CancellationToken cancellationToken);
-        
-        Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
-                                                 CancellationToken cancellationToken);
-    }
+    
 }
