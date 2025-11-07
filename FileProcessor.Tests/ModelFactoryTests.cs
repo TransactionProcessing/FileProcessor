@@ -24,9 +24,7 @@ namespace FileProcessor.Tests
         {
             List<FileProcessor.Models.FileImportLog> importLogs = TestData.FileImportLogModels;
 
-            ModelFactory modelFactory = new ModelFactory();
-
-            FileImportLogList result = modelFactory.ConvertFrom(importLogs);
+            FileImportLogList result = ModelFactory.ConvertFrom(importLogs);
 
             this.VerifyFileImportLogList(importLogs, result);
         }
@@ -41,9 +39,7 @@ namespace FileProcessor.Tests
                 fileImportLog.Files = new List<ImportLogFile>();
             }
 
-            ModelFactory modelFactory = new ModelFactory();
-
-            FileImportLogList result = modelFactory.ConvertFrom(importLogs);
+            FileImportLogList result = ModelFactory.ConvertFrom(importLogs);
 
             this.VerifyFileImportLogList(importLogs, result);
         }
@@ -53,9 +49,7 @@ namespace FileProcessor.Tests
         {
             FileProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
 
-            ModelFactory modelFactory = new ModelFactory();
-
-            var result = modelFactory.ConvertFrom(importLog);
+            DataTransferObjects.Responses.FileImportLog result = ModelFactory.ConvertFrom(importLog);
 
             this.VerifyFileImportLog(importLog, result);
         }
@@ -66,9 +60,7 @@ namespace FileProcessor.Tests
             FileProcessor.Models.FileImportLog importLog = TestData.FileImportLogModel1;
             importLog.Files = new List<ImportLogFile>();
 
-            ModelFactory modelFactory = new ModelFactory();
-
-            var result = modelFactory.ConvertFrom(importLog);
+            DataTransferObjects.Responses.FileImportLog result = ModelFactory.ConvertFrom(importLog);
 
             this.VerifyFileImportLog(importLog, result);
         }
@@ -76,10 +68,9 @@ namespace FileProcessor.Tests
         [Fact]
         public void ModelFactory_ConvertFrom_FileDetails_IsConverted()
         {
-            ModelFactory modelFactory = new ModelFactory();
             FileDetails fileDetails = TestData.FileDetailsModel;
 
-            var result = modelFactory.ConvertFrom(fileDetails);
+            DataTransferObjects.Responses.FileDetails result = ModelFactory.ConvertFrom(fileDetails);
 
             this.VerifyFileDetails(fileDetails, result);
         }

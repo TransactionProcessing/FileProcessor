@@ -23,7 +23,6 @@ public class MiscRegistry : ServiceRegistry
     public MiscRegistry()
     {
         this.AddSingleton<IModelFactory, ModelFactory>();
-        this.AddSingleton<Common.IModelFactory, Common.ModelFactory>();
         this.AddSingleton<IFileProcessorDomainService, FileProcessorDomainService>();
 
         bool logRequests = ConfigurationReader.GetValueOrDefault<Boolean>("MiddlewareLogging", "LogRequests", true);
