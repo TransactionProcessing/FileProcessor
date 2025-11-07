@@ -29,6 +29,9 @@
 
         public static async Task GlobalSetup(DockerHelper dockerHelper)
         {
+            Environment.SetEnvironmentVariable("FLUENTDOCKER_NOSUDO", "true");
+            Environment.SetEnvironmentVariable("FLUENTDOCKER_PATH", "/usr/bin/docker");
+
             ShouldlyConfiguration.DefaultTaskTimeout = TimeSpan.FromMinutes(1);
             dockerHelper.SqlCredentials = Setup.SqlCredentials;
             dockerHelper.DockerCredentials = Setup.DockerCredentials;
