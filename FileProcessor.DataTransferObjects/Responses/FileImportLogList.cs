@@ -12,7 +12,7 @@
         /// <summary>
         /// The file import logs
         /// </summary>
-        public List<FileImportLog> FileImportLogs;
+        public List<FileImportLog> FileImportLogs { get; set; }
 
         #endregion
     }
