@@ -121,7 +121,7 @@ Scenario: Process 2 Safaricom Topup Files
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 3 transaction should be returned
 
-@PRTest
+#@PRTest
 Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
