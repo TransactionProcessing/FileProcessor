@@ -1,6 +1,7 @@
 ﻿using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.DataTransferObjects.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Shared.EventStore.Aggregate;
 using Shared.Results;
 using Shared.Results.Web;
@@ -68,7 +69,7 @@ namespace FileProcessor.Controllers
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetImportLogs([FromQuery] Guid estateId,
+        public async Task<IResult> GetImportLogs([FromQuery] Guid estateId,
                                                        [FromQuery] DateTime startDateTime,
                                                        [FromQuery] DateTime endDateTime,
                                                        [FromQuery] Guid? merchantId,
@@ -76,18 +77,13 @@ namespace FileProcessor.Controllers
             FileQueries.GetImportLogsQuery query = new(estateId, startDateTime, endDateTime, merchantId);
 
             Result<List<FileImportLog>> result = await this.Mediator.Send(query, cancellationToken);
-
-            if (result.IsFailed)
-                return ResultHelpers.CreateFailure(result).ToActionResultX();
-
-            FileImportLogList response = this.ModelFactory.ConvertFrom(result.Data);
-
-            return Result.Success(response).ToActionResultX();
+            
+            return ResponseFactory.FromResult(result, (r) => this.ModelFactory.ConvertFrom(r));
         }
 
         [HttpGet]
         [Route("{fileImportLogId}")]
-        public async Task<IActionResult> GetImportLog([FromRoute] Guid fileImportLogId,
+        public async Task<IResult> GetImportLog([FromRoute] Guid fileImportLogId,
                                                            [FromQuery] Guid estateId,
                                                            [FromQuery] Guid? merchantId,
                                                            CancellationToken cancellationToken)
@@ -96,12 +92,7 @@ namespace FileProcessor.Controllers
 
             Result<FileImportLog> result = await this.Mediator.Send(query, cancellationToken);
 
-            if (result.IsFailed)
-                return ResultHelpers.CreateFailure(result).ToActionResultX();
-
-            DataTransferObjects.Responses.FileImportLog response = this.ModelFactory.ConvertFrom(result.Data);
-
-            return Result.Success(response).ToActionResultX();
+            return ResponseFactory.FromResult(result, (r) => this.ModelFactory.ConvertFrom(r));
         }
 
         #endregion

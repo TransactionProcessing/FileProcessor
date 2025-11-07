@@ -62,24 +62,12 @@ namespace FileProcessor.Client {
             String requestUri = this.BuildRequestUrl($"/api/files/{fileId}?estateId={estateId}");
 
             try {
-                // Add the access token header
-                this.HttpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
-
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<FileDetails> result = await this.SendGetRequest<FileDetails> (requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
-                ResponseData<FileDetails> responseData =
-                    HandleResponseContent<FileDetails>(result.Data);
-
-                // call was successful so now deserialise the body to the response object
-                return Result.Success(responseData.Data);
+                return result;
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -110,24 +98,12 @@ namespace FileProcessor.Client {
             }
 
             try {
-                // Add the access token header
-                this.HttpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
-
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
+                Result<FileImportLog> result = await this.SendGetRequest<FileImportLog>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
-                ResponseData<FileImportLog> responseData =
-                    HandleResponseContent<FileImportLog>(result.Data);
-
-                // call was successful so now deserialise the body to the response object
-                return Result.Success(responseData.Data);
+                return result;
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -162,23 +138,12 @@ namespace FileProcessor.Client {
             }
 
             try {
-                // Add the access token header
-                this.HttpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
+                Result<FileImportLogList> result = await this.SendGetRequest<FileImportLogList>(requestUri, accessToken, cancellationToken);
 
-                // Make the Http Call here
-                HttpResponseMessage httpResponse = await this.HttpClient.GetAsync(requestUri, cancellationToken);
-
-                // Process the response
-                Result<String> result  = await this.HandleResponseX(httpResponse, cancellationToken);
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
-                ResponseData<FileImportLogList> responseData =
-                    HandleResponseContent<FileImportLogList>(result.Data);
-
-                // call was successful so now deserialise the body to the response object
-                return Result.Success(responseData.Data);
+                return result;
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
@@ -229,11 +194,11 @@ namespace FileProcessor.Client {
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
-                ResponseData<Guid> responseData =
-                    HandleResponseContent<Guid>(result.Data);
-
+                Guid responseData = JsonConvert.DeserializeObject<Guid>(result.Data);
+                
                 // call was successful so now deserialise the body to the response object
-                return Result.Success(responseData.Data);
+                return Result.Success(responseData);
+
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
