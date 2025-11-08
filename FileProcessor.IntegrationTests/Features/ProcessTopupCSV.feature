@@ -73,7 +73,8 @@ Background:
 	Given I make the following manual merchant deposits 
 	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
-	
+
+@Nightly	
 Scenario: Process Safaricom Topup File with 1 detail row
 	Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
@@ -86,6 +87,7 @@ Scenario: Process Safaricom Topup File with 1 detail row
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
+@Nightly
 Scenario: Process Safaricom Topup File with 2 detail rows
 	Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
@@ -99,6 +101,7 @@ Scenario: Process Safaricom Topup File with 2 detail rows
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
+@Nightly
 Scenario: Process 2 Safaricom Topup Files
 	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
@@ -122,6 +125,7 @@ Scenario: Process 2 Safaricom Topup Files
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 3 transaction should be returned
 
 @PRTest
+@Nightly
 Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
@@ -146,7 +150,7 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 	
 # Wrong Format??
-
+@Nightly
 Scenario: Process Safaricom Topup File with Upload Date Time
 	Given I have a file named 'SafarcomTopup.txt' with the following contents
 	| Column1 | Column2     | Column3 |
