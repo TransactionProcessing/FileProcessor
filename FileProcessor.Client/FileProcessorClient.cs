@@ -176,12 +176,12 @@ namespace FileProcessor.Client {
                 ByteArrayContent fileContent = new ByteArrayContent(fileData);
                 fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
                 formData.Add(fileContent, "file", fileName);
-                formData.Add(new StringContent(uploadFileRequest.EstateId.ToString()), "request.EstateId");
-                formData.Add(new StringContent(uploadFileRequest.MerchantId.ToString()), "request.MerchantId");
-                formData.Add(new StringContent(uploadFileRequest.FileProfileId.ToString()), "request.FileProfileId");
-                formData.Add(new StringContent(uploadFileRequest.UserId.ToString()), "request.UserId");
+                formData.Add(new StringContent(uploadFileRequest.EstateId.ToString()), "EstateId");
+                formData.Add(new StringContent(uploadFileRequest.MerchantId.ToString()), "MerchantId");
+                formData.Add(new StringContent(uploadFileRequest.FileProfileId.ToString()), "FileProfileId");
+                formData.Add(new StringContent(uploadFileRequest.UserId.ToString()), "UserId");
                 formData.Add(new StringContent(uploadFileRequest.UploadDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
-                    "request.UploadDateTime");
+                    "UploadDateTime");
 
                 httpRequest.Content = formData;
                 httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

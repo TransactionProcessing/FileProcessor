@@ -9,11 +9,7 @@ namespace FileProcessor.Common
     using FileDetailsResponse = DataTransferObjects.Responses.FileDetails;
     using FileLineResponse = DataTransferObjects.Responses.FileLine;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="FileProcessor.Common.IModelFactory" />
-    public class ModelFactory : IModelFactory
+    public static class ModelFactory
     {
         #region Methods
 
@@ -22,13 +18,13 @@ namespace FileProcessor.Common
         /// </summary>
         /// <param name="fileImportLogs">The file import logs.</param>
         /// <returns></returns>
-        public FileImportLogList ConvertFrom(List<Models.FileImportLog> fileImportLogs)
+        public static FileImportLogList ConvertFrom(List<Models.FileImportLog> fileImportLogs)
         {
             FileImportLogList result = new FileImportLogList();
             result.FileImportLogs = new List<FileImportLogResponse>();
             foreach (Models.FileImportLog fileImportLog in fileImportLogs)
             {
-                result.FileImportLogs.Add(this.ConvertFrom(fileImportLog));
+                result.FileImportLogs.Add(ConvertFrom(fileImportLog));
             }
 
             return result;
@@ -39,7 +35,7 @@ namespace FileProcessor.Common
         /// </summary>
         /// <param name="fileImportLog">The file import log.</param>
         /// <returns></returns>
-        public FileImportLogResponse ConvertFrom(Models.FileImportLog fileImportLog)
+        public static FileImportLogResponse ConvertFrom(Models.FileImportLog fileImportLog)
         {
             FileImportLogResponse fileImportLogResponse = new FileImportLogResponse
                                                           {
@@ -53,7 +49,7 @@ namespace FileProcessor.Common
 
             foreach (ImportLogFile importLogFile in fileImportLog.Files)
             {
-                FileImportLogFile fileImportLogFile = this.ConvertFrom(importLogFile);
+                FileImportLogFile fileImportLogFile = ConvertFrom(importLogFile);
                 fileImportLogFile.FileImportLogId = fileImportLog.FileImportLogId;
                 fileImportLogResponse.Files.Add(fileImportLogFile);
             }
@@ -61,7 +57,7 @@ namespace FileProcessor.Common
             return fileImportLogResponse;
         }
 
-        public FileDetailsResponse ConvertFrom(Models.FileDetails fileDetails)
+        public static FileDetailsResponse ConvertFrom(Models.FileDetails fileDetails)
         {
             FileDetailsResponse fileDetailsResponse = new FileDetailsResponse
                                                       {
@@ -85,7 +81,7 @@ namespace FileProcessor.Common
                                                   {
                                                       LineData = fileDetailsFileLine.LineData,
                                                       LineNumber = fileDetailsFileLine.LineNumber,
-                                                      ProcessingResult = this.TranslateProcessingResult(fileDetailsFileLine.ProcessingResult),
+                                                      ProcessingResult = TranslateProcessingResult(fileDetailsFileLine.ProcessingResult),
                                                       TransactionId = fileDetailsFileLine.TransactionId,
                                                       RejectionReason = fileDetailsFileLine.RejectedReason
                                                   });
@@ -110,7 +106,7 @@ namespace FileProcessor.Common
         /// </summary>
         /// <param name="processingResult">The processing result.</param>
         /// <returns></returns>
-        private FileLineProcessingResult TranslateProcessingResult(ProcessingResult processingResult)
+        private static  FileLineProcessingResult TranslateProcessingResult(ProcessingResult processingResult)
         {
             switch(processingResult)
             {
@@ -134,7 +130,7 @@ namespace FileProcessor.Common
         /// </summary>
         /// <param name="importLogFile">The import log file.</param>
         /// <returns></returns>
-        public FileImportLogFile ConvertFrom(ImportLogFile importLogFile)
+        public static FileImportLogFile ConvertFrom(ImportLogFile importLogFile)
         {
             FileImportLogFile fileImportLogFile = new FileImportLogFile
                                                   {

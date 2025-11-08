@@ -3,6 +3,7 @@
     using EventStore.Client;
     using Lamar;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.IdentityModel.Tokens;
@@ -117,6 +118,14 @@
             {
                 options.SerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
                 options.SerializerOptions.PropertyNameCaseInsensitive = true; // optional, but safer
+            });
+
+            this.Configure<FormOptions>(options =>
+            {
+                // Allow very large values (adjust to what you need)
+                options.ValueLengthLimit = int.MaxValue;                  // form value length
+                options.MultipartBodyLengthLimit = long.MaxValue;         // multipart body length
+                options.MemoryBufferThreshold = int.MaxValue;             // buffer threshold
             });
         }
 

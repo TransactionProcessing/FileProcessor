@@ -71,7 +71,13 @@ namespace FileProcessor
                                                      webBuilder.UseStartup<Startup>();
                                                      webBuilder.UseConfiguration(config);
                                                      webBuilder.UseKestrel();
+                                                     webBuilder.ConfigureKestrel(serverOptions =>
+                                                     {
+                                                         // Remove Kestrel max request body size limit (set to null -> no limit)
+                                                         serverOptions.Limits.MaxRequestBodySize = null;
+                                                     });
                                                  });
+            
 
             return hostBuilder;
         }

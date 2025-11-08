@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FileProcessor.Endpoints;
 using ImTools;
 
 namespace FileProcessor
@@ -126,9 +127,11 @@ namespace FileProcessor
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapDomainEventEndpoint();
+                endpoints.MapFileEndpoints();
+                endpoints.MapFileImportLogEndpoints();
+
                 endpoints.MapHealthChecks("health", new HealthCheckOptions()
                                                     {
                                                         Predicate = _ => true,

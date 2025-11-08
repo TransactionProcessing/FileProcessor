@@ -1,11 +1,5 @@
 ﻿namespace FileProcessor.IntegrationTests.Common
 {
-    using System;
-    using System.Data;
-    using System.Data.SqlClient;
-    using System.Net;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Ductus.FluentDocker.Builders;
     using Ductus.FluentDocker.Services;
     using Ductus.FluentDocker.Services.Extensions;
@@ -15,6 +9,13 @@
     using Shared.IntegrationTesting;
     using Shared.Logger;
     using Shouldly;
+    using System;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.IO;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
 
     [Binding]
@@ -29,6 +30,10 @@
 
         public static async Task GlobalSetup(DockerHelper dockerHelper)
         {
+            Environment.SetEnvironmentVariable("FLUENTDOCKER_LOGLEVEL", "trace");
+            Environment.SetEnvironmentVariable("FLUENTDOCKER_NOSUDO", "true");
+            Environment.SetEnvironmentVariable("FLUENTDOCKER_PATH", "/usr/bin/docker");
+
             ShouldlyConfiguration.DefaultTaskTimeout = TimeSpan.FromMinutes(1);
             dockerHelper.SqlCredentials = Setup.SqlCredentials;
             dockerHelper.DockerCredentials = Setup.DockerCredentials;
