@@ -421,11 +421,11 @@ namespace FileProcessor.IntegrationTests.Features
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Get File Import Log Details")]
-        [global::NUnit.Framework.CategoryAttribute("PRTest1")]
+        [global::NUnit.Framework.CategoryAttribute("PRTest")]
         public async global::System.Threading.Tasks.Task GetFileImportLogDetails()
         {
             string[] tagsOfScenario = new string[] {
-                    "PRTest1"};
+                    "PRTest"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Get File Import Log Details", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
