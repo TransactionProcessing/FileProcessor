@@ -55,13 +55,13 @@ jobs:
       run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
            
     - name: Run Integration Tests        
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=Nightly
+      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj"
 
-    - name: Run Integration Tests 1       
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=Nightly1
+    #- name: Run Integration Tests 1       
+      #run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=Nightly1
 
-    - name: Run Integration Tests 2        
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=Nightly2      
+    #- name: Run Integration Tests 2        
+      #run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=Nightly2      
 
     - uses: actions/upload-artifact@v4.4.0
       if: ${{ failure() }}
