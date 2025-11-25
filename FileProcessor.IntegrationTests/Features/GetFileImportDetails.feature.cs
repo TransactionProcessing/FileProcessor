@@ -422,16 +422,18 @@ namespace FileProcessor.IntegrationTests.Features
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Get File Import Log Details")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly1")]
         public async global::System.Threading.Tasks.Task GetFileImportLogDetails()
         {
             string[] tagsOfScenario = new string[] {
-                    "PRTest"};
+                    "PRTest",
+                    "Nightly1"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Get File Import Log Details", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 85
+#line 86
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -460,7 +462,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 86
+#line 87
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table16, "Given ");
 #line hidden
                 global::Reqnroll.Table table17 = new global::Reqnroll.Table(new string[] {
@@ -473,7 +475,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 91
+#line 92
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table17, "And ");
 #line hidden
                 global::Reqnroll.Table table18 = new global::Reqnroll.Table(new string[] {
@@ -492,7 +494,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 95
+#line 96
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table18, "Given ");
 #line hidden
                 global::Reqnroll.Table table19 = new global::Reqnroll.Table(new string[] {
@@ -505,7 +507,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 2",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 100
+#line 101
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table19, "And ");
 #line hidden
                 global::Reqnroll.Table table20 = new global::Reqnroll.Table(new string[] {
@@ -533,7 +535,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 104
+#line 105
  await testRunner.GivenAsync("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table20, "Given ");
 #line hidden
                 global::Reqnroll.Table table21 = new global::Reqnroll.Table(new string[] {
@@ -546,7 +548,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 110
+#line 111
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table21, "And ");
 #line hidden
                 global::Reqnroll.Table table22 = new global::Reqnroll.Table(new string[] {
@@ -555,7 +557,7 @@ await this.FeatureBackgroundAsync();
                 table22.AddRow(new string[] {
                             "Today",
                             "3"});
-#line 114
+#line 115
  await testRunner.WhenAsync("I get the \'Test Estate 1\' import logs between \'Yesterday\' and \'Today\' the followi" +
                         "ng data is returned", ((string)(null)), table22, "When ");
 #line hidden
@@ -571,7 +573,7 @@ await this.FeatureBackgroundAsync();
                 table23.AddRow(new string[] {
                             "Test Merchant 1",
                             "VoucherIssue1.txt"});
-#line 118
+#line 119
  await testRunner.WhenAsync("I get the \'Test Estate 1\' import log for \'Today\' the following file information i" +
                         "s returned", ((string)(null)), table23, "When ");
 #line hidden
@@ -591,7 +593,7 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 124
+#line 125
  await testRunner.WhenAsync("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
                         " information is returned", ((string)(null)), table24, "When ");
 #line hidden
@@ -611,7 +613,7 @@ await this.FeatureBackgroundAsync();
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 128
+#line 129
  await testRunner.WhenAsync("I get the file \'SafarcomTopup1.txt\' for Estate \'Test Estate 1\' the following file" +
                         " lines are returned", ((string)(null)), table25, "When ");
 #line hidden
@@ -631,7 +633,7 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 134
+#line 135
  await testRunner.WhenAsync("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
                         " information is returned", ((string)(null)), table26, "When ");
 #line hidden
@@ -651,7 +653,7 @@ await this.FeatureBackgroundAsync();
                             "3",
                             "T,1,",
                             "Ignored"});
-#line 138
+#line 139
  await testRunner.WhenAsync("I get the file \'SafarcomTopup2.txt\' for Estate \'Test Estate 1\' the following file" +
                         " lines are returned", ((string)(null)), table27, "When ");
 #line hidden
@@ -671,7 +673,7 @@ await this.FeatureBackgroundAsync();
                             "2",
                             "0",
                             "0"});
-#line 144
+#line 145
  await testRunner.WhenAsync("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
                         "information is returned", ((string)(null)), table28, "When ");
 #line hidden
@@ -695,7 +697,7 @@ await this.FeatureBackgroundAsync();
                             "4",
                             "T,1,,",
                             "Ignored"});
-#line 148
+#line 149
  await testRunner.WhenAsync("I get the file \'VoucherIssue1.txt\' for Estate \'Test Estate 1\' the following file " +
                         "lines are returned", ((string)(null)), table29, "When ");
 #line hidden

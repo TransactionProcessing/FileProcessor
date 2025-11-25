@@ -45,11 +45,11 @@ jobs:
     - name: Run Integration Tests        
       run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest
 
-    - name: Run Integration Tests 1       
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest1
+    #- name: Run Integration Tests 1       
+    #  run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest1
 
-    - name: Run Integration Tests 2        
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest2
+    #- name: Run Integration Tests 2        
+    #  run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest2
       
     - uses: actions/upload-artifact@v4.4.0
       if: ${{ failure() }}

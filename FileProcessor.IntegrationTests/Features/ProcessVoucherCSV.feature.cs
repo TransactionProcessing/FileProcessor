@@ -390,15 +390,17 @@ namespace FileProcessor.IntegrationTests.Features
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Voucher File with 1 detail row for recipient email")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly2")]
         public async global::System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientEmail()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly2"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 1 detail row for recipient email", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 78
+#line 79
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -431,7 +433,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 79
+#line 80
  await testRunner.GivenAsync("I have a file named \'VoucherIssue.txt\' with the following contents", ((string)(null)), table76, "Given ");
 #line hidden
                 global::Reqnroll.Table table77 = new global::Reqnroll.Table(new string[] {
@@ -444,7 +446,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 84
+#line 85
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table77, "And ");
 #line hidden
             }
@@ -453,15 +455,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Voucher File with 1 detail row for recipient mobile")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly2")]
         public async global::System.Threading.Tasks.Task ProcessVoucherFileWith1DetailRowForRecipientMobile()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly2"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "1";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 1 detail row for recipient mobile", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 90
+#line 92
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -494,7 +498,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 91
+#line 93
  await testRunner.GivenAsync("I have a file named \'VoucherIssue.txt\' with the following contents", ((string)(null)), table78, "Given ");
 #line hidden
                 global::Reqnroll.Table table79 = new global::Reqnroll.Table(new string[] {
@@ -507,7 +511,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 96
+#line 98
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table79, "And ");
 #line hidden
             }
@@ -516,15 +520,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Voucher File with 2 detail rows")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly2")]
         public async global::System.Threading.Tasks.Task ProcessVoucherFileWith2DetailRows()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly2"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "2";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Voucher File with 2 detail rows", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 102
+#line 105
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -562,7 +568,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 103
+#line 106
  await testRunner.GivenAsync("I have a file named \'VoucherIssue.txt\' with the following contents", ((string)(null)), table80, "Given ");
 #line hidden
                 global::Reqnroll.Table table81 = new global::Reqnroll.Table(new string[] {
@@ -575,7 +581,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 109
+#line 112
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table81, "And ");
 #line hidden
             }
@@ -584,15 +590,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process 2 Voucher Files")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly2")]
         public async global::System.Threading.Tasks.Task Process2VoucherFiles()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly2"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "3";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process 2 Voucher Files", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 115
+#line 119
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -630,7 +638,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 116
+#line 120
  await testRunner.GivenAsync("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table82, "Given ");
 #line hidden
                 global::Reqnroll.Table table83 = new global::Reqnroll.Table(new string[] {
@@ -643,7 +651,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 122
+#line 126
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table83, "And ");
 #line hidden
                 global::Reqnroll.Table table84 = new global::Reqnroll.Table(new string[] {
@@ -671,7 +679,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 126
+#line 130
  await testRunner.GivenAsync("I have a file named \'VoucherIssue2.txt\' with the following contents", ((string)(null)), table84, "Given ");
 #line hidden
                 global::Reqnroll.Table table85 = new global::Reqnroll.Table(new string[] {
@@ -684,7 +692,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 132
+#line 136
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table85, "And ");
 #line hidden
             }
@@ -694,16 +702,18 @@ await this.FeatureBackgroundAsync();
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Duplicate Voucher Topup File with 1 detail row")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly2")]
         public async global::System.Threading.Tasks.Task ProcessDuplicateVoucherTopupFileWith1DetailRow()
         {
             string[] tagsOfScenario = new string[] {
-                    "PRTest"};
+                    "PRTest",
+                    "Nightly2"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "4";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Duplicate Voucher Topup File with 1 detail row", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 139
+#line 144
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -741,7 +751,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 140
+#line 145
  await testRunner.GivenAsync("I have a file named \'VoucherIssue1.txt\' with the following contents", ((string)(null)), table86, "Given ");
 #line hidden
                 global::Reqnroll.Table table87 = new global::Reqnroll.Table(new string[] {
@@ -754,7 +764,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 146
+#line 151
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table87, "And ");
 #line hidden
                 global::Reqnroll.Table table88 = new global::Reqnroll.Table(new string[] {
@@ -782,7 +792,7 @@ await this.FeatureBackgroundAsync();
                             "1",
                             "",
                             ""});
-#line 152
+#line 157
  await testRunner.GivenAsync("I have a file named \'VoucherIssue2.txt\' with the following contents", ((string)(null)), table88, "Given ");
 #line hidden
                 global::Reqnroll.Table table89 = new global::Reqnroll.Table(new string[] {
@@ -795,7 +805,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 159
+#line 164
  await testRunner.AndAsync("I upload this file for processing an error should be returned indicating the file" +
                         " is a duplicate", ((string)(null)), table89, "And ");
 #line hidden
