@@ -48,8 +48,6 @@ namespace FileProcessor.IntegrationTests.Common
 
             await Setup.GlobalSetup(this.TestingContext.DockerHelper);
 
-            this.TestingContext.DockerHelper.SqlServerContainer = Setup.DatabaseServerContainer;
-            this.TestingContext.DockerHelper.SqlServerNetwork = Setup.DatabaseServerNetwork;
             this.TestingContext.DockerHelper.DockerCredentials = Setup.DockerCredentials;
             this.TestingContext.DockerHelper.SqlCredentials = Setup.SqlCredentials;
             this.TestingContext.DockerHelper.SqlServerContainerName = "sharedsqlserver";
@@ -64,7 +62,7 @@ namespace FileProcessor.IntegrationTests.Common
 
         [AfterScenario]
         public async Task StopSystem(){
-            DockerServices shareDockerServices = DockerServices.SqlServer;
+            DockerServices shareDockerServices = DockerServices.None;
             
             this.TestingContext.Logger.LogInformation("About to Stop Containers for Scenario Run");
             await this.TestingContext.DockerHelper.StopContainersForScenarioRun(shareDockerServices).ConfigureAwait(false);

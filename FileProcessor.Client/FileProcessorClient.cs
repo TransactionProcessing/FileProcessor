@@ -62,7 +62,7 @@ namespace FileProcessor.Client {
             String requestUri = this.BuildRequestUrl($"/api/files/{fileId}?estateId={estateId}");
 
             try {
-                Result<FileDetails> result = await this.SendGetRequest<FileDetails> (requestUri, accessToken, cancellationToken);
+                Result<FileDetails> result = await this.SendHttpGetRequest<FileDetails> (requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -98,7 +98,7 @@ namespace FileProcessor.Client {
             }
 
             try {
-                Result<FileImportLog> result = await this.SendGetRequest<FileImportLog>(requestUri, accessToken, cancellationToken);
+                Result<FileImportLog> result = await this.SendHttpGetRequest<FileImportLog>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -138,7 +138,7 @@ namespace FileProcessor.Client {
             }
 
             try {
-                Result<FileImportLogList> result = await this.SendGetRequest<FileImportLogList>(requestUri, accessToken, cancellationToken);
+                Result<FileImportLogList> result = await this.SendHttpGetRequest<FileImportLogList>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);

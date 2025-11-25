@@ -139,7 +139,7 @@ Scenario: Process 2 Voucher Files
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 4 transaction should be returned
 
-@PRTest2
+@PRTest
 @Nightly2
 Scenario: Process Duplicate Voucher Topup File with 1 detail row
 	Given I have a file named 'VoucherIssue1.txt' with the following contents

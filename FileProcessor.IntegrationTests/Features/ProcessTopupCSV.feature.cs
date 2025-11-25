@@ -380,15 +380,17 @@ namespace FileProcessor.IntegrationTests.Features
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Safaricom Topup File with 1 detail row")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly")]
         public async global::System.Threading.Tasks.Task ProcessSafaricomTopupFileWith1DetailRow()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Safaricom Topup File with 1 detail row", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 77
+#line 78
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -417,7 +419,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 78
+#line 79
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table45, "Given ");
 #line hidden
                 global::Reqnroll.Table table46 = new global::Reqnroll.Table(new string[] {
@@ -430,7 +432,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 83
+#line 84
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table46, "And ");
 #line hidden
             }
@@ -439,15 +441,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Safaricom Topup File with 2 detail rows")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly")]
         public async global::System.Threading.Tasks.Task ProcessSafaricomTopupFileWith2DetailRows()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "1";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Safaricom Topup File with 2 detail rows", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 89
+#line 91
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -480,7 +484,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "2",
                             ""});
-#line 90
+#line 92
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table47, "Given ");
 #line hidden
                 global::Reqnroll.Table table48 = new global::Reqnroll.Table(new string[] {
@@ -493,7 +497,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 96
+#line 98
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table48, "And ");
 #line hidden
             }
@@ -502,15 +506,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process 2 Safaricom Topup Files")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly")]
         public async global::System.Threading.Tasks.Task Process2SafaricomTopupFiles()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "2";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process 2 Safaricom Topup Files", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 102
+#line 105
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -539,7 +545,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 103
+#line 106
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table49, "Given ");
 #line hidden
                 global::Reqnroll.Table table50 = new global::Reqnroll.Table(new string[] {
@@ -552,7 +558,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 108
+#line 111
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table50, "And ");
 #line hidden
                 global::Reqnroll.Table table51 = new global::Reqnroll.Table(new string[] {
@@ -575,7 +581,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "2",
                             ""});
-#line 112
+#line 115
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table51, "Given ");
 #line hidden
                 global::Reqnroll.Table table52 = new global::Reqnroll.Table(new string[] {
@@ -588,7 +594,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 118
+#line 121
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table52, "And ");
 #line hidden
             }
@@ -598,16 +604,18 @@ await this.FeatureBackgroundAsync();
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Duplicate Safaricom Topup File with 1 detail row")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly")]
         public async global::System.Threading.Tasks.Task ProcessDuplicateSafaricomTopupFileWith1DetailRow()
         {
             string[] tagsOfScenario = new string[] {
-                    "PRTest"};
+                    "PRTest",
+                    "Nightly"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "3";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Duplicate Safaricom Topup File with 1 detail row", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 125
+#line 129
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -640,7 +648,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 126
+#line 130
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table53, "Given ");
 #line hidden
                 global::Reqnroll.Table table54 = new global::Reqnroll.Table(new string[] {
@@ -653,7 +661,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 132
+#line 136
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table54, "And ");
 #line hidden
                 global::Reqnroll.Table table55 = new global::Reqnroll.Table(new string[] {
@@ -676,7 +684,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 138
+#line 142
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup2.txt\' with the following contents", ((string)(null)), table55, "Given ");
 #line hidden
                 global::Reqnroll.Table table56 = new global::Reqnroll.Table(new string[] {
@@ -689,7 +697,7 @@ await this.FeatureBackgroundAsync();
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
-#line 144
+#line 148
  await testRunner.AndAsync("I upload this file for processing an error should be returned indicating the file" +
                         " is a duplicate", ((string)(null)), table56, "And ");
 #line hidden
@@ -699,15 +707,17 @@ await this.FeatureBackgroundAsync();
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Process Safaricom Topup File with Upload Date Time")]
+        [global::NUnit.Framework.CategoryAttribute("Nightly")]
         public async global::System.Threading.Tasks.Task ProcessSafaricomTopupFileWithUploadDateTime()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "Nightly"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "4";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Process Safaricom Topup File with Upload Date Time", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 150
+#line 154
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -736,7 +746,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 151
+#line 155
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup.txt\' with the following contents", ((string)(null)), table57, "Given ");
 #line hidden
                 global::Reqnroll.Table table58 = new global::Reqnroll.Table(new string[] {
@@ -751,10 +761,10 @@ await this.FeatureBackgroundAsync();
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476",
                             "Today"});
-#line 156
+#line 160
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table58, "And ");
 #line hidden
-#line 160
+#line 164
  await testRunner.WhenAsync("I get the import log for estate \'Test Estate 1\' the date on the import log is \'To" +
                         "day\'", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
@@ -774,7 +784,7 @@ await this.FeatureBackgroundAsync();
                             "T",
                             "1",
                             ""});
-#line 162
+#line 166
  await testRunner.GivenAsync("I have a file named \'SafarcomTopup1.txt\' with the following contents", ((string)(null)), table59, "Given ");
 #line hidden
                 global::Reqnroll.Table table60 = new global::Reqnroll.Table(new string[] {
@@ -789,10 +799,10 @@ await this.FeatureBackgroundAsync();
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
                             "ABA59ABF-293D-4A6B-B81B-7007503C3476",
                             "01/09/2021"});
-#line 167
+#line 171
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table60, "And ");
 #line hidden
-#line 171
+#line 175
  await testRunner.WhenAsync("I get the import log for estate \'Test Estate 1\' the date on the import log is \'01" +
                         "/09/2021\'", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden

@@ -11,7 +11,7 @@ namespace FileProcessor.IntegrationTests.Common
     using Shared.IntegrationTesting;
     using TransactionProcessor.Client;
 
-    public class DockerHelper : global::Shared.IntegrationTesting.DockerHelper{
+    public class DockerHelper : global::Shared.IntegrationTesting.TestContainers.DockerHelper{
         #region Fields
         
         public HttpClient TestHostHttpClient;
@@ -62,15 +62,6 @@ namespace FileProcessor.IntegrationTests.Common
                 await this.CreatePersistentSubscription(x);
             }
         }
-
-        //protected override EventStoreClientSettings ConfigureEventStoreSettings()
-        //{
-        //    string str = $"esdb://127.0.0.1:{this.EventStoreHttpPort}?tls=false&tlsVerifyCert=false&defaultDeadline=30000";
-        //    if (this.IsSecureEventStore) {
-        //        str = $"esdb://admin:changeit@127.0.0.1:{this.EventStoreHttpPort}?tls=true&tlsVerifyCert=false&defaultDeadline=30000";
-        //    }
-        //    return EventStoreClientSettings.Create(str);
-        //}
 
         public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
             
