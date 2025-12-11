@@ -2,17 +2,10 @@ using SimpleResults;
 
 namespace FileProcessor.Common;
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO.Abstractions;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using EventStore.Client;
 using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.Models;
+using KurrentDB.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +15,14 @@ using Shared.EventStore.Extensions;
 using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
 using Shared.Logger;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Abstractions;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 [ExcludeFromCodeCoverage]
 public static class Extensions
@@ -31,7 +32,7 @@ public static class Extensions
             Uri address,
             Func<HttpMessageHandler>? createHttpMessageHandler = null)
     {
-        return services.AddEventStoreClient((Action<EventStoreClientSettings>)(options =>
+        return services.AddKurrentDBClient((Action<KurrentDBClientSettings>)(options =>
         {
             options.ConnectivitySettings.Address = address;
             options.ConnectivitySettings.Insecure = true;

@@ -16,11 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2.3.4
 
-    - name: Install NET 9
-      uses: actions/setup-dotnet@v4.0.1
-      with:
-        dotnet-version: '9.0.x'
-
     - name: Echo vars
       run: |
         echo "CI is > ${CI}"
@@ -45,12 +40,6 @@ jobs:
     - name: Run Integration Tests        
       run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest
 
-    #- name: Run Integration Tests 1       
-    #  run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest1
-
-    #- name: Run Integration Tests 2        
-    #  run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest2
-      
     - uses: actions/upload-artifact@v4.4.0
       if: ${{ failure() }}
       with:

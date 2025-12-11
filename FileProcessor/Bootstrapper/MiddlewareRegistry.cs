@@ -1,4 +1,7 @@
-﻿namespace FileProcessor.Bootstrapper
+﻿using KurrentDB.Client;
+using Microsoft.OpenApi;
+
+namespace FileProcessor.Bootstrapper
 {
     using EventStore.Client;
     using Lamar;
@@ -7,7 +10,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.IdentityModel.Tokens;
-    using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
     using Shared.Authorisation;
@@ -33,7 +35,7 @@
         {
             String eventStoreConnectionString = ConfigurationReader.GetValue("EventStoreSettings", "ConnectionString");
 
-            EventStoreClientSettings eventStoreClientSettings = EventStoreClientSettings.Create(eventStoreConnectionString);
+            KurrentDBClientSettings eventStoreClientSettings = KurrentDBClientSettings.Create(eventStoreConnectionString);
 
             this.AddHealthChecks().AddEventStore(eventStoreClientSettings,
                                                  userCredentials: eventStoreClientSettings.DefaultCredentials,
