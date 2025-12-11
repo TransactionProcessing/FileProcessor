@@ -43,10 +43,10 @@ public class RepositoryRegistry : ServiceRegistry
 
         String connectionString = Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
 
-        this.AddEventStoreProjectionManagementClient(connectionString);
-        this.AddEventStorePersistentSubscriptionsClient(connectionString);
+        this.AddKurrentDBProjectionManagementClient(connectionString);
+        this.AddKurrentDBPersistentSubscriptionsClient(connectionString);
 
-        this.AddEventStoreClient(connectionString);
+        this.AddKurrentDBClient(connectionString);
 
         this.AddSingleton<IEventStoreContext, EventStoreContext>();
 
@@ -56,9 +56,7 @@ public class RepositoryRegistry : ServiceRegistry
 
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
 
-        this.AddSingleton<Func<String, Int32, ISubscriptionRepository>>(cont => (esConnString, cacheDuration) => {
-                                                                                    return SubscriptionRepository.Create(esConnString, cacheDuration);
-                                                                                });
+        this.AddSingleton<Func<String, Int32, ISubscriptionRepository>>(cont => SubscriptionRepository.Create);
     }
 
     #endregion
