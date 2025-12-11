@@ -48,7 +48,7 @@ jobs:
 
     - name: Publish API
       if: ${{ github.event.release.prerelease == false }}
-      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r linux-x64 --self-contained
+      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained
     
     - name: Build Release Package
       run: |
