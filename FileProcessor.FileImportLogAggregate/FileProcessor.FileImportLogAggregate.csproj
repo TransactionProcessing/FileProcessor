@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Grpc.Net.Client" Version="2.76.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
-    <PackageReference Include="Shared.EventStore" Version="2026.2.1" />
+    <PackageReference Include="Shared.EventStore" Version="2026.2.2" />
   </ItemGroup>
 
   <ItemGroup>
