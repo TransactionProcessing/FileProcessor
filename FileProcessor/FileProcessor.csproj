@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="ClientProxyBase" Version="2026.2.2" />
+	  <PackageReference Include="ClientProxyBase" Version="2026.3.1" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.3" />
 	  <PackageReference Include="Lamar" Version="15.0.1" />
 	  <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="15.0.1" />
@@ -17,10 +17,10 @@
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="Shared" Version="2026.2.2" />
-	  <PackageReference Include="NLog.Extensions.Logging" Version="6.1.1" />
+    <PackageReference Include="Shared" Version="2026.3.1" />
+	  <PackageReference Include="NLog.Extensions.Logging" Version="6.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
-    <PackageReference Include="Shared.Results.Web" Version="2026.2.2" />
+    <PackageReference Include="Shared.Results.Web" Version="2026.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.4" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="10.0.1" />

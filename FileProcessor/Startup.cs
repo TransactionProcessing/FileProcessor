@@ -118,8 +118,7 @@ namespace FileProcessor
 
             ConfigurationReader.Initialise(Startup.Configuration);
             app.UseMiddleware<TenantMiddleware>();
-            app.AddRequestLogging();
-            app.AddResponseLogging();
+            app.AddRequestResponseLogging();
             app.AddExceptionHandler();
             
             app.UseRouting();
