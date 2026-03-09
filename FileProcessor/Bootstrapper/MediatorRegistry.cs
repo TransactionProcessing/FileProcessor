@@ -22,16 +22,7 @@ public class MediatorRegistry : ServiceRegistry
     /// </summary>
     public MediatorRegistry()
     {
-        this.AddSingleton<IMediator, Mediator>();
-        // request & notification handlers
-
-        this.AddSingleton<IRequestHandler<FileCommands.ProcessTransactionForFileLineCommand, Result>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<FileCommands.UploadFileCommand, Result<Guid>>, FileRequestHandler>();
-        
-        this.AddSingleton<IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>, FileRequestHandler>();
-        this.AddSingleton<IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>, FileRequestHandler>();
+        this.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(FileRequestHandler).Assembly));
     }
 
     #endregion
