@@ -147,7 +147,7 @@ namespace FileProcessor
 
             app.UseSwaggerUI();
 
-            //app.PreWarm();
+            app.PreWarm();
         }
     }
 }
