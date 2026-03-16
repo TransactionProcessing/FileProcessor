@@ -154,8 +154,16 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails estate, CreateOperatorRequest request)> requests = table.Rows.ToCreateOperatorRequests(estates);
-
-            List<(Guid, EstateOperatorResponse)> results = await this.TransactionProcessorSteps.WhenICreateTheFollowingOperators(this.TestingContext.AccessToken, requests);
+            List<(EstateDetails estate, CreateOperatorRequest request)> requestsNew = new();
+            foreach ((EstateDetails estate, CreateOperatorRequest request) r in requests) {
+                requestsNew.Add((r.estate, new CreateOperatorRequest() {
+                    Name = r.request.Name,
+                    OperatorId = Guid.NewGuid(),
+                    RequireCustomMerchantNumber = r.request.RequireCustomMerchantNumber,
+                    RequireCustomTerminalNumber = r.request.RequireCustomTerminalNumber
+                }));
+            }
+            List<(Guid, EstateOperatorResponse)> results = await this.TransactionProcessorSteps.WhenICreateTheFollowingOperators(this.TestingContext.AccessToken, requestsNew);
 
             foreach ((Guid, EstateOperatorResponse) result in results)
             {
