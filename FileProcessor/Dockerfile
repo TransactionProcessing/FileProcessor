@@ -27,7 +27,6 @@ RUN mkdir -p /home/txnproc/bulkfiles
 FROM mkdir AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN useradd --system --user-group --home-dir /home/txnproc --create-home --shell /usr/sbin/nologin txnproc \
-    && chown -R txnproc:txnproc /app /home/txnproc
-USER txnproc
+RUN chown -R app:app /app /home/txnproc
+USER app
 ENTRYPOINT ["dotnet", "FileProcessor.dll"]
