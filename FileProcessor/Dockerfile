@@ -27,6 +27,7 @@ RUN mkdir -p /home/txnproc/bulkfiles
 FROM mkdir AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN chown -R app:app /app /home/txnproc
+RUN mkdir -p /home/txnproc \
+    && chown -R app:app /app /home/txnproc
 USER app
 ENTRYPOINT ["dotnet", "FileProcessor.dll"]
