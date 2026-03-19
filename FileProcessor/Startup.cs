@@ -48,14 +48,6 @@ namespace FileProcessor
 
         public Startup(IWebHostEnvironment webHostEnvironment)
         {
-            IConfigurationBuilder builder = new ConfigurationBuilder().SetBasePath(webHostEnvironment.ContentRootPath)
-                                                                      .AddJsonFile("/home/txnproc/config/appsettings.json", true, true)
-                                                                      .AddJsonFile($"/home/txnproc/config/appsettings.{webHostEnvironment.EnvironmentName}.json", optional: true)
-                                                                      .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                                                                      .AddJsonFile($"appsettings.{webHostEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                                                                      .AddEnvironmentVariables();
-
-            Startup.Configuration = builder.Build();
             Startup.WebHostEnvironment = webHostEnvironment;
         }
         
