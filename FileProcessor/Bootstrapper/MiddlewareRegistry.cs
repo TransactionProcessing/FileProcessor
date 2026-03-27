@@ -12,6 +12,7 @@ namespace FileProcessor.Bootstrapper
     using Microsoft.IdentityModel.Tokens;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using OpenIddict.Validation.AspNetCore;
     using Shared.Authorisation;
     using Shared.EventStore.Extensions;
     using Shared.Extensions;
@@ -73,33 +74,35 @@ namespace FileProcessor.Bootstrapper
 
 
             this.AddAuthentication(options =>
-                                   {
-                                       options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                                       options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                                       options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                                   }).AddJwtBearer(options =>
-                                                   {
-                                                       options.BackchannelHttpHandler = new HttpClientHandler
-                                                                                        {
-                                                                                            ServerCertificateCustomValidationCallback = (message,
-                                                                                                certificate,
-                                                                                                chain,
-                                                                                                sslPolicyErrors) => true
-                                                                                        };
-                                                       options.Authority = ConfigurationReader.GetValue("SecurityConfiguration", "Authority");
-                                                       options.Audience = ConfigurationReader.GetValue("SecurityConfiguration", "ApiName");
+            {
+                options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+            });
 
-                                                       options.TokenValidationParameters = new TokenValidationParameters
-                                                                                           {
-                                                                                               ValidateAudience = false,
-                                                                                               ValidAudience =
-                                                                                                   ConfigurationReader.GetValue("SecurityConfiguration", "ApiName"),
-                                                                                               ValidIssuer =
-                                                                                                   ConfigurationReader.GetValue("SecurityConfiguration", "Authority"),
-                                                                                           };
-                                                       options.IncludeErrorDetails = true;
-                                                   });
+            this.AddOpenIddict()
+                .AddValidation(options =>
+                {
+                    // Same as your Authority
+                    options.SetIssuer(new Uri(ConfigurationReader.GetValue("SecurityConfiguration", "Authority")));
 
+                    // Enables discovery and HTTP backchannel support
+                    options.UseSystemNetHttp()
+                        .ConfigureHttpClientHandler(handler =>
+                        {
+                            // DEV ONLY: bypass all certificate errors
+                            handler.ServerCertificateCustomValidationCallback =
+                                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                        });
+
+                    // Register the ASP.NET Core integration
+                    options.UseAspNetCore();
+
+                    // Optionally set expected audience(s):
+                    options.AddAudiences(ConfigurationReader.GetValue("SecurityConfiguration", "ApiName"));
+
+                });
+
+            this.AddAuthorization();
+        
             this.AddControllers().AddNewtonsoftJson(options =>
                                                     {
                                                         options.SerializerSettings.Culture = new CultureInfo("en-GB");
