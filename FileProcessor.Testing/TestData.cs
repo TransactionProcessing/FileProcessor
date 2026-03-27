@@ -324,6 +324,7 @@ namespace FileProcessor.Testing
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
                 ["ConnectionStrings:TransactionProcessorReadModel"] = "EstateReportingReadModel",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",
+                ["SecurityConfiguration:ApiName"] = "ApiName",
                 ["EventStoreSettings:ConnectionString"] = "esdb://127.0.0.1:2113",
                 ["EventStoreSettings:ConnectionName"] = "UnitTestConnection",
                 ["EventStoreSettings:UserName"] = "admin",

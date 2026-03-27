@@ -4,21 +4,17 @@ Feature: GetFileImportDetails
 Background: 
 	Given I create the following api scopes
 	| Name                 | DisplayName                       | Description                            |
-	| estateManagement     | Estate Managememt REST Scope      | A scope for Estate Managememt REST     |
 	| transactionProcessor | Transaction Processor REST  Scope | A scope for Transaction Processor REST |
-	| voucherManagement | Voucher Management REST  Scope | A scope for Voucher Management REST |
 	| fileProcessor | File Processor REST Scope | A scope for File Processor REST |
 
 	Given the following api resources exist
 	| Name         | DisplayName                | Secret  | Scopes               | UserClaims                 |
-	| estateManagement     | Estate Managememt REST     | Secret1 | estateManagement     | MerchantId, EstateId, role |
-	| transactionProcessor | Transaction Processor REST | Secret1 | transactionProcessor |                            |
-	| voucherManagement    | Voucher Management REST    | Secret1 | voucherManagement    |                            |
+	| transactionProcessor | Transaction Processor REST | Secret1 | transactionProcessor | MerchantId, EstateId, role |
 	| fileProcessor        | File Processor REST        | Secret1 | fileProcessor        |                            |
 
 	Given the following clients exist
 	| ClientId      | ClientName     | Secret  | Scopes    | GrantTypes  |
-	| serviceClient | Service Client | Secret1 | estateManagement,transactionProcessor,voucherManagement,fileProcessor | client_credentials |
+	| serviceClient | Service Client | Secret1 | transactionProcessor,fileProcessor | client_credentials |
 
 	Given I have a token to access the estate management and transaction processor resources
 	| ClientId      | 
