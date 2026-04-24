@@ -1,5 +1,3 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM stuartferguson/txnprocbase:latest AS base
 WORKDIR /app
 
@@ -22,14 +20,18 @@ RUN dotnet publish "FileProcessor.csproj" -c Release -o /app/publish
 
 FROM base AS mkdir
 WORKDIR /home
-RUN mkdir -p /home/txnproc/bulkfiles/temporary \
+# Ensure runtime directories exist and are writable by the non-root user (see nlog.config and appsettings.json)
+RUN mkdir -p /home/txnproc/config \
+             /home/txnproc/trace \
+             /home/txnproc/bulkfiles/temporary \
              /home/txnproc/bulkfiles/safaricom \
              /home/txnproc/bulkfiles/voucher \
-             /home/txnproc/trace \
     && chown -R 10001:10001 /home/txnproc
 
 FROM mkdir AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# If anything writes under /app at runtime (temp keys, diagnostics, etc.), avoid EACCES under USER 10001:
+RUN chown -R 10001:10001 /app
 USER 10001
 ENTRYPOINT ["dotnet", "FileProcessor.dll"]
