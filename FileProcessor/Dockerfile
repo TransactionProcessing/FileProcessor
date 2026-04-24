@@ -22,8 +22,11 @@ RUN dotnet publish "FileProcessor.csproj" -c Release -o /app/publish
 
 FROM base AS mkdir
 WORKDIR /home
-RUN mkdir -p /home/txnproc/bulkfiles && \
-    chown -R 10001:10001 /home/txnproc
+RUN mkdir -p /home/txnproc/bulkfiles/temporary \
+             /home/txnproc/bulkfiles/safaricom \
+             /home/txnproc/bulkfiles/voucher \
+             /home/txnproc/trace \
+    && chown -R 10001:10001 /home/txnproc
 
 FROM mkdir AS final
 WORKDIR /app
