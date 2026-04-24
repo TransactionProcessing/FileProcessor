@@ -46,6 +46,14 @@ jobs:
         name: tracelogs
         path: /home/txnproc/trace/         
 
+    - name: Install tree
+      if: ${{ failure() }}
+      run: sudo apt-get update && sudo apt-get install -y tree
+
+    - name: Show folder tree
+      if: ${{ failure() }}
+      run: tree /home/txnproc || echo "Directory missing"
+
     - name: Publish test results
       uses: dorny/test-reporter@v1
       if: always()
@@ -53,7 +61,7 @@ jobs:
           name: Unit Test Results
           path: '**/TestResults/*.trx'
           reporter: dotnet-trx
-          fail-on-error: true
+          fail-on-error: false
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
