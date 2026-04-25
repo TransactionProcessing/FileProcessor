@@ -44,15 +44,7 @@ jobs:
       if: ${{ failure() }}
       with:
         name: tracelogs
-        path: /home/txnproc/trace/         
-
-    - name: Install tree
-      if: ${{ failure() }}
-      run: sudo apt-get update && sudo apt-get install -y tree
-
-    - name: Show folder tree
-      if: ${{ failure() }}
-      run: tree /home/txnproc || echo "Directory missing"
+        path: /home/runner/trace/         
 
     - name: Publish test results
       uses: dorny/test-reporter@v1
