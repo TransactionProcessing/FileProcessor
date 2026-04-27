@@ -21,6 +21,6 @@ jobs:
 
       # Optional knobs
       dry_run: false
-      severity_filter: "Critical,High,Medium,Minor"
+      severity_filter: "Error,High,Warning,Info"
       extra_labels: ""
       assignees: ""
