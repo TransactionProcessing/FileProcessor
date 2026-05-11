@@ -86,8 +86,8 @@ Scenario: Get File Import Log Details
 	| D       | 07777777775 | 100     |
 	| T       | 1           |         |
 	And I upload this file for processing
-	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
-	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               | UploadDateTime |
+	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | Today          |
 
 	Given I have a file named 'SafarcomTopup2.txt' with the following contents
 	| Column1 | Column2     | Column3 |
@@ -95,8 +95,8 @@ Scenario: Get File Import Log Details
 	| D       | 07777777776 | 150     |
 	| T       | 1           |         |
 	And I upload this file for processing
-	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
-	| Test Estate 1 | Test Merchant 2 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               | UploadDateTime |
+	| Test Estate 1 | Test Merchant 2 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | Today          |
 
 	Given I have a file named 'VoucherIssue1.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
@@ -105,8 +105,8 @@ Scenario: Get File Import Log Details
 	| D       | Hospital 1 | testrecipient1@recipient.com | 10      |
 	| T       | 1          |                              |         |
 	And I upload this file for processing
-	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
-	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               | UploadDateTime |
+	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | Today          |
 
 	When I get the 'Test Estate 1' import logs between 'Yesterday' and 'Today' the following data is returned
 	| ImportLogDate | FileCount |

@@ -1,4 +1,5 @@
-﻿using SimpleResults;
+﻿using System.Text;
+using SimpleResults;
 using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
 
@@ -88,12 +89,15 @@ public class FileProcessorDomainServiceTests
         this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetEmptyFileImportLogAggregate()));
         this.FileImportLogAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileImportLogAggregate>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success());
 
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+        var m = new MockFileData("D,1,1,1");
+        var fileId = FileProcessorDomainService.CreateGuidFromFileData(Encoding.UTF8.GetString(m.Contents));
+        this.FileSystem.AddFile(TestData.FilePathWithName, m);
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom");
         
-        Result<Guid> result = await this.FileProcessorDomainService.UploadFile(TestData.UploadFileCommand, CancellationToken.None);
+        var command = TestData.UploadFileCommand with { FileId = fileId };
+
+        Result result = await this.FileProcessorDomainService.UploadFile(command, CancellationToken.None);
         result.IsSuccess.ShouldBeTrue();
-        result.Data.ShouldNotBe(Guid.Empty);
     }
 
     [Fact]
@@ -160,12 +164,15 @@ public class FileProcessorDomainServiceTests
         this.FileImportLogAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetCreatedFileImportLogAggregate()));
         this.FileImportLogAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileImportLogAggregate>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success());
 
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+        var m = new MockFileData("D,1,1,1");
+        var fileId = FileProcessorDomainService.CreateGuidFromFileData(Encoding.UTF8.GetString(m.Contents));
+        this.FileSystem.AddFile(TestData.FilePathWithName, m);
         this.FileSystem.AddDirectory("home/txnproc/bulkfiles/safaricom");
 
-        Result<Guid> result = await this.FileProcessorDomainService.UploadFile(TestData.UploadFileCommand, CancellationToken.None);
+        var command = TestData.UploadFileCommand with { FileId = fileId };
+
+        Result result = await this.FileProcessorDomainService.UploadFile(command, CancellationToken.None);
         result.IsSuccess.ShouldBeTrue();
-        result.Data.ShouldNotBe(Guid.Empty);
     }
 
     [Fact]
@@ -500,8 +507,8 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
             
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -529,8 +536,8 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure);
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -558,8 +565,8 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception());
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -586,8 +593,8 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -687,8 +694,8 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -712,8 +719,8 @@ public class FileProcessorDomainServiceTests
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithBlankLine()));
         
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -734,8 +741,8 @@ var result =                             await this.FileProcessorDomainService.P
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
         this.FileAggregateRepository.Setup(f => f.SaveChanges(It.IsAny<FileAggregate>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -760,8 +767,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient
             .Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(),
@@ -786,8 +793,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -812,8 +819,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -838,8 +845,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -868,8 +875,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -894,8 +901,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
@@ -920,7 +927,7 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure());
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -946,8 +953,8 @@ var result =                             await this.FileProcessorDomainService.P
 
         this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
 
-        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SerialisedMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(TestData.SerialisedMessageResponseFailedSale);
+        this.TransactionProcessorClient.Setup(t => t.PerformTransaction(It.IsAny<String>(), It.IsAny<SaleTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(TestData.ClientSaleTransactionFailedResponse);
 
         this.TransactionProcessorClient.Setup(e => e.GetMerchant(It.IsAny<String>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.GetMerchantResponseWithOperator);

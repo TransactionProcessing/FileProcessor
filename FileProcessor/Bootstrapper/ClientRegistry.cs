@@ -1,14 +1,16 @@
 ﻿using ClientProxyBase;
+using Shared.EventStore.SubscriptionWorker;
 
 namespace FileProcessor.Bootstrapper;
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityService.Client;
 using Shared.General;
+using Shared.Serialisation;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using TransactionProcessor.Client;
 
 [ExcludeFromCodeCoverage]
@@ -30,4 +32,22 @@ public class ClientRegistry : ServiceRegistry
     }
 
     #endregion
+}
+
+[ExcludeFromCodeCoverage]
+public class SerialiserRegistry : ServiceRegistry
+{
+    public SerialiserRegistry()
+    {
+        this.AddSingleton<IStringSerialiser, SystemTextJsonSerializer>();
+        this.AddSingleton<Func<Object, String>>(_ => obj => StringSerialiser.Serialise(obj));
+        this.AddSingleton<Func<String, Type, Object>>(_ => (str, type) => StringSerialiser.DeserializeObject<Object>(str, type));
+
+        var serialiserSettings = SystemTextJsonSerializer.GetDefaultJsonSerializerOptions().AddModifier(JsonTypeInfoModifierExtensions.ForType<PersistentSubscriptionInfo>(typeInfo =>
+        {
+            typeInfo.RenameProperty<PersistentSubscriptionInfo>(x => x.StreamName, "eventStreamId");
+        }));
+
+        this.AddSingleton(serialiserSettings);
+    }
 }

@@ -14,9 +14,9 @@ using Services;
 
 public class DummyFileProcessorDomainService : IFileProcessorDomainService {
 
-    public async Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command,
+    public async Task<Result> UploadFile(FileCommands.UploadFileCommand command,
                                                CancellationToken cancellationToken) =>
-        Result.Success(Guid.NewGuid());
+        Result.Success();
 
     public async Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
                                                   CancellationToken cancellationToken) => Result.Success();

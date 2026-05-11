@@ -14,7 +14,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
     
     public class FileRequestHandler : IRequestHandler<FileCommands.ProcessTransactionForFileLineCommand,Result>,
                                       IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>,
-                                      IRequestHandler<FileCommands.UploadFileCommand, Result<Guid>>,
+                                      IRequestHandler<FileCommands.UploadFileCommand, Result>,
                                       IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>,
                                       IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>,
                                       IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>
@@ -27,7 +27,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             this.Manager = manager;
         }
         
-        public async Task<Result<Guid>> Handle(FileCommands.UploadFileCommand command,
+        public async Task<Result> Handle(FileCommands.UploadFileCommand command,
                                                CancellationToken cancellationToken) {
             return await this.DomainService.UploadFile(command, cancellationToken);
         }

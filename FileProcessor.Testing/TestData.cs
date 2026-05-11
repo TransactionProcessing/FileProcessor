@@ -1,5 +1,5 @@
 ﻿using System;
-using FileProcessor.DataTransferObjects.Responses;
+using SecurityService.DataTransferObjects;
 using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
@@ -13,8 +13,6 @@ namespace FileProcessor.Testing
     using FileImportLog.DomainEvents;
     using FileImportLogAggregate;
     using FileProcessor.Models;
-    using Newtonsoft.Json;
-    using SecurityService.DataTransferObjects.Responses;
     using TransactionProcessor.DataTransferObjects;
 
     public class TestData
@@ -343,7 +341,7 @@ namespace FileProcessor.Testing
 
         public static TokenResponse TokenResponse()
         {
-            return SecurityService.DataTransferObjects.Responses.TokenResponse.Create("AccessToken", string.Empty, 100);
+            return SecurityService.DataTransferObjects.TokenResponse.Create("AccessToken", string.Empty, 100);
         }
 
         public static MerchantResponse GetMerchantResponseWithOperator =>
@@ -494,20 +492,7 @@ namespace FileProcessor.Testing
 
             return contractResponses;
         }
-
-        public static SerialisedMessage SerialisedMessageResponseSale => new SerialisedMessage
-                                                                        {
-                                                                            Metadata = new Dictionary<String, String>
-                                                                                       {
-                                                                                           {"EstateId", TestData.EstateId.ToString()},
-                                                                                           {"MerchantId", TestData.MerchantId.ToString()},
-                                                                                       },
-                                                                            SerialisedData = JsonConvert.SerializeObject(TestData.ClientSaleTransactionResponse, new JsonSerializerSettings
-                                                                                {
-                                                                                    TypeNameHandling = TypeNameHandling.All
-                                                                                })
-                                                                        };
-
+        
         public static SaleTransactionResponse ClientSaleTransactionResponse => new SaleTransactionResponse
                                                                               {
                                                                                   TransactionId = TestData.TransactionId,
@@ -516,20 +501,6 @@ namespace FileProcessor.Testing
                                                                                   EstateId = TestData.EstateId,
                                                                                   MerchantId = TestData.MerchantId
                                                                               };
-
-        public static SerialisedMessage SerialisedMessageResponseFailedSale => new SerialisedMessage
-        {
-            Metadata = new Dictionary<String, String>
-                                                                                       {
-                                                                                           {"EstateId", TestData.EstateId.ToString()},
-                                                                                           {"MerchantId", TestData.MerchantId.ToString()},
-                                                                                       },
-            SerialisedData = JsonConvert.SerializeObject(TestData.ClientSaleTransactionFailedResponse, new JsonSerializerSettings
-                                                                                                       {
-                                                                                                           TypeNameHandling = TypeNameHandling.All
-                                                                                                       })
-        };
-
         public static SaleTransactionResponse ClientSaleTransactionFailedResponse => new SaleTransactionResponse
         {
             TransactionId = TestData.TransactionId,
@@ -857,7 +828,7 @@ namespace FileProcessor.Testing
                                                                      };
         
         public static FileCommands.UploadFileCommand UploadFileCommand =>
-            new (TestData.EstateId, TestData.MerchantId, TestData.UserId, FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
+            new (FileId, TestData.EstateId, TestData.MerchantId, TestData.UserId, FilePathWithName, TestData.FileProfileId, TestData.FileUploadedDateTime);
         
         public static FileCommands.ProcessUploadedFileCommand ProcessUploadedFileCommand =>
             new (TestData.EstateId, TestData.MerchantId, TestData.FileImportLogId, TestData.FileId, TestData.UserId, TestData.FilePathWithName, TestData.FileProfileId,
