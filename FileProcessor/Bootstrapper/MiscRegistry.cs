@@ -27,7 +27,7 @@ public class MiscRegistry : ServiceRegistry
 
         bool logRequests = ConfigurationReader.GetValueOrDefault<Boolean>("MiddlewareLogging", "LogRequests", true);
         bool logResponses = ConfigurationReader.GetValueOrDefault<Boolean>("MiddlewareLogging", "LogResponses", true);
-        LogLevel middlewareLogLevel = ConfigurationReader.GetValueOrDefault<LogLevel>("MiddlewareLogging", "MiddlewareLogLevel", LogLevel.Warning);
+        LogLevel middlewareLogLevel = ConfigurationReader.GetValueOrDefault<LogLevel>("MiddlewareLogging", "MiddlewareLogLevel", LogLevel.Information);
 
         RequestResponseMiddlewareLoggingConfig config =
             new RequestResponseMiddlewareLoggingConfig(middlewareLogLevel, logRequests, logResponses);

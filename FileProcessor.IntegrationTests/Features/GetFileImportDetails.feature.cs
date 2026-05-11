@@ -452,12 +452,14 @@ await this.FeatureBackgroundAsync();
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
-                            "UserId"});
+                            "UserId",
+                            "UploadDateTime"});
                 table17.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
-                            "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476",
+                            "Today"});
 #line 88
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table17, "And ");
 #line hidden
@@ -484,12 +486,14 @@ await this.FeatureBackgroundAsync();
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
-                            "UserId"});
+                            "UserId",
+                            "UploadDateTime"});
                 table19.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 2",
                             "B2A59ABF-293D-4A6B-B81B-7007503C3476",
-                            "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476",
+                            "Today"});
 #line 97
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table19, "And ");
 #line hidden
@@ -525,12 +529,14 @@ await this.FeatureBackgroundAsync();
                             "EstateName",
                             "MerchantName",
                             "FileProfileId",
-                            "UserId"});
+                            "UserId",
+                            "UploadDateTime"});
                 table21.AddRow(new string[] {
                             "Test Estate 1",
                             "Test Merchant 1",
                             "8806EDBC-3ED6-406B-9E5F-A9078356BE99",
-                            "ABA59ABF-293D-4A6B-B81B-7007503C3476"});
+                            "ABA59ABF-293D-4A6B-B81B-7007503C3476",
+                            "Today"});
 #line 107
  await testRunner.AndAsync("I upload this file for processing", ((string)(null)), table21, "And ");
 #line hidden

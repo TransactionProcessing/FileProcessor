@@ -19,10 +19,11 @@ public record FileCommands {
                                              Guid FileProfileId,
                                              DateTime FileUploadedDateTime) : IRequest<Result>;
 
-    public record UploadFileCommand(Guid EstateId,
+    public record UploadFileCommand(Guid FileId,
+                                    Guid EstateId,
                                     Guid MerchantId,
                                     Guid UserId,
                                     String FilePath,
                                     Guid FileProfileId,
-                                    DateTime FileUploadedDateTime) : IRequest<Result<Guid>>;
+                                    DateTime FileUploadedDateTime) : IRequest<Result>;
 }

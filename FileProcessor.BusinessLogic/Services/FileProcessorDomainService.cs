@@ -1,4 +1,5 @@
-﻿using Shared.EventStore.Helpers;
+﻿using SecurityService.DataTransferObjects;
+using Shared.EventStore.Helpers;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
 
 namespace FileProcessor.BusinessLogic.Services;
@@ -23,10 +24,8 @@ using FileFormatHandlers;
 using FileImportLogAggregate;
 using Models;
 using Managers;
-using Newtonsoft.Json;
 using Requests;
 using SecurityService.Client;
-using SecurityService.DataTransferObjects.Responses;
 using Shared.DomainDrivenDesign.EventSourcing;
 using Shared.EventStore.Aggregate;
 using Shared.Exceptions;
@@ -39,7 +38,7 @@ using FileLine = Models.FileLine;
 
 public interface IFileProcessorDomainService
 {
-    Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command, CancellationToken cancellationToken);
+    Task<Result> UploadFile(FileCommands.UploadFileCommand command, CancellationToken cancellationToken);
 
     Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
                                      CancellationToken cancellationToken);
@@ -110,7 +109,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
     }
 
-    private async Task<Result<T>> ApplyFileImportLogUpdates<T>(Func<FileImportLogAggregate, Task<Result<T>>> action,
+    private async Task<Result> ApplyFileImportLogUpdates(Func<FileImportLogAggregate, Task<Result>> action,
                                                       Guid fileImportLogId,
                                                       CancellationToken cancellationToken,
                                                       Boolean isNotFoundError = true)
@@ -123,14 +122,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 DomainServiceHelper.HandleGetAggregateResult(getFileImportLogResult, fileImportLogId, isNotFoundError);
 
             FileImportLogAggregate fileImportLogAggregate = fileImportLogAggregateResult.Data;
-            Result<T> result = await action(fileImportLogAggregate);
+            Result result = await action(fileImportLogAggregate);
             if (result.IsFailed)
                 return ResultHelpers.CreateFailure(result);
 
             Result saveResult = await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
             if (saveResult.IsFailed)
                 return ResultHelpers.CreateFailure(saveResult);
-            return Result.Success(result.Data);
+            return Result.Success();
         }
         catch (Exception ex)
         {
@@ -138,7 +137,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
     }
 
-    public async Task<Result<Guid>> UploadFile(FileCommands.UploadFileCommand command,
+    public async Task<Result> UploadFile(FileCommands.UploadFileCommand command,
                                        CancellationToken cancellationToken) {
         DateTime importLogDateTime = command.FileUploadedDateTime;
 
@@ -149,7 +148,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // This will now create the import log and add an event for the file being uploaded
         Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime.Date, command.EstateId);
 
-        Result<Guid> result = await ApplyFileImportLogUpdates(async (fileImportLogAggregate) => {
+        Result result = await ApplyFileImportLogUpdates(async (fileImportLogAggregate) => {
             if (fileImportLogAggregate.IsCreated == false)
             {
                 // First file of the day so create
@@ -192,23 +191,39 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                     fileContent = await sr.ReadToEndAsync(cancellationToken);
                 }
             }
+            Guid generatedFileId = CreateGuidFromFileData(fileContent);
 
-            Guid fileId = this.CreateGuidFromFileData(fileContent);
-
-            String fileDestination = $"{fileProfile.ListeningDirectory}//{command.EstateId:N}-{fileId:N}";
+            if (generatedFileId != command.FileId) {
+                return Result.Invalid("File content does not match the file id provided");
+            }
+            
+            String fileDestination = $"{fileProfile.ListeningDirectory}//{command.EstateId:N}-{command.FileId:N}";
             file.MoveTo(fileDestination, overwrite: true);
 
             // Update Import log aggregate
-            Result stateResult= fileImportLogAggregate.AddImportedFile(fileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
+            Result stateResult= fileImportLogAggregate.AddImportedFile(command.FileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
             if (stateResult.IsFailed)
                 return stateResult;
             
-            return Result.Success(fileId);
+            return Result.Success();
         }, importLogId, cancellationToken, false);
         
         return result;
     }
 
+    public static Guid CreateGuidFromFileData(String fileContents)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            //Generate hash from the key
+            Byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(fileContents));
+
+            Byte[] j = bytes.Skip(Math.Max(0, bytes.Count() - 16)).ToArray(); //Take last 16
+
+            //Create our Guid.
+            return new Guid(j);
+        }
+    }
     private Result ValidateRequest(FileCommands.UploadFileCommand command) {
         if (command.UserId == Guid.Empty) {
             return Result.Invalid("No User Id provided with file upload");
@@ -399,32 +414,17 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 OperatorId = contract.OperatorId,
                 ProductId = product.ProductId,
                 AdditionalTransactionMetadata = transactionMetadata,
-                TransactionSource = 2 // File based transaction
+                TransactionSource = 2, // File based transaction
             };
-
-            SerialisedMessage serialisedRequestMessage = new SerialisedMessage
-            {
-                Metadata = new Dictionary<String, String>
-                                                                    {
-                                                                        {"estate_id", fileDetails.EstateId.ToString()},
-                                                                        {"merchant_id", fileDetails.MerchantId.ToString()}
-                                                                    },
-                SerialisedData = JsonConvert.SerializeObject(saleTransactionRequest, new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.All
-                })
-            };
-
-            Logger.LogDebug(serialisedRequestMessage.SerialisedData);
-
+            
+            
             // Send request to transaction processor
-            Result<SerialisedMessage> result= await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, serialisedRequestMessage, cancellationToken);
+            Result<SaleTransactionResponse> result= await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
             if (result.IsFailed)
                 return ResultHelpers.CreateFailure(result);
-            SerialisedMessage serialisedResponseMessage = result.Data;
 
             // Get the sale transaction response
-            SaleTransactionResponse saleTransactionResponse = JsonConvert.DeserializeObject<SaleTransactionResponse>(serialisedResponseMessage.SerialisedData);
+            SaleTransactionResponse saleTransactionResponse = result.Data;
 
             if (saleTransactionResponse.ResponseCode == "0000") {
                 // record response against file line in file aggregate
@@ -442,6 +442,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return Result.Success();
 
         }, command.FileId, cancellationToken);
+
+        if (result.IsFailed)
+            Logger.LogWarning($"{command.LineNumber} Status {result.Status} Message {result.Message}");
 
         return result;
     }
@@ -536,21 +539,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     }
 
     private static Int32 TransactionNumber = 0;
-
-    private Guid CreateGuidFromFileData(String fileContents)
-    {
-        using (SHA256 sha256Hash = SHA256.Create())
-        {
-            //Generate hash from the key
-            Byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(fileContents));
-
-            Byte[] j = bytes.Skip(Math.Max(0, bytes.Count() - 16)).ToArray(); //Take last 16
-
-            //Create our Guid.
-            return new Guid(j);
-        }
-    }
-
+    
     private Boolean FileLineCanBeIgnored(String domainEventFileLine,
                                          String fileProfileFileFormatHandler)
     {

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.General;
 using Shared.Results.Web;
+using Shared.Serialisation;
 using SimpleResults;
 
 namespace FileProcessor.Handlers;
@@ -38,7 +39,8 @@ public static class FileHandlers
         if (request.UploadDateTime == DateTime.MinValue)
             request.UploadDateTime = DateTime.Now;
 
-        FileCommands.UploadFileCommand command = new(request.EstateId,
+        FileCommands.UploadFileCommand command = new(request.FileId,
+            request.EstateId,
             request.MerchantId,
             request.UserId,
             fullPath,
