@@ -36,11 +36,10 @@ namespace FileProcessor.Client {
         /// <param name="baseAddressResolver">The base address resolver.</param>
         /// <param name="httpClient">The HTTP client.</param>
         public FileProcessorClient(Func<String, String> baseAddressResolver,
-                                   HttpClient httpClient) : base(httpClient) {
+                                   HttpClient httpClient,
+                                   Func<Object, String> serialise,
+                                   Func<String,Type, Object> deserialise) : base(httpClient, serialise, deserialise) {
             this.BaseAddressResolver = baseAddressResolver;
-
-            // Add the API version header
-            this.HttpClient.DefaultRequestHeaders.Add("api-version", "1.0");
         }
 
         #endregion
