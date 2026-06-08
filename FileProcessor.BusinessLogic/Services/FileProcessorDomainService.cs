@@ -242,7 +242,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     public async Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
                                                   CancellationToken cancellationToken) {
-        // TODO: Should the file id be generated from the file uploaded to protect against duplicate files???
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             Logger.LogWarning("In ProcessUploadedFile action");
             Result<Guid> operatorIdResult = await GetOperatorIdForFileProfile(command.EstateId, command.FileProfileId, cancellationToken);
@@ -395,7 +394,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
             }
 
-            ContractProduct? product = contract.Products.SingleOrDefault(p => p.Value == null); // TODO: Is this enough or should the name be used and stored in file profile??
+            ContractProduct? product = contract.Products.SingleOrDefault(p => p.Value == null);
 
             if (product == null) {
                 return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
