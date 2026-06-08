@@ -6,9 +6,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["FileProcessor/NuGet.Config", "."]
-COPY ["FileProcessor/FileProcessor.csproj", "FileProcessor/"]
-RUN dotnet restore "FileProcessor/FileProcessor.csproj"
+COPY ["Directory.Packages.props", "."]
+COPY ["Directory.Build.props", "."]
 COPY . .
+RUN dotnet restore
 WORKDIR "/src/FileProcessor"
 RUN dotnet build "FileProcessor.csproj" -c Release -o /app/build
 
