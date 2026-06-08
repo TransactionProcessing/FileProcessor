@@ -1,16 +1,17 @@
-﻿using Shared.Results;
+﻿using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using Shared.Results;
 
 namespace FileProcessor.Client {
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
     using ClientProxyBase;
     using DataTransferObjects;
     using DataTransferObjects.Responses;
-    using Newtonsoft.Json;
     using SimpleResults;
 
     /// <summary>
@@ -37,8 +38,9 @@ namespace FileProcessor.Client {
         /// <param name="httpClient">The HTTP client.</param>
         public FileProcessorClient(Func<String, String> baseAddressResolver,
                                    HttpClient httpClient,
-                                   Func<Object, String> serialise,
-                                   Func<String,Type, Object> deserialise) : base(httpClient, serialise, deserialise) {
+                                   Func<object, string> serialise,
+                                   Func<string, Type, object> deserialise) : base(httpClient, serialise, deserialise)
+        {
             this.BaseAddressResolver = baseAddressResolver;
         }
 
@@ -61,7 +63,7 @@ namespace FileProcessor.Client {
             String requestUri = this.BuildRequestUrl($"/api/files/{fileId}?estateId={estateId}");
 
             try {
-                Result<FileDetails> result = await this.SendHttpGetRequest<FileDetails> (requestUri, accessToken, cancellationToken);
+                Result<FileDetails> result = await this.Get<FileDetails>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -97,7 +99,7 @@ namespace FileProcessor.Client {
             }
 
             try {
-                Result<FileImportLog> result = await this.SendHttpGetRequest<FileImportLog>(requestUri, accessToken, cancellationToken);
+                Result<FileImportLog> result = await this.Get<FileImportLog>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -137,7 +139,7 @@ namespace FileProcessor.Client {
             }
 
             try {
-                Result<FileImportLogList> result = await this.SendHttpGetRequest<FileImportLogList>(requestUri, accessToken, cancellationToken);
+                Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -168,42 +170,42 @@ namespace FileProcessor.Client {
                                                    CancellationToken cancellationToken) {
             try {
                 String requestUri = this.BuildRequestUrl("/api/files");
+                
+                List<(string fieldName, string data)> formFields = new();
+                formFields.Add(("EstateId", uploadFileRequest.EstateId.ToString()));
+                formFields.Add(("MerchantId", uploadFileRequest.MerchantId.ToString()));
+                formFields.Add(("FileProfileId", uploadFileRequest.FileProfileId.ToString()));
+                formFields.Add(("UserId", uploadFileRequest.UserId.ToString()));
+                formFields.Add(("UploadDateTime", uploadFileRequest.UploadDateTime.ToString("yyyy-MM-dd HH:mm:ss")));
+                
+                Guid fileId = CreateGuidFromFileData(fileData);
+                formFields.Add(("FileId", fileId.ToString()));
 
-                HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                MultipartFormDataContent formData = new MultipartFormDataContent();
-
-                ByteArrayContent fileContent = new ByteArrayContent(fileData);
-                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                formData.Add(fileContent, "file", fileName);
-                formData.Add(new StringContent(uploadFileRequest.EstateId.ToString()), "EstateId");
-                formData.Add(new StringContent(uploadFileRequest.MerchantId.ToString()), "MerchantId");
-                formData.Add(new StringContent(uploadFileRequest.FileProfileId.ToString()), "FileProfileId");
-                formData.Add(new StringContent(uploadFileRequest.UserId.ToString()), "UserId");
-                formData.Add(new StringContent(uploadFileRequest.UploadDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
-                    "UploadDateTime");
-
-                httpRequest.Content = formData;
-                httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                HttpResponseMessage httpResponse = await this.HttpClient.SendAsync(httpRequest, cancellationToken);
-
-                // Process the response
-                Result<String> result = await this.HandleResponseX(httpResponse, cancellationToken);
-
+                Result result = await this.Post(requestUri, fileData, fileName, formFields, accessToken, cancellationToken);
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
 
-                Guid responseData = JsonConvert.DeserializeObject<Guid>(result.Data);
-                
-                // call was successful so now deserialise the body to the response object
-                return Result.Success(responseData);
-
+                return Result.Success(fileId);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message
                 Exception exception = new Exception($"Error uploading file {fileName}.", ex);
 
                 throw exception;
+            }
+        }
+
+        private Guid CreateGuidFromFileData(Byte[] fileContents)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                //Generate hash from the key
+                Byte[] bytes = sha256Hash.ComputeHash(fileContents);
+
+                Byte[] j = bytes.Skip(Math.Max(0, bytes.Count() - 16)).ToArray(); //Take last 16
+
+                //Create our Guid.
+                return new Guid(j);
             }
         }
 

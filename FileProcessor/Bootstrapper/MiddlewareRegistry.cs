@@ -3,26 +3,23 @@ using Microsoft.OpenApi;
 
 namespace FileProcessor.Bootstrapper
 {
-    using EventStore.Client;
     using Lamar;
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
-    using Microsoft.IdentityModel.Tokens;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
     using OpenIddict.Validation.AspNetCore;
     using Shared.Authorisation;
     using Shared.EventStore.Extensions;
     using Shared.Extensions;
     using Shared.General;
+    using Shared.Serialisation;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Net.Http;
     using System.Reflection;
+    using System.Text.Json;
 
     [ExcludeFromCodeCoverage]
     public class MiddlewareRegistry : ServiceRegistry
@@ -102,29 +99,18 @@ namespace FileProcessor.Bootstrapper
                 });
 
             this.AddAuthorization();
-        
-            this.AddControllers().AddNewtonsoftJson(options =>
-                                                    {
-                                                        options.SerializerSettings.Culture = new CultureInfo("en-GB");
-                                                        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                                                        options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
-                                                        options.SerializerSettings.Formatting = Formatting.Indented;
-                                                        options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-                                                        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                                                    });
+
+            this.AddControllers();
+            this.ConfigureHttpJsonOptions(options => {
+                JsonSerializerConfiguration.ConfigureMinimalApi(options.SerializerOptions);
+            });
 
             Assembly assembly = this.GetType().GetTypeInfo().Assembly;
             this.AddMvcCore().AddApplicationPart(assembly).AddControllersAsServices();
 
             this.AddClientCredentialsOnlyPolicy();
             this.AddClientCredentialsHandler();
-
-            this.ConfigureHttpJsonOptions(options =>
-            {
-                options.SerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
-                options.SerializerOptions.PropertyNameCaseInsensitive = true; // optional, but safer
-            });
-
+            
             this.Configure<FormOptions>(options =>
             {
                 // Allow very large values (adjust to what you need)
@@ -158,5 +144,18 @@ namespace FileProcessor.Bootstrapper
         }
 
         #endregion
+    }
+
+    public static class JsonSerializerConfiguration
+    {
+        public static void ConfigureMinimalApi(JsonSerializerOptions serializerOptions)
+        {
+            var defaultOptions = SystemTextJsonSerializer.GetDefaultJsonSerializerOptions();
+            serializerOptions.PropertyNamingPolicy = defaultOptions.PropertyNamingPolicy;
+            serializerOptions.DictionaryKeyPolicy = defaultOptions.DictionaryKeyPolicy;
+            serializerOptions.ReferenceHandler = defaultOptions.ReferenceHandler;
+            serializerOptions.WriteIndented = defaultOptions.WriteIndented;
+            serializerOptions.Converters.Add(new DateTimeSpaceConverter());
+        }
     }
 }

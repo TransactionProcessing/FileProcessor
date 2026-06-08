@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 
 namespace FileProcessor.IntegrationTests.Common
 {
-    using System.Net.Http;
     using Client;
     using EventStore.Client;
     using SecurityService.Client;
     using Shared.IntegrationTesting;
+    using Shared.Serialisation;
+    using System.Net.Http;
     using TransactionProcessor.Client;
 
     public class DockerHelper : global::Shared.IntegrationTesting.TestContainers.DockerHelper{
@@ -43,6 +44,7 @@ namespace FileProcessor.IntegrationTests.Common
         /// <param name="testingContext">The testing context.</param>
         public DockerHelper(){
             this.TestingContext = new TestingContext();
+            StringSerialiser.Initialise((IStringSerialiser)new SystemTextJsonSerializer(SystemTextJsonSerializer.GetDefaultJsonSerializerOptions()));
         }
 
         #endregion
@@ -90,15 +92,25 @@ namespace FileProcessor.IntegrationTests.Common
                                                                            }
                                                            };
             HttpClient httpClient = new HttpClient(httpMessageHandler);
-            this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient);
-            this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient);
-            this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient);
+            this.SecurityServiceClient = new SecurityServiceClient(SecurityServiceBaseAddressResolver, httpClient, Serialise, Deserialise);
+            this.FileProcessorClient = new FileProcessorClient(FileProcessorBaseAddressResolver, httpClient, Serialise, Deserialise);
+            this.TransactionProcessorClient = new TransactionProcessorClient(TransactionProcessorBaseAddressResolver, httpClient, Serialise, Deserialise);
             this.TestHostHttpClient = new HttpClient(clientHandler);
             this.TestHostHttpClient.BaseAddress = new Uri($"http://127.0.0.1:{this.TestHostServicePort}");
 
             this.ProjectionManagementClient = new EventStoreProjectionManagementClient(ConfigureEventStoreSettings());
         }
-        
+
+        String Serialise(Object arg)
+        {
+            return StringSerialiser.Serialise<Object>(arg, new SerialiserOptions(SerialiserPropertyFormat.SnakeCase));
+        }
+
+        Object Deserialise(String arg, Type type)
+        {
+            return StringSerialiser.DeserializeObject<Object>(arg, type, new SerialiserOptions(SerialiserPropertyFormat.SnakeCase));
+        }
+
         #endregion
     }
 }

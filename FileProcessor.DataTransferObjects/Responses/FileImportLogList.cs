@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace FileProcessor.DataTransferObjects.Responses
+﻿namespace FileProcessor.DataTransferObjects.Responses
 {
     using System.Collections.Generic;
 
@@ -11,10 +9,6 @@ namespace FileProcessor.DataTransferObjects.Responses
     {
         #region Fields
 
-        /// <summary>
-        /// The file import logs
-        /// </summary>
-        [JsonProperty("file_import_logs")]
         public List<FileImportLog> FileImportLogs { get; set; }
 
         #endregion

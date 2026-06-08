@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SecurityService.DataTransferObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,20 +15,18 @@ using AssignOperatorRequest = TransactionProcessor.DataTransferObjects.Requests.
 
 namespace FileProcessor.IntegrationTests.Steps
 {
-    using System.IO;
-    using System.Threading;
     using Common;
     using DataTransferObjects;
     using IntegrationTesting.Helpers;
     using IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
-    using Newtonsoft.Json;
-    using SecurityService.DataTransferObjects.Requests;
+    using Reqnroll;
     using SecurityService.IntegrationTesting.Helpers;
     using Shared.IntegrationTesting;
     using Shouldly;
-    using Newtonsoft.Json.Linq;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Text.Json;
-    using Reqnroll;
+    using System.Threading;
 
     [Binding]
     [Scope(Tag = "shared")]
@@ -66,8 +65,6 @@ namespace FileProcessor.IntegrationTests.Steps
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
             (EstateDetails1, UploadFileRequest) uploadFileRequest = table.Rows.ToUploadFileRequest(this.TestingContext.Estates, fileData);
 
-            var x = JsonConvert.SerializeObject(uploadFileRequest.Item2);
-            
             await this.FileProcessorSteps.GivenIUploadThisFileForProcessing(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item1, uploadFileRequest.Item2);
         }
 
@@ -271,10 +268,8 @@ namespace FileProcessor.IntegrationTests.Steps
 
         private async Task<Decimal> GetMerchantBalance(Guid merchantId)
         {
-            JsonElement jsonElement = (JsonElement)await this.TestingContext.DockerHelper.ProjectionManagementClient.GetStateAsync<dynamic>("MerchantBalanceProjection", $"MerchantBalance-{merchantId:N}");
-            JObject jsonObject = JObject.Parse(jsonElement.GetRawText());
-            decimal balanceValue = jsonObject.SelectToken("merchant.balance").Value<decimal>();
-            return balanceValue;
+            MerchantBalanceProjectionState1 balanceState = await this.TestingContext.DockerHelper.ProjectionManagementClient.GetStateAsync<MerchantBalanceProjectionState1>("MerchantBalanceProjection", $"MerchantBalance-{merchantId:N}");
+            return balanceState.merchant.balance;
         }
 
         [Given(@"I make the following manual merchant deposits")]
@@ -298,4 +293,10 @@ namespace FileProcessor.IntegrationTests.Steps
             }
         }
     }
+
+    [ExcludeFromCodeCoverage]
+    public record Merchant(string Id, string Name, int numberOfEventsProcessed, decimal balance);
+    
+    [ExcludeFromCodeCoverage]
+    public record MerchantBalanceProjectionState1(Merchant merchant);
 }

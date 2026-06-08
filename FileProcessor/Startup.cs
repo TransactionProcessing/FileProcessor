@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FileProcessor.Endpoints;
 using ImTools;
+using Shared.Serialisation;
 
 namespace FileProcessor
 {
@@ -68,10 +69,14 @@ namespace FileProcessor
             services.IncludeRegistry<FileRegistry>();
             services.IncludeRegistry<MiscRegistry>();
             services.IncludeRegistry<ClientRegistry>();
-            
+            services.IncludeRegistry<SerialiserRegistry>();
+
             Startup.Container = new Container(services);
 
             Startup.ServiceProvider = services.BuildServiceProvider();
+
+            var serialiser = Container.GetRequiredService<IStringSerialiser>();
+            StringSerialiser.Initialise(serialiser);
         }
 
         public static IServiceProvider ServiceProvider { get; set; }

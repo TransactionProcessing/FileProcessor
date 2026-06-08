@@ -1,28 +1,16 @@
-﻿using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Shared.Logger;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.EventHandling
 {
     using System.Threading;
     using File.DomainEvents;
-    using FileAggregate;
     using FileImportLog.DomainEvents;
-    using Managers;
     using MediatR;
-    using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
     using Requests;
-    using SecurityService.Client;
-    using SecurityService.DataTransferObjects.Responses;
     using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
     using Shared.EventStore.EventHandling;
-    using Shared.General;
-    using Shared.Logger;
-    using TransactionProcessor.Client;
-    using TransactionProcessor.DataTransferObjects;
 
     /// <summary>
     /// 
