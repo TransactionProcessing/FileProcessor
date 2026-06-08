@@ -1,7 +1,7 @@
 ﻿using System;
 using FileProcessor.BusinessLogic.Services;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Identity.Client;
+
 using Shared.EventStore.Helpers;
 using Shouldly;
 using SimpleResults;

@@ -8,6 +8,7 @@
 
   <ItemGroup>
 	  <PackageReference Include="Shared.IntegrationTesting" />
+	  <PackageReference Include="SharpCompress" />
 	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" />
   </ItemGroup>
 
