@@ -321,131 +321,161 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(fileProfileResult);
 
             FileProfile fileProfile = fileProfileResult.Data;
+            
+            Result stateResult;
 
             // Determine if we need to actually process this file line
             if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
             {
                 // Write something to aggregate to say line was explicity ignored
-                Result stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
+                stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
                 if (stateResult.IsFailed)
                     return stateResult;
                 return Result.Success();
             }
 
-            // need to now parse the line (based on the file format), this builds the metadata
-            Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
-
-            if (transactionMetadata.Any() == false) {
-                // Line failed to parse so record this
-                Result stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
+            Result<Dictionary<String, String>> metadataResult = this.BuildTransactionMetadata(command, fileLine, fileProfile, out String operatorName);
+            if (metadataResult.IsFailed) {
+                stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
                 if (stateResult.IsFailed)
-                    return stateResult;
-                return Result.Success();
+                    return ResultHelpers.CreateFailure(stateResult);
+
+                return stateResult;
             }
-
-            // Add the file data to the request metadata
-            transactionMetadata.Add("FileId", command.FileId.ToString());
-            transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
-
-            String operatorName = fileProfile.OperatorName;
-            if (transactionMetadata.ContainsKey("OperatorName")) {
-                // extract the value
-                operatorName = transactionMetadata["OperatorName"];
-                transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
-            }
-
-            Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
-            if (getTokenResult.IsFailed) {
-                return ResultHelpers.CreateFailure(getTokenResult);
-            }
-
-            this.TokenResponse = getTokenResult.Data;
 
             Interlocked.Increment(ref TransactionNumber);
 
-            // Get the merchant details
-            Result<MerchantResponse> getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-            if (getMerchantResult.IsFailed) {
-                return ResultHelpers.CreateFailure(getMerchantResult);
-            }
-
-            MerchantResponse merchant = getMerchantResult.Data;
-
-            Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-            if (getContractsResult.IsFailed) {
-                return ResultHelpers.CreateFailure(getContractsResult);
-            }
-
-            List<ContractResponse> contracts = getContractsResult.Data;
-
-            if (contracts.Any() == false) {
-                return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
-            }
-
-            ContractResponse? contract = null;
-            if (fileProfile.OperatorName == "Voucher") {
-                contract = contracts.SingleOrDefault(c => c.Description.Contains(operatorName));
-            }
-            else {
-                contract = contracts.SingleOrDefault(c => c.OperatorName == operatorName);
-            }
-
-            if (contract == null) {
-                return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
-            }
-
-            ContractProduct? product = contract.Products.SingleOrDefault(p => p.Value == null);
-
-            if (product == null) {
-                return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
-            }
-
-            // Build a transaction request message
-            SaleTransactionRequest saleTransactionRequest = new SaleTransactionRequest
-            {
-                EstateId = fileDetails.EstateId,
-                MerchantId = fileDetails.MerchantId,
-                TransactionDateTime = fileDetails.FileReceivedDateTime,
-                TransactionNumber = TransactionNumber.ToString(),
-                TransactionType = "Sale",
-                ContractId = contract.ContractId,
-                DeviceIdentifier = merchant.Devices.First().Value,
-                OperatorId = contract.OperatorId,
-                ProductId = product.ProductId,
-                AdditionalTransactionMetadata = transactionMetadata,
-                TransactionSource = 2, // File based transaction
+            Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction = await this.GetDetailsForTransaction(cancellationToken, fileDetails, fileProfile, operatorName);
+            if (detailsForTransaction.IsFailed)
+                return ResultHelpers.CreateFailure(detailsForTransaction);
+            
+            Result<SaleTransactionResponse> saleResult = await this.SendSaleTransaction(fileDetails, detailsForTransaction, metadataResult.Data, cancellationToken);
+            
+            stateResult = saleResult switch {
+                _ when saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000" => fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId),
+                _ when saleResult.IsSuccess => fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage),
+                _ when saleResult.IsFailed => fileAggregate.RecordFileLineAsFailed(command.LineNumber, Guid.Empty, "9999", "Failed to Send to Transaction Processor"),
             };
-            
-            
-            // Send request to transaction processor
-            Result<SaleTransactionResponse> result= await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
-            if (result.IsFailed)
-                return ResultHelpers.CreateFailure(result);
 
-            // Get the sale transaction response
-            SaleTransactionResponse saleTransactionResponse = result.Data;
-
-            if (saleTransactionResponse.ResponseCode == "0000") {
-                // record response against file line in file aggregate
-                Result stateResult = fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleTransactionResponse.TransactionId);
-                if (stateResult.IsFailed)
-                    return stateResult;
-            }
-            else
-            {
-                Result stateResult = fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleTransactionResponse.TransactionId, saleTransactionResponse.ResponseCode, saleTransactionResponse.ResponseMessage);
-                if (stateResult.IsFailed)
-                    return stateResult;
-            }
-
-            return Result.Success();
-
+            return stateResult;
         }, command.FileId, cancellationToken);
 
         if (result.IsFailed)
             Logger.LogWarning($"{command.LineNumber} Status {result.Status} Message {result.Message}");
 
         return result;
+    }
+
+    private Result<Dictionary<String, String>> BuildTransactionMetadata(FileCommands.ProcessTransactionForFileLineCommand command,
+                                                                        FileLine fileLine,
+                                                                        FileProfile fileProfile,
+                                                                        out String operatorName) {
+        // need to now parse the line (based on the file format), this builds the metadata
+        Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
+            
+        if (transactionMetadata.Any() == false) {
+            // Line failed to parse so record this
+            operatorName = null;
+            return Result.Failure("Invalid Format");
+        }
+
+        // Add the file data to the request metadata
+        transactionMetadata.Add("FileId", command.FileId.ToString());
+        transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
+
+        operatorName = fileProfile.OperatorName;
+        if (transactionMetadata.ContainsKey("OperatorName")) {
+            // extract the value
+            operatorName = transactionMetadata["OperatorName"];
+            transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        return Result.Success(transactionMetadata);
+    }
+
+    private async Task<Result<SaleTransactionResponse>> SendSaleTransaction(FileDetails fileDetails,
+                                                                            Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction,
+                                                                            Dictionary<String, String> transactionMetadata,
+                                                                            CancellationToken cancellationToken) {
+        Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
+        if (getTokenResult.IsFailed) {
+            return ResultHelpers.CreateFailure(getTokenResult);
+        }
+
+        this.TokenResponse = getTokenResult.Data;
+
+        // Build a transaction request message
+        SaleTransactionRequest saleTransactionRequest = new() {
+            EstateId = fileDetails.EstateId,
+            MerchantId = fileDetails.MerchantId,
+            TransactionDateTime = fileDetails.FileReceivedDateTime,
+            TransactionNumber = TransactionNumber.ToString(),
+            TransactionType = "Sale",
+            ContractId = detailsForTransaction.Data.ContractId,
+            DeviceIdentifier = detailsForTransaction.Data.MerchantDevice,
+            OperatorId = detailsForTransaction.Data.OperatorId,
+            ProductId = detailsForTransaction.Data.ProductId,
+            AdditionalTransactionMetadata = transactionMetadata,
+            TransactionSource = 2, // File based transaction
+        };
+            
+            
+        // Send request to transaction processor
+        Result<SaleTransactionResponse> result= await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
+        if (result.IsFailed)
+            return ResultHelpers.CreateFailure(result);
+
+        return result;
+    }
+
+    private async Task<Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)>> GetDetailsForTransaction(CancellationToken cancellationToken,
+                                                                                                                                   FileDetails fileDetails,
+                                                                                                                                   FileProfile fileProfile,
+                                                                                                                                   String operatorName) {
+
+        Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
+        if (getTokenResult.IsFailed)
+        {
+            return ResultHelpers.CreateFailure(getTokenResult);
+        }
+
+        this.TokenResponse = getTokenResult.Data;
+
+        // Get the merchant details
+        Result<MerchantResponse> getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+        if (getMerchantResult.IsFailed) {
+            return ResultHelpers.CreateFailure(getMerchantResult);
+        }
+
+        MerchantResponse merchant = getMerchantResult.Data;
+
+        Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
+        if (getContractsResult.IsFailed) {
+            return ResultHelpers.CreateFailure(getContractsResult);
+        }
+
+        List<ContractResponse> contracts = getContractsResult.Data;
+
+        if (contracts.Any() == false) {
+            return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
+        }
+
+        ContractResponse contract = fileProfile.OperatorName switch {
+            "Voucher" => contracts.SingleOrDefault(c => c.Description.Contains(operatorName)),
+            _ => contracts.SingleOrDefault(c => c.OperatorName == operatorName)
+        };
+
+        if (contract == null) {
+            return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
+        }
+
+        ContractProduct product = contract.Products.SingleOrDefault(p => p.Value == null);
+
+        if (product == null) {
+            return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
+        }
+
+        return Result.Success((contract.ContractId, contract.OperatorId, product.ProductId, merchant.Devices.First().Value));
     }
 
     private async Task<Result> ProcessFile(Guid fileId,
