@@ -270,7 +270,9 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile( TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new FileAggregateExtensions.CreateFileRequest(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+
+            fileAggregate.CreateFile(createFileRequest);
 
             return fileAggregate;
         }
@@ -279,7 +281,9 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new FileAggregateExtensions.CreateFileRequest(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine("D,1,2");
 
             return fileAggregate;
@@ -289,7 +293,9 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new FileAggregateExtensions.CreateFileRequest(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(String.Empty);
 
             return fileAggregate;
@@ -299,7 +305,8 @@ namespace FileProcessor.Testing
         {
             FileAggregate fileAggregate = new FileAggregate();
 
-            fileAggregate.CreateFile(TestData.FileImportLogId,TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new FileAggregateExtensions.CreateFileRequest(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine("D,1,2");
             fileAggregate.AddFileLine("D,1,3");
             fileAggregate.AddFileLine("D,1,4");

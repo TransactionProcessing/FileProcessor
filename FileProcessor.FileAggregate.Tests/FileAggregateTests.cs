@@ -35,8 +35,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_CreateFile_FileIsCreated()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            var result = fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest request = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            var result = fileAggregate.CreateFile(request);
             result.IsSuccess.ShouldBeTrue();
 
             fileAggregate.IsCreated.ShouldBeTrue();
@@ -58,25 +58,19 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_CreateFile_FileAlreadyCreated_NoErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
 
-            var result = fileAggregate.CreateFile(TestData.FileImportLogId,
-                                                         TestData.EstateId,
-                                                         TestData.MerchantId,
-                                                         TestData.UserId,
-                                                         TestData.FileProfileId,
-                                                         TestData.FileLocation,
-                                                         TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
-                            result.IsSuccess.ShouldBeTrue();
+            var result = fileAggregate.CreateFile(createFileRequest);
+            result.IsSuccess.ShouldBeTrue();
         }
 
         [Fact]
         public void FileAggregate_AddFileLine_FileLineAdded()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             var result = fileAggregate.AddFileLine(TestData.FileLine);
             result.IsSuccess.ShouldBeTrue();
 
@@ -98,8 +92,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_AddFileLine_AddDuplicateLine_FileLineIsNotAddedAdded()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.AddFileLine(TestData.FileLine);
             result.IsSuccess.ShouldBeTrue();
@@ -124,8 +118,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsSuccessful_FileLineUpdatedAsSuccessful()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             result.IsSuccess.ShouldBeTrue();
@@ -161,8 +155,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsSuccessful_FileHasNoLine_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             result.IsFailed.ShouldBeTrue();
@@ -173,8 +167,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsSuccessful_LineNotFound_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.NotFoundLineNumber, TestData.TransactionId);
             result.IsFailed.ShouldBeTrue();
@@ -185,8 +179,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsFailed_FileLineUpdatedAsFailed()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId,TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
             result.IsSuccess.ShouldBeTrue();
@@ -223,8 +217,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsFailed_FileHasNoLines_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
             result.IsFailed.ShouldBeTrue();
@@ -235,8 +229,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsFailed_LineNotFound_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsFailed(TestData.NotFoundLineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                             
@@ -248,8 +242,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsIgnored_FileLineUpdatedAsIgnored()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             result.IsSuccess.ShouldBeTrue();
@@ -285,8 +279,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_FileAggregate_RecordFileLineAsIgnored_FileHasNoLine_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             
@@ -298,8 +292,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsIgnored_LineNotFound_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.NotFoundLineNumber);
             
@@ -313,8 +307,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsRejected_FileLineUpdatedAsRejected()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber, TestData.RejectionReason);
             result.IsSuccess.ShouldBeTrue();
@@ -352,8 +346,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsRejected_FileHasNoLine_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
             
@@ -365,8 +359,8 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_RecordFileLineAsRejected_LineNotFound_ErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            fileAggregate.CreateFile(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId,
-                                     TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsRejected(TestData.NotFoundLineNumber, TestData.RejectionReason);
             
