@@ -249,7 +249,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(operatorIdResult);
 
             Logger.LogWarning("About to Create File");
-            Result stateResult = fileAggregate.CreateFile(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.Data);
+            FileAggregateExtensions.CreateFileRequest request = new(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.Data);
+            Result stateResult = fileAggregate.CreateFile(request);
             if (stateResult.IsFailed)
                 return stateResult;
 
