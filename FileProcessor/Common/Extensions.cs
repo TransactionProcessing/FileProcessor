@@ -78,7 +78,7 @@ public static class Extensions
 
         if (fileProfilesResult.IsFailed) {
             Logger.LogWarning($"Error getting file profiles {fileProfilesResult.Message}");
-            throw new Exception(fileProfilesResult.Message);
+            throw new ApplicationException(fileProfilesResult.Message);
         }
 
         List<FileProfile> fileProfiles = fileProfilesResult.Data;

@@ -1,4 +1,5 @@
-﻿using FileProcessor.Handlers;
+﻿using System;
+using FileProcessor.Handlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -7,7 +8,7 @@ namespace FileProcessor.Endpoints;
 
 public static class FileImportLogEndpoints
 {
-    public const string BaseRoute = "api/fileImportLogs";
+    public static readonly String BaseRoute = "api/fileImportLogs";
 
     public static void MapFileImportLogEndpoints(this IEndpointRouteBuilder app)
     {
