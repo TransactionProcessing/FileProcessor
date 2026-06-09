@@ -78,7 +78,7 @@ public static class Extensions
 
         if (fileProfilesResult.IsFailed) {
             Logger.LogWarning($"Error getting file profiles {fileProfilesResult.Message}");
-            throw new ApplicationException(fileProfilesResult.Message);
+            throw new ApplicationStartupException(fileProfilesResult.Message);
         }
 
         List<FileProfile> fileProfiles = fileProfilesResult.Data;
@@ -112,5 +112,13 @@ public static class Extensions
                                                         eventHandlerResolvers,
                                                         Extensions.log,
                                                         subscriptionRepositoryResolver).Wait(CancellationToken.None);
+    }
+
+    public sealed class ApplicationStartupException : Exception
+    {
+        public ApplicationStartupException(string message)
+            : base(message)
+        {
+        }
     }
 }
