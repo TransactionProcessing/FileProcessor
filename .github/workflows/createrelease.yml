@@ -25,6 +25,9 @@ jobs:
     - name: Build Code
       run: dotnet build FileProcessor.sln --configuration Release      
 
+    - name: Restore Publish Assets
+      run: dotnet restore "FileProcessor\FileProcessor.csproj" -r win-x64 --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
+
     - name: Publish Images to Docker Hub - Pre Release
       if: ${{ github.event.release.prerelease == true }} 
       run: |
@@ -41,7 +44,7 @@ jobs:
 
     - name: Publish API
       if: ${{ github.event.release.prerelease == false }}
-      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained
+      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained --no-restore
               -p:Version=${{ steps.get_version.outputs.VERSION }}
               -p:AssemblyVersion=${{ steps.get_version.outputs.VERSION }}
               -p:FileVersion=${{ steps.get_version.outputs.VERSION }}
