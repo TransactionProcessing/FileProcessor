@@ -35,6 +35,7 @@ using TransactionProcessor.Client;
 using TransactionProcessor.DataTransferObjects;
 using FileDetails = Models.FileDetails;
 using FileLine = Models.FileLine;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 public interface IFileProcessorDomainService
 {
@@ -159,12 +160,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             }
 
             // Move the file
-            Result<FileProfile> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
+            Result<FileProfileModel> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
             if (getFileProfileResult.IsFailed) {
                 return ResultHelpers.CreateFailure(getFileProfileResult);
             }
 
-            FileProfile fileProfile = getFileProfileResult.Data;
+            FileProfileModel fileProfile = getFileProfileResult.Data;
             if (fileProfile == null) {
                 return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
             }
@@ -269,13 +270,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     private async Task<Result<Guid>> GetOperatorIdForFileProfile(Guid estateId, Guid fileProfileId, CancellationToken cancellationToken){
 
-        Result<FileProfile> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
+        Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
 
         if (fileProfileResult.IsFailed){
             Logger.LogInformation($"file profile {fileProfileId} not  found");
             return ResultHelpers.CreateFailure(fileProfileResult);
         }
-        FileProfile fileProfile = fileProfileResult.Data;
+        FileProfileModel fileProfile = fileProfileResult.Data;
 
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
         if (getTokenResult.IsFailed) {
@@ -316,12 +317,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return Result.Success();
             }
 
-            Result<FileProfile> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
+            Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
 
             if (fileProfileResult.IsFailed)
                 return ResultHelpers.CreateFailure(fileProfileResult);
 
-            FileProfile fileProfile = fileProfileResult.Data;
+            FileProfileModel fileProfile = fileProfileResult.Data;
             
             Result stateResult;
 
@@ -369,7 +370,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     private Result<Dictionary<String, String>> BuildTransactionMetadata(FileCommands.ProcessTransactionForFileLineCommand command,
                                                                         FileLine fileLine,
-                                                                        FileProfile fileProfile,
+                                                                        FileProfileModel fileProfile,
                                                                         out String operatorName) {
         // need to now parse the line (based on the file format), this builds the metadata
         Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
@@ -431,7 +432,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     private async Task<Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)>> GetDetailsForTransaction(CancellationToken cancellationToken,
                                                                                                                                    FileDetails fileDetails,
-                                                                                                                                   FileProfile fileProfile,
+                                                                                                                                   FileProfileModel fileProfile,
                                                                                                                                    String operatorName) {
 
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
@@ -484,9 +485,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                            String fileName,
                                            CancellationToken cancellationToken) {
         IFileInfo inProgressFile = null;
-        FileProfile fileProfile = null;
+        FileProfileModel fileProfile = null;
 
-        Result<FileProfile> fileProfileResult =
+        Result<FileProfileModel> fileProfileResult =
             await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
 
         if (fileProfileResult.IsFailed)

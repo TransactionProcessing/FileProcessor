@@ -12,11 +12,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\FIleProcessor.Models\FIleProcessor.Models.csproj" PrivateAssets="All" />
   </ItemGroup>
 
 	<Target Name="IncludeP2PAssets">
 		<ItemGroup>
 			<BuildOutputInPackage Include="$(OutputPath)FileProcessor.DataTransferObjects.dll" />
+			<BuildOutputInPackage Include="$(OutputPath)FIleProcessor.Models.dll" />
 		</ItemGroup>
 	</Target>		
 </Project>

@@ -4,9 +4,11 @@ namespace FileProcessor.IntegrationTesting.Helpers.FileProcessor.IntegrationTest
 
 using Client;
 using DataTransferObjects;
+using DataTransferObjects.Requests;
 using DataTransferObjects.Responses;
 using Shared.IntegrationTesting;
 using Shouldly;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 public class FileProcessorSteps
 {
@@ -53,6 +55,31 @@ public class FileProcessorSteps
                         TimeSpan.FromSeconds(30));
 
         return fileId;
+    }
+
+    public async Task<Result<List<FileProfileModel>>> GetFileProfiles(String accessToken, CancellationToken cancellationToken)
+    {
+        return await this.FileProcessorClient.GetFileProfiles(accessToken, cancellationToken);
+    }
+
+    public async Task<Result<FileProfileModel>> GetFileProfile(String accessToken, Guid fileProfileId, CancellationToken cancellationToken)
+    {
+        return await this.FileProcessorClient.GetFileProfile(accessToken, fileProfileId, cancellationToken);
+    }
+
+    public async Task<Result<FileProfileModel>> CreateFileProfile(String accessToken, CreateFileProfileRequest request, CancellationToken cancellationToken)
+    {
+        return await this.FileProcessorClient.CreateFileProfile(accessToken, request, cancellationToken);
+    }
+
+    public async Task<Result<FileProfileModel>> UpdateFileProfile(String accessToken, Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken)
+    {
+        return await this.FileProcessorClient.UpdateFileProfile(accessToken, fileProfileId, request, cancellationToken);
+    }
+
+    public async Task<Result> ArchiveFileProfile(String accessToken, Guid fileProfileId, CancellationToken cancellationToken)
+    {
+        return await this.FileProcessorClient.ArchiveFileProfile(accessToken, fileProfileId, cancellationToken);
     }
 
     public async Task GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(String accessToken,

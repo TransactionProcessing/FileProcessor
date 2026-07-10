@@ -40,6 +40,7 @@
     <ProjectReference Include="..\FileProcessor.Client\FileProcessor.Client.csproj" />
     <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
     <ProjectReference Include="..\FileProcessor.IntegrationTesting.Helpers\FileProcessor.IntegrationTesting.Helpers.csproj" />
+    <ProjectReference Include="..\FIleProcessor.Models\FIleProcessor.Models.csproj" />
   </ItemGroup>
 
   <ItemGroup>

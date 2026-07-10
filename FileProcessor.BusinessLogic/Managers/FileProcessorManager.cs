@@ -1,4 +1,4 @@
-﻿using FileProcessor.Models;
+using FileProcessor.Models;
 using Shared.Results;
 using SimpleResults;
 using TransactionProcessor.Database.Contexts;
@@ -21,6 +21,7 @@ namespace FileProcessor.BusinessLogic.Managers
     using System.Threading;
     using System.Threading.Tasks;
     using FileImportLog = FileProcessor.Models.FileImportLog;
+    using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
     /// <summary>
     /// 
@@ -29,14 +30,14 @@ namespace FileProcessor.BusinessLogic.Managers
     public class FileProcessorManager : IFileProcessorManager
     {
         #region Fields
-        private readonly List<FileProfile> FileProfiles;
-
         private readonly IDbContextResolver<EstateManagementContext> Resolver;
         private static readonly String EstateManagementDatabaseName = "TransactionProcessorReadModel";
 
         private readonly IModelFactory ModelFactory;
 
         private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
+
+        private readonly IFileProfileManager FileProfileManager;
 
 
         #endregion
@@ -46,15 +47,15 @@ namespace FileProcessor.BusinessLogic.Managers
         /// <summary>
         /// Initializes a new instance of the <see cref="FileProcessorManager" /> class.
         /// </summary>
-        /// <param name="fileProfiles">The file profiles.</param>
+        /// <param name="fileProfileManager">The file profile manager.</param>
         /// <param name="dbContextFactory">The database context factory.</param>
         /// <param name="modelFactory">The model factory.</param>
-        public FileProcessorManager(List<FileProfile> fileProfiles,
+        public FileProcessorManager(IFileProfileManager fileProfileManager,
                                     IDbContextResolver<EstateManagementContext> resolver,
                                     IModelFactory modelFactory,
                                     IAggregateRepository<FileAggregate, DomainEvent> fileAggregateRepository)
         {
-            this.FileProfiles = fileProfiles;
+            this.FileProfileManager = fileProfileManager;
             this.Resolver = resolver;
             this.ModelFactory = modelFactory;
             this.FileAggregateRepository = fileAggregateRepository;
@@ -64,20 +65,15 @@ namespace FileProcessor.BusinessLogic.Managers
 
         #region Methods
 
-        public async Task<Result<List<FileProfile>>> GetAllFileProfiles(CancellationToken cancellationToken)
+        public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken)
         {
-            return Result.Success(this.FileProfiles);
+            return await this.FileProfileManager.GetAllFileProfiles(cancellationToken);
         }
 
-        public async Task<Result<FileProfile>> GetFileProfile(Guid fileProfileId,
+        public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId,
                                                               CancellationToken cancellationToken)
         {
-            FileProfile fileProfile = this.FileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
-            if (fileProfile == null)
-                return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
-
-            return Result.Success(fileProfile);
-
+            return await this.FileProfileManager.GetFileProfile(fileProfileId, cancellationToken);
         }
 
         private async Task<EstateManagementContext> GetContext(Guid estateId)
@@ -201,12 +197,12 @@ namespace FileProcessor.BusinessLogic.Managers
                 fileDetails.UserEmailAddress = userDetails.EmailAddress;
             }
 
-            Result<FileProfile> getFileProfile = await this.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
+            Result<FileProfileModel> getFileProfile = await this.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
             if (getFileProfile.IsFailed)
             {
                 return ResultHelpers.CreateFailure(getFileProfile);
             }
-            FileProfile fileProfile = getFileProfile.Data;
+            FileProfileModel fileProfile = getFileProfile.Data;
             if (fileProfile != null)
             {
                 fileDetails.FileProfileName = fileProfile.Name;

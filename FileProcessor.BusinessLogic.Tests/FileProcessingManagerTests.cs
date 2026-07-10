@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TransactionProcessor.Database.Contexts;
 using TransactionProcessor.Database.Entities;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.BusinessLogic.Tests
 {
@@ -33,12 +34,25 @@ namespace FileProcessor.BusinessLogic.Tests
     using FileLine = FileProcessor.Models.FileLine;
 
     public class FileProcessingManagerTests {
+        private Mock<IFileProfileManager> FileProfileManager;
         private Mock<IAggregateRepository<FileAggregate, DomainEvent>> FileAggregateRepository;
         private FileProcessorManager Manager;
         private Mock<IDbContextResolver<EstateManagementContext>> DbContextFactory;
         private EstateManagementContext Context;
         public FileProcessingManagerTests() {
-            List<FileProfile> fileProfiles = TestData.FileProfiles;
+            List<FileProfileModel> fileProfiles = TestData.FileProfiles;
+            this.FileProfileManager = new Mock<IFileProfileManager>();
+            this.FileProfileManager.Setup(f => f.GetAllFileProfiles(It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(fileProfiles));
+            this.FileProfileManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Guid fileProfileId, CancellationToken cancellationToken) =>
+            {
+                FileProfileModel fileProfile = fileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
+                if (fileProfile == null)
+                {
+                    return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
+                }
+
+                return Result.Success(fileProfile);
+            });
             this.DbContextFactory = new Mock<IDbContextResolver<EstateManagementContext>>();
             this.Context = this.GetContext(Guid.NewGuid().ToString("N"));
             ServiceCollection services = new ServiceCollection();
@@ -49,7 +63,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             var modelFactory= new Common.ModelFactory();
             this.FileAggregateRepository = new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            this.Manager = new FileProcessorManager(fileProfiles, this.DbContextFactory.Object, modelFactory, this.FileAggregateRepository.Object);
+            this.Manager = new FileProcessorManager(this.FileProfileManager.Object, this.DbContextFactory.Object, modelFactory, this.FileAggregateRepository.Object);
         }
 
         private EstateManagementContext GetContext(String databaseName)
@@ -62,7 +76,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetAllFileProfiles_AllFileProfilesReturned()
         {
-            Result<List<FileProfile>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
+            Result<List<FileProfileModel>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
             allFileProfiles.ShouldNotBeNull();
             allFileProfiles.IsSuccess.ShouldBeTrue();
             allFileProfiles.Data.ShouldNotBeEmpty();
@@ -71,7 +85,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileProfile_FileProfileReturned()
         {
-            Result<FileProfile> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
+            Result<FileProfileModel> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
             fileProfile.ShouldNotBeNull();
             fileProfile.IsSuccess.ShouldBeTrue();
             fileProfile.Data.FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
@@ -140,7 +154,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturned()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>
+            List<FileProfileModel> fileProfiles = new List<FileProfileModel>
             {
                 TestData.FileProfile
             };
@@ -206,9 +220,9 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileReturnedWithFileProfileName()
         {
-            List<FileProfile> fileProfiles = new List<FileProfile>
+            List<FileProfileModel> fileProfiles = new List<FileProfileModel>
             {
-                new FileProfile(TestData.FileProfileId,                 
+                new FileProfileModel(TestData.FileProfileId,                 
                     TestData.SafaricomProfileName,
                     TestData.SafaricomListeningDirectory,
                     TestData.SafaricomRequestType,
