@@ -48,6 +48,8 @@ jobs:
         dotnet nuget push Nugets/FileProcessor.File.DomainEvents.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
         dotnet pack "FileProcessor.FileImportLog.DomainEvents\FileProcessor.FileImportLog.DomainEvents.csproj" /p:PackageVersion=${{ steps.next_version.outputs.VERSION }} --output Nugets -c Release
         dotnet nuget push Nugets/FileProcessor.FileImportLog.DomainEvents.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
+        dotnet pack "FileProcessor.FileProfile.DomainEvents\FileProcessor.FileProfile.DomainEvents.csproj" /p:PackageVersion=${{ steps.next_version.outputs.VERSION }} --output Nugets -c Release
+        dotnet nuget push Nugets/FileProcessor.FileProfile.DomainEvents.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
         dotnet pack "FileProcessor.Client\FileProcessor.Client.csproj" /p:PackageVersion=${{ steps.next_version.outputs.VERSION }} --output Nugets -c Release
         dotnet nuget push Nugets/FileProcessor.Client.${{ steps.next_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.PRIVATEFEED_APIKEY }} --source ${{ secrets.PRIVATEFEED_URL }}
 
