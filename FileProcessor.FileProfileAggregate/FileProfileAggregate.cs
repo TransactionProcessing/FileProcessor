@@ -127,35 +127,24 @@ public static class FileProfileAggregateExtensions
             return validationResult;
         }
 
-        if (request.Name != null && Comparer.Equals(profile.Name, request.Name.Trim()) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.Name.Trim()));
-        }
-
-        if (request.ListeningDirectory != null && Comparer.Equals(profile.ListeningDirectory, request.ListeningDirectory.Trim()) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileListeningDirectoryUpdatedEvent(aggregate.AggregateId, fileProfileId, request.ListeningDirectory.Trim()));
-        }
-
-        if (request.RequestType != null && Comparer.Equals(profile.RequestType, request.RequestType.Trim()) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileRequestTypeUpdatedEvent(aggregate.AggregateId, fileProfileId, request.RequestType.Trim()));
-        }
-
-        if (request.OperatorName != null && Comparer.Equals(profile.OperatorName, request.OperatorName.Trim()) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.OperatorName.Trim()));
-        }
-
-        if (request.LineTerminator != null && Comparer.Equals(profile.LineTerminator, request.LineTerminator) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, request.LineTerminator));
-        }
-
-        if (request.FileFormatHandler != null && Comparer.Equals(profile.FileFormatHandler, request.FileFormatHandler.Trim()) == false)
-        {
-            aggregate.ApplyAndAppend(new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, request.FileFormatHandler.Trim()));
-        }
+        aggregate.ApplyStringUpdateIfChanged(profile.Name,
+                                              request.Name,
+                                              value => new FileProfileNameUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        aggregate.ApplyStringUpdateIfChanged(profile.ListeningDirectory,
+                                             request.ListeningDirectory,
+                                             value => new FileProfileListeningDirectoryUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        aggregate.ApplyStringUpdateIfChanged(profile.RequestType,
+                                             request.RequestType,
+                                             value => new FileProfileRequestTypeUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        aggregate.ApplyStringUpdateIfChanged(profile.OperatorName,
+                                             request.OperatorName,
+                                             value => new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        aggregate.ApplyStringUpdateIfChanged(profile.LineTerminator,
+                                             request.LineTerminator,
+                                             value => new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        aggregate.ApplyStringUpdateIfChanged(profile.FileFormatHandler,
+                                             request.FileFormatHandler,
+                                             value => new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
 
         return Result.Success();
     }
@@ -212,42 +201,13 @@ public static class FileProfileAggregateExtensions
             return Result.Invalid("No file profile name provided");
         }
 
-        if (string.IsNullOrWhiteSpace(request.ListeningDirectory))
+        Result requiredFieldsResult = ValidateRequiredCreateFields(request);
+        if (requiredFieldsResult.IsFailed)
         {
-            return Result.Invalid("No listening directory provided");
+            return requiredFieldsResult;
         }
 
-        if (string.IsNullOrWhiteSpace(request.RequestType))
-        {
-            return Result.Invalid("No request type provided");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.OperatorName))
-        {
-            return Result.Invalid("No operator name provided");
-        }
-
-        if (string.IsNullOrEmpty(request.LineTerminator))
-        {
-            return Result.Invalid("No line terminator provided");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.FileFormatHandler))
-        {
-            return Result.Invalid("No file format handler provided");
-        }
-
-        if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.Name, request.Name.Trim())))
-        {
-            return Result.Invalid($"A file profile with name [{request.Name}] already exists");
-        }
-
-        if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.RequestType, request.RequestType.Trim())))
-        {
-            return Result.Invalid($"A file profile with request type [{request.RequestType}] already exists");
-        }
-
-        return Result.Success();
+        return aggregate.ValidateCreateUniqueness(request);
     }
 
     private static Result ValidateUpdateRequest(this FileProfileAggregate aggregate, Guid fileProfileId, UpdateFileProfileRequest request)
@@ -259,42 +219,67 @@ public static class FileProfileAggregateExtensions
 
         FileProfileState currentProfile = aggregate.GetRequiredProfileState(fileProfileId);
 
+        Result proposedValuesResult = ValidateProposedUpdateValues(request);
+        if (proposedValuesResult.IsFailed)
+        {
+            return proposedValuesResult;
+        }
+
+        return aggregate.ValidateUpdateUniqueness(fileProfileId, currentProfile, request);
+    }
+
+    private static Boolean IsSameProfile(this FileProfileAggregate aggregate, FileProfileState profile, CreateFileProfileRequest request)
+    {
+        return Comparer.Equals(profile.Name, request.Name.Trim()) &&
+               Comparer.Equals(profile.ListeningDirectory, request.ListeningDirectory.Trim()) &&
+               Comparer.Equals(profile.RequestType, request.RequestType.Trim()) &&
+               Comparer.Equals(profile.OperatorName, request.OperatorName.Trim()) &&
+               Comparer.Equals(profile.LineTerminator, request.LineTerminator) &&
+               Comparer.Equals(profile.FileFormatHandler, request.FileFormatHandler.Trim()) &&
+               profile.IsArchived == false;
+    }
+
+    private static Result ValidateRequiredCreateFields(CreateFileProfileRequest request)
+    {
+        return ValidateStringField(request.ListeningDirectory, "No listening directory provided") ??
+               ValidateStringField(request.RequestType, "No request type provided") ??
+               ValidateStringField(request.OperatorName, "No operator name provided") ??
+               ValidateStringField(request.LineTerminator, "No line terminator provided") ??
+               ValidateStringField(request.FileFormatHandler, "No file format handler provided");
+    }
+
+    private static Result ValidateProposedUpdateValues(UpdateFileProfileRequest request)
+    {
+        return ValidateOptionalStringField(request.Name, "No file profile name provided") ??
+               ValidateOptionalStringField(request.ListeningDirectory, "No listening directory provided") ??
+               ValidateOptionalStringField(request.RequestType, "No request type provided") ??
+               ValidateOptionalStringField(request.OperatorName, "No operator name provided") ??
+               ValidateOptionalStringField(request.LineTerminator, "No line terminator provided") ??
+               ValidateOptionalStringField(request.FileFormatHandler, "No file format handler provided");
+    }
+
+    private static Result ValidateCreateUniqueness(this FileProfileAggregate aggregate, CreateFileProfileRequest request)
+    {
+        String proposedName = request.Name.Trim();
+        String proposedRequestType = request.RequestType.Trim();
+
+        if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.Name, proposedName)))
+        {
+            return Result.Invalid($"A file profile with name [{request.Name}] already exists");
+        }
+
+        if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.RequestType, proposedRequestType)))
+        {
+            return Result.Invalid($"A file profile with request type [{request.RequestType}] already exists");
+        }
+
+        return Result.Success();
+    }
+
+    private static Result ValidateUpdateUniqueness(this FileProfileAggregate aggregate, Guid fileProfileId, FileProfileState currentProfile, UpdateFileProfileRequest request)
+    {
         String proposedName = request.Name?.Trim();
-        String proposedListeningDirectory = request.ListeningDirectory?.Trim();
         String proposedRequestType = request.RequestType?.Trim();
-        String proposedOperatorName = request.OperatorName?.Trim();
-        String proposedLineTerminator = request.LineTerminator;
-        String proposedFileFormatHandler = request.FileFormatHandler?.Trim();
-
-        if (request.Name != null && string.IsNullOrWhiteSpace(proposedName))
-        {
-            return Result.Invalid("No file profile name provided");
-        }
-
-        if (request.ListeningDirectory != null && string.IsNullOrWhiteSpace(proposedListeningDirectory))
-        {
-            return Result.Invalid("No listening directory provided");
-        }
-
-        if (request.RequestType != null && string.IsNullOrWhiteSpace(proposedRequestType))
-        {
-            return Result.Invalid("No request type provided");
-        }
-
-        if (request.OperatorName != null && string.IsNullOrWhiteSpace(proposedOperatorName))
-        {
-            return Result.Invalid("No operator name provided");
-        }
-
-        if (request.LineTerminator != null && string.IsNullOrEmpty(proposedLineTerminator))
-        {
-            return Result.Invalid("No line terminator provided");
-        }
-
-        if (request.FileFormatHandler != null && string.IsNullOrWhiteSpace(proposedFileFormatHandler))
-        {
-            return Result.Invalid("No file format handler provided");
-        }
 
         if (request.Name != null &&
             Comparer.Equals(currentProfile.Name, proposedName) == false &&
@@ -313,15 +298,38 @@ public static class FileProfileAggregateExtensions
         return Result.Success();
     }
 
-    private static Boolean IsSameProfile(this FileProfileAggregate aggregate, FileProfileState profile, CreateFileProfileRequest request)
+    private static Result ValidateStringField(String value, String errorMessage)
     {
-        return Comparer.Equals(profile.Name, request.Name.Trim()) &&
-               Comparer.Equals(profile.ListeningDirectory, request.ListeningDirectory.Trim()) &&
-               Comparer.Equals(profile.RequestType, request.RequestType.Trim()) &&
-               Comparer.Equals(profile.OperatorName, request.OperatorName.Trim()) &&
-               Comparer.Equals(profile.LineTerminator, request.LineTerminator) &&
-               Comparer.Equals(profile.FileFormatHandler, request.FileFormatHandler.Trim()) &&
-               profile.IsArchived == false;
+        return string.IsNullOrWhiteSpace(value) ? Result.Invalid(errorMessage) : Result.Success();
+    }
+
+    private static Result ValidateOptionalStringField(String value, String errorMessage)
+    {
+        if (value == null)
+        {
+            return Result.Success();
+        }
+
+        return ValidateStringField(value, errorMessage);
+    }
+
+    private static void ApplyStringUpdateIfChanged(this FileProfileAggregate aggregate,
+                                                   String currentValue,
+                                                   String proposedValue,
+                                                   Func<String, IDomainEvent> eventFactory)
+    {
+        if (proposedValue == null)
+        {
+            return;
+        }
+
+        String trimmedValue = proposedValue.Trim();
+        if (Comparer.Equals(currentValue, trimmedValue))
+        {
+            return;
+        }
+
+        aggregate.ApplyAndAppend(eventFactory(trimmedValue));
     }
 
     private static FileProfileState GetRequiredProfileState(this FileProfileAggregate aggregate, Guid fileProfileId)

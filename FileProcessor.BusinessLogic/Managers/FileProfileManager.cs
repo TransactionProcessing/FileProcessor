@@ -28,9 +28,20 @@ public class FileProfileManager : IFileProfileManager
         this.FileProfileAggregateRepository = fileProfileAggregateRepository;
     }
 
-    public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken)
+    public async Task<Result> EnsureSeededFileProfiles(CancellationToken cancellationToken)
     {
         Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken, true);
+        if (aggregateResult.IsFailed)
+        {
+            return ResultHelpers.CreateFailure(aggregateResult);
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken)
+    {
+        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken, false);
         if (aggregateResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(aggregateResult);
@@ -41,7 +52,7 @@ public class FileProfileManager : IFileProfileManager
 
     public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken)
     {
-        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken, true);
+        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken, false);
         if (aggregateResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(aggregateResult);

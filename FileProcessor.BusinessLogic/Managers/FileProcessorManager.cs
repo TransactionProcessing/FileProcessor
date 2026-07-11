@@ -76,6 +76,11 @@ namespace FileProcessor.BusinessLogic.Managers
             return await this.FileProfileManager.GetFileProfile(fileProfileId, cancellationToken);
         }
 
+        public async Task<Result> EnsureSeededFileProfiles(CancellationToken cancellationToken)
+        {
+            return await this.FileProfileManager.EnsureSeededFileProfiles(cancellationToken);
+        }
+
         private async Task<EstateManagementContext> GetContext(Guid estateId)
         {
             ResolvedDbContext<EstateManagementContext>? resolvedContext = this.Resolver.Resolve(EstateManagementDatabaseName, estateId.ToString());

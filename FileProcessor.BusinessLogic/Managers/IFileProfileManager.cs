@@ -10,6 +10,8 @@ namespace FileProcessor.BusinessLogic.Managers;
 
 public interface IFileProfileManager
 {
+    Task<Result> EnsureSeededFileProfiles(CancellationToken cancellationToken);
+
     Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken);
 
     Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken);
