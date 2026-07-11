@@ -281,18 +281,42 @@ public static class FileProfileAggregateExtensions
         String proposedName = request.Name?.Trim();
         String proposedRequestType = request.RequestType?.Trim();
 
-        if (request.Name != null &&
+        Result nameValidationResult = aggregate.ValidateUpdatedNameIsUnique(fileProfileId, currentProfile, request.Name, proposedName);
+        if (nameValidationResult.IsFailed)
+        {
+            return nameValidationResult;
+        }
+
+        return aggregate.ValidateUpdatedRequestTypeIsUnique(fileProfileId, currentProfile, request.RequestType, proposedRequestType);
+    }
+
+    private static Result ValidateUpdatedNameIsUnique(this FileProfileAggregate aggregate,
+                                                      Guid fileProfileId,
+                                                      FileProfileState currentProfile,
+                                                      String rawName,
+                                                      String proposedName)
+    {
+        if (rawName != null &&
             Comparer.Equals(currentProfile.Name, proposedName) == false &&
             aggregate.FileProfiles.Values.Any(profile => profile.FileProfileId != fileProfileId && profile.IsArchived == false && Comparer.Equals(profile.Name, proposedName)))
         {
-            return Result.Invalid($"A file profile with name [{request.Name}] already exists");
+            return Result.Invalid($"A file profile with name [{rawName}] already exists");
         }
 
-        if (request.RequestType != null &&
+        return Result.Success();
+    }
+
+    private static Result ValidateUpdatedRequestTypeIsUnique(this FileProfileAggregate aggregate,
+                                                             Guid fileProfileId,
+                                                             FileProfileState currentProfile,
+                                                             String rawRequestType,
+                                                             String proposedRequestType)
+    {
+        if (rawRequestType != null &&
             Comparer.Equals(currentProfile.RequestType, proposedRequestType) == false &&
             aggregate.FileProfiles.Values.Any(profile => profile.FileProfileId != fileProfileId && profile.IsArchived == false && Comparer.Equals(profile.RequestType, proposedRequestType)))
         {
-            return Result.Invalid($"A file profile with request type [{request.RequestType}] already exists");
+            return Result.Invalid($"A file profile with request type [{rawRequestType}] already exists");
         }
 
         return Result.Success();
