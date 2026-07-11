@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.DataTransferObjects;
-using FileProcessor.Models;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
+using FileDetails = global::FileProcessor.Models.FileDetails;
 using SimpleResults;
 
 namespace FileProcessor.BusinessLogic.Tests;
@@ -26,11 +27,15 @@ public class DummyFileProcessorDomainService : IFileProcessorDomainService {
 }
 
 public class DummyFileProcessorManager : IFileProcessorManager {
-    public async Task<Result<List<FileProfile>>> GetAllFileProfiles(CancellationToken cancellationToken) {
+    public async Task<Result> EnsureSeededFileProfiles(CancellationToken cancellationToken) {
         return Result.Success();
     }
 
-    public async Task<Result<FileProfile>> GetFileProfile(Guid fileProfileId,
+    public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken) {
+        return Result.Success();
+    }
+
+    public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId,
                                                           CancellationToken cancellationToken) {
         return Result.Success();
     }

@@ -3,10 +3,14 @@
 namespace FileProcessor.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using DataTransferObjects;
+    using ApiFileDetails = DataTransferObjects.Responses.FileDetails;
+    using ApiFileImportLog = DataTransferObjects.Responses.FileImportLog;
     using DataTransferObjects.Responses;
+    using FileProcessor.Models;
 
     /// <summary>
     /// 
@@ -14,6 +18,26 @@ namespace FileProcessor.Client
     public interface IFileProcessorClient
     {
         #region Methods
+
+        Task<Result<List<FileProfile>>> GetFileProfiles(String accessToken,
+                                                        CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> GetFileProfile(String accessToken,
+                                                 Guid fileProfileId,
+                                                 CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> CreateFileProfile(String accessToken,
+                                                    DataTransferObjects.Requests.CreateFileProfileRequest request,
+                                                    CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
+                                                    Guid fileProfileId,
+                                                    DataTransferObjects.Requests.UpdateFileProfileRequest request,
+                                                    CancellationToken cancellationToken);
+
+        Task<Result> ArchiveFileProfile(String accessToken,
+                                        Guid fileProfileId,
+                                        CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the file.
@@ -23,10 +47,10 @@ namespace FileProcessor.Client
         /// <param name="fileId">The file identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<Result<FileDetails>> GetFile(String accessToken,
-                                  Guid estateId,
-                                  Guid fileId,
-                                  CancellationToken cancellationToken);
+        Task<Result<ApiFileDetails>> GetFile(String accessToken,
+                                              Guid estateId,
+                                              Guid fileId,
+                                              CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the file import log.
@@ -37,11 +61,11 @@ namespace FileProcessor.Client
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        Task<Result<FileImportLog>> GetFileImportLog(String accessToken,
-                                             Guid fileImportLogId,
-                                             Guid estateId,
-                                             Guid? merchantId,
-                                             CancellationToken cancellationToken);
+        Task<Result<ApiFileImportLog>> GetFileImportLog(String accessToken,
+                                                        Guid fileImportLogId,
+                                                        Guid estateId,
+                                                        Guid? merchantId,
+                                                        CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the file import logs.

@@ -146,6 +146,7 @@ namespace FileProcessor.Bootstrapper
         #endregion
     }
 
+    [ExcludeFromCodeCoverage]
     public static class JsonSerializerConfiguration
     {
         public static void ConfigureMinimalApi(JsonSerializerOptions serializerOptions)

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Grpc.Net.Client" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+		<PackageReference Include="Shared.DomainDrivenDesign" />
+		<PackageReference Include="Shared.EventStore" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
+	  <ProjectReference Include="..\FileProcessor.FileProfile.DomainEvents\FileProcessor.FileProfile.DomainEvents.csproj" />
+	  <ProjectReference Include="..\FIleProcessor.Models\FIleProcessor.Models.csproj" />
+	</ItemGroup>
+
+</Project>

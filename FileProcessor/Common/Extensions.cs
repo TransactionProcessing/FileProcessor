@@ -4,7 +4,6 @@ namespace FileProcessor.Common;
 
 using EventStore.Client;
 using FileProcessor.BusinessLogic.Managers;
-using FileProcessor.Models;
 using KurrentDB.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +22,7 @@ using System.IO.Abstractions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 [ExcludeFromCodeCoverage]
 public static class Extensions
@@ -74,15 +74,21 @@ public static class Extensions
 
         fileSystem.Directory.CreateDirectory(temporaryFileLocation);
         Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
-        Result<List<FileProfile>> fileProfilesResult = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
+        Result seedResult = fileProcessorManager.EnsureSeededFileProfiles(CancellationToken.None).Result;
+        if (seedResult.IsFailed) {
+            Logger.LogWarning($"Error seeding file profiles {seedResult.Message}");
+            throw new ApplicationStartupException(seedResult.Message);
+        }
+
+        Result<List<FileProfileModel>> fileProfilesResult = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
 
         if (fileProfilesResult.IsFailed) {
             Logger.LogWarning($"Error getting file profiles {fileProfilesResult.Message}");
             throw new ApplicationStartupException(fileProfilesResult.Message);
         }
 
-        List<FileProfile> fileProfiles = fileProfilesResult.Data;
-        foreach (FileProfile fileProfile in fileProfiles){
+        List<FileProfileModel> fileProfiles = fileProfilesResult.Data;
+        foreach (FileProfileModel fileProfile in fileProfiles){
             fileSystem.Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
             Logger.LogInformation($"Created in progress at [{fileProfile.ListeningDirectory}//inprogress");
             fileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);

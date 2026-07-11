@@ -19,6 +19,7 @@ using Shared.EventStore.SubscriptionWorker;
 using Shared.General;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;
 
 [ExcludeFromCodeCoverage]
 public class RepositoryRegistry : ServiceRegistry
@@ -53,7 +54,10 @@ public class RepositoryRegistry : ServiceRegistry
         this.AddSingleton<IAggregateRepository<FileAggregate, DomainEvent>, AggregateRepository<FileAggregate, DomainEvent>>();
         this.AddSingleton<IAggregateRepository<FileImportLogAggregate, DomainEvent>,
             AggregateRepository<FileImportLogAggregate, DomainEvent>>();
+        this.AddSingleton<IAggregateRepository<FileProfileAggregateRoot, DomainEvent>,
+            AggregateRepository<FileProfileAggregateRoot, DomainEvent>>();
 
+        this.AddSingleton<IFileProfileManager, FileProfileManager>();
         this.AddSingleton<IFileProcessorManager, FileProcessorManager>();
 
         this.AddSingleton<Func<String, Int32, ISubscriptionRepository>>(cont => SubscriptionRepository.Create);

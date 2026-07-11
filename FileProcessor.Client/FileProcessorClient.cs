@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Security.Cryptography;
+using System.Net.Http.Headers;
 using System.Text;
 using Shared.Results;
 
@@ -11,7 +12,11 @@ namespace FileProcessor.Client {
     using System.Threading.Tasks;
     using ClientProxyBase;
     using DataTransferObjects;
+    using DataTransferObjects.Requests;
+    using ApiFileDetails = DataTransferObjects.Responses.FileDetails;
+    using ApiFileImportLog = DataTransferObjects.Responses.FileImportLog;
     using DataTransferObjects.Responses;
+    using FileProcessor.Models;
     using SimpleResults;
 
     /// <summary>
@@ -26,6 +31,12 @@ namespace FileProcessor.Client {
         /// The base address resolver
         /// </summary>
         private readonly Func<String, String> BaseAddressResolver;
+
+        private readonly HttpClient HttpClient;
+
+        private readonly Func<Object, String> Serialise;
+
+        private readonly Func<String, Type, Object> Deserialise;
 
         #endregion
 
@@ -42,11 +53,61 @@ namespace FileProcessor.Client {
                                    Func<string, Type, object> deserialise) : base(httpClient, serialise, deserialise)
         {
             this.BaseAddressResolver = baseAddressResolver;
+            this.HttpClient = httpClient;
+            this.Serialise = serialise;
+            this.Deserialise = deserialise;
         }
 
         #endregion
 
         #region Methods
+
+        public async Task<Result<List<FileProfile>>> GetFileProfiles(String accessToken,
+                                                                     CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl("/api/file-profiles");
+            return await this.SendRequest<List<FileProfile>>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+        }
+
+        public async Task<Result<FileProfile>> GetFileProfile(String accessToken,
+                                                              Guid fileProfileId,
+                                                              CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
+            return await this.SendRequest<FileProfile>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+        }
+
+        public async Task<Result<FileProfile>> CreateFileProfile(String accessToken,
+                                                                 CreateFileProfileRequest request,
+                                                                 CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl("/api/file-profiles");
+            return await this.SendRequest<FileProfile>(HttpMethod.Post, requestUri, accessToken, request, cancellationToken);
+        }
+
+        public async Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
+                                                                 Guid fileProfileId,
+                                                                 UpdateFileProfileRequest request,
+                                                                 CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
+            return await this.SendRequest<FileProfile>(HttpMethod.Patch, requestUri, accessToken, request, cancellationToken);
+        }
+
+        public async Task<Result> ArchiveFileProfile(String accessToken,
+                                                     Guid fileProfileId,
+                                                     CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
+            Result<FileProfile> result = await this.SendRequest<FileProfile>(HttpMethod.Delete, requestUri, accessToken, null, cancellationToken);
+
+            if (result.IsFailed)
+            {
+                return ResultHelpers.CreateFailure(result);
+            }
+
+            return Result.Success();
+        }
 
         /// <summary>
         /// Gets the file.
@@ -56,14 +117,14 @@ namespace FileProcessor.Client {
         /// <param name="fileId">The file identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async Task<Result<FileDetails>> GetFile(String accessToken,
-                                               Guid estateId,
-                                               Guid fileId,
-                                               CancellationToken cancellationToken) {
+        public async Task<Result<ApiFileDetails>> GetFile(String accessToken,
+                                                          Guid estateId,
+                                                          Guid fileId,
+                                                          CancellationToken cancellationToken) {
             String requestUri = this.BuildRequestUrl($"/api/files/{fileId}?estateId={estateId}");
 
             try {
-                Result<FileDetails> result = await this.Get<FileDetails>(requestUri, accessToken, cancellationToken);
+                Result<ApiFileDetails> result = await this.Get<ApiFileDetails>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -87,11 +148,11 @@ namespace FileProcessor.Client {
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async Task<Result<FileImportLog>> GetFileImportLog(String accessToken,
-                                                          Guid fileImportLogId,
-                                                          Guid estateId,
-                                                          Guid? merchantId,
-                                                          CancellationToken cancellationToken) {
+        public async Task<Result<ApiFileImportLog>> GetFileImportLog(String accessToken,
+                                                                     Guid fileImportLogId,
+                                                                     Guid estateId,
+                                                                     Guid? merchantId,
+                                                                     CancellationToken cancellationToken) {
             String requestUri = this.BuildRequestUrl($"/api/fileImportLogs/{fileImportLogId}?estateId={estateId}");
 
             if (merchantId.HasValue) {
@@ -99,7 +160,7 @@ namespace FileProcessor.Client {
             }
 
             try {
-                Result<FileImportLog> result = await this.Get<FileImportLog>(requestUri, accessToken, cancellationToken);
+                Result<ApiFileImportLog> result = await this.Get<ApiFileImportLog>(requestUri, accessToken, cancellationToken);
 
                 if (result.IsFailed)
                     return ResultHelpers.CreateFailure(result);
@@ -220,6 +281,42 @@ namespace FileProcessor.Client {
             String requestUri = $"{baseAddress}{route}";
 
             return requestUri;
+        }
+
+        private async Task<Result<T>> SendRequest<T>(HttpMethod method,
+                                                     String requestUri,
+                                                     String accessToken,
+                                                     Object body,
+                                                     CancellationToken cancellationToken)
+        {
+            using HttpRequestMessage request = new(method, requestUri);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            if (body != null)
+            {
+                String payload = this.Serialise(body);
+                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            }
+
+            HttpResponseMessage response = await this.HttpClient.SendAsync(request, cancellationToken);
+            String responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.IsSuccessStatusCode == false)
+            {
+                String message = String.IsNullOrWhiteSpace(responseContent)
+                    ? $"Request failed with status code {(Int32)response.StatusCode}"
+                    : responseContent;
+
+                return Result.Failure(message);
+            }
+
+            if (String.IsNullOrWhiteSpace(responseContent))
+            {
+                return Result.Success(default(T));
+            }
+
+            Object deserialised = this.Deserialise(responseContent, typeof(T));
+            return Result.Success((T)deserialised);
         }
 
         #endregion

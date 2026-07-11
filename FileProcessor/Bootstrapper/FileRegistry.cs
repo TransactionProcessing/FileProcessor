@@ -6,10 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Linq;
 using BusinessLogic.FileFormatHandlers;
-using FileProcessor.Models;
 using Lamar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 [ExcludeFromCodeCoverage]
 public class FileRegistry : ServiceRegistry
@@ -21,7 +21,7 @@ public class FileRegistry : ServiceRegistry
     /// </summary>
     public FileRegistry()
     {
-        IEnumerable<FileProfile> fileProfiles = Startup.Configuration.GetSection("AppSettings:FileProfiles").GetChildren().ToList().Select(x => new
+        IEnumerable<FileProfileModel> fileProfiles = Startup.Configuration.GetSection("AppSettings:FileProfiles").GetChildren().ToList().Select(x => new
             {
                 Name = x.GetValue<String>("Name"),
                 FileProfileId = x.GetValue<Guid>("Id"),
@@ -32,7 +32,7 @@ public class FileRegistry : ServiceRegistry
                 FileFormatHandler = x.GetValue<String>("FileFormatHandler")
             }).Select(f =>
                       {
-                          return new FileProfile(f.FileProfileId,
+                          return new FileProfileModel(f.FileProfileId,
                                                  f.Name,
                                                  f.ListeningDirectory,
                                                  f.RequestType,

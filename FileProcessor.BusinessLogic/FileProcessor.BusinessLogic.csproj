@@ -23,6 +23,7 @@
 	  <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" />
 	  <ProjectReference Include="..\FileProcessor.FileAggregate\FileProcessor.FileAggregate.csproj" />
 	  <ProjectReference Include="..\FileProcessor.FileImportLogAggregate\FileProcessor.FileImportLogAggregate.csproj" />
+	  <ProjectReference Include="..\FileProcessor.FileProfileAggregate\FileProcessor.FileProfileAggregate.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
