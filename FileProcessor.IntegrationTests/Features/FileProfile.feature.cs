@@ -194,6 +194,7 @@ await this.FeatureBackgroundAsync();
 #line hidden
                 global::Reqnroll.Table table5 = new global::Reqnroll.Table(new string[] {
                             "Alias",
+                            "FileProfileId",
                             "Name",
                             "ListeningDirectory",
                             "RequestType",
@@ -202,6 +203,7 @@ await this.FeatureBackgroundAsync();
                             "FileFormatHandler"});
                 table5.AddRow(new string[] {
                             "Profile A",
+                            "11111111-1111-1111-1111-111111111111",
                             "Profile A",
                             "/home/txnproc/bulkfiles/profile-a",
                             "ProfileARequest",
@@ -210,6 +212,7 @@ await this.FeatureBackgroundAsync();
                             "ProfileAHandler"});
                 table5.AddRow(new string[] {
                             "Profile B",
+                            "22222222-2222-2222-2222-222222222222",
                             "Profile B",
                             "/home/txnproc/bulkfiles/profile-b",
                             "ProfileBRequest",
@@ -297,6 +300,7 @@ await this.FeatureBackgroundAsync();
 #line hidden
                 global::Reqnroll.Table table8 = new global::Reqnroll.Table(new string[] {
                             "Alias",
+                            "FileProfileId",
                             "Name",
                             "ListeningDirectory",
                             "RequestType",
@@ -305,6 +309,7 @@ await this.FeatureBackgroundAsync();
                             "FileFormatHandler"});
                 table8.AddRow(new string[] {
                             "Profile A",
+                            "33333333-3333-3333-3333-333333333333",
                             "Profile A",
                             "/home/txnproc/bulkfiles/profile-a",
                             "ProfileARequest",
@@ -313,6 +318,7 @@ await this.FeatureBackgroundAsync();
                             "ProfileAHandler"});
                 table8.AddRow(new string[] {
                             "Profile B",
+                            "44444444-4444-4444-4444-444444444444",
                             "Profile B",
                             "/home/txnproc/bulkfiles/profile-b",
                             "ProfileBRequest",

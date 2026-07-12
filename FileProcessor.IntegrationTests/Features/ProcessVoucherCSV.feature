@@ -20,6 +20,11 @@ Background:
 	| ClientId      | 
 	| serviceClient | 
 
+	When I create the following file profiles
+	| Alias | FileProfileId | Name | ListeningDirectory | RequestType | OperatorName | LineTerminator | FileFormatHandler |
+	| Safaricom Topup | B2A59ABF-293D-4A6B-B81B-7007503C3476 | Safaricom Topup | /home/txnproc/bulkfiles/safaricom | SafaricomTopupRequest | Safaricom | \n | SafaricomFileFormatHandler |
+	| Voucher Issue | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | Voucher Issue | /home/txnproc/bulkfiles/voucher | VoucherRequest | Voucher | \n | VoucherFileFormatHandler |
+
 	Given I have created the following estates
 	| EstateName    |
 	| Test Estate 1 |
