@@ -74,12 +74,6 @@ public static class Extensions
 
         fileSystem.Directory.CreateDirectory(temporaryFileLocation);
         Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
-        Result seedResult = fileProcessorManager.EnsureSeededFileProfiles(CancellationToken.None).Result;
-        if (seedResult.IsFailed) {
-            Logger.LogWarning($"Error seeding file profiles {seedResult.Message}");
-            throw new ApplicationStartupException(seedResult.Message);
-        }
-
         Result<List<FileProfileModel>> fileProfilesResult = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
 
         if (fileProfilesResult.IsFailed) {

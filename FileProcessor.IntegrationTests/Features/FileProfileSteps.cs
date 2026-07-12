@@ -33,13 +33,7 @@ public class FileProfileSteps
         foreach (DataTableRow row in table.Rows)
         {
             string alias = row["Alias"];
-            CreateFileProfileRequest request = this.BuildCreateRequest(row);
-            Result<FileProfile> createResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
-
-            createResult.IsSuccess.ShouldBeTrue(createResult.Message);
-            createResult.Data.ShouldNotBeNull();
-
-            this.FileProfileIds[alias] = createResult.Data.FileProfileId;
+            await this.CreateProfile(alias, this.BuildCreateRequest(row));
         }
     }
 
@@ -126,7 +120,7 @@ public class FileProfileSteps
     {
         return new CreateFileProfileRequest
         {
-            FileProfileId = Guid.NewGuid(),
+            FileProfileId = Guid.Parse(row["FileProfileId"]),
             Name = row["Name"],
             ListeningDirectory = row["ListeningDirectory"],
             RequestType = row["RequestType"],
@@ -134,6 +128,16 @@ public class FileProfileSteps
             LineTerminator = row["LineTerminator"],
             FileFormatHandler = row["FileFormatHandler"]
         };
+    }
+
+    private async Task CreateProfile(string alias, CreateFileProfileRequest request)
+    {
+        Result<FileProfile> createResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
+
+        createResult.IsSuccess.ShouldBeTrue(createResult.Message);
+        createResult.Data.ShouldNotBeNull();
+
+        this.FileProfileIds[alias] = createResult.Data.FileProfileId;
     }
 
     private UpdateFileProfileRequest BuildUpdateRequest(DataTableRow row)

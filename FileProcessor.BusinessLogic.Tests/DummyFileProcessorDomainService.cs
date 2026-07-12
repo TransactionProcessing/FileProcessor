@@ -27,10 +27,6 @@ public class DummyFileProcessorDomainService : IFileProcessorDomainService {
 }
 
 public class DummyFileProcessorManager : IFileProcessorManager {
-    public async Task<Result> EnsureSeededFileProfiles(CancellationToken cancellationToken) {
-        return Result.Success();
-    }
-
     public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken) {
         return Result.Success();
     }
