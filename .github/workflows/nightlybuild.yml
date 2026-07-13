@@ -5,6 +5,11 @@ on:
   - cron: "10 23 * * *"
   repository_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
+
 jobs:
   build:
     name: "Nightly Build"
@@ -43,12 +48,18 @@ jobs:
         name: tracelogs
         path: /home/runner/trace/     
     
-    - uses: dacbd/create-issue-action@main
-      if: ${{ failure() }}
-      name: Create an issue on build failure
-      with:
-        title: Investigate Nightly Build Failure
-        token: ${{secrets.GITHUB_TOKEN}}
-        labels: nightlybuild
-        body: Url is ${{env.action_url}}
 
+    - name: Notify on nightly failure
+      if: ${{ failure() }}
+      uses: TransactionProcessing/org-ci-workflows/.github/actions/nightly-failure-issue@main
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        title: Investigate Nightly Build Failure
+        labels: nightlybuild
+        dedupe_key: nightlybuild
+        body: |
+          Repo: ${{ github.repository }}
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Commit: ${{ github.sha }}
+          Workflow: ${{ github.workflow }}
+          Job: ${{ github.job }}
