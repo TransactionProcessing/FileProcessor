@@ -31,56 +31,48 @@ public static class FileProfileAggregateExtensions
             FileFormatHandler = domainEvent.FileFormatHandler,
             IsArchived = false
         };
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileNameUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.Name = domainEvent.Name;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileListeningDirectoryUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.ListeningDirectory = domainEvent.ListeningDirectory;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileRequestTypeUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.RequestType = domainEvent.RequestType;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileOperatorNameUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.OperatorName = domainEvent.OperatorName;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileLineTerminatorUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.LineTerminator = domainEvent.LineTerminator;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileFileFormatHandlerUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.FileFormatHandler = domainEvent.FileFormatHandler;
-        aggregate.AppliedEventCount++;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileArchivedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.IsArchived = true;
-        aggregate.AppliedEventCount++;
     }
 
     public static Result CreateProfile(this FileProfileAggregate aggregate, CreateFileProfileRequest request)
@@ -126,27 +118,71 @@ public static class FileProfileAggregateExtensions
         {
             return validationResult;
         }
+        
+        if (IsDomainEventRequired(profile.Name, request.Name)) {
+            aggregate.ApplyAndAppend(new FileProfileNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.Name));
+        }
 
-        aggregate.ApplyStringUpdateIfChanged(profile.Name,
-                                              request.Name,
-                                              value => new FileProfileNameUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
-        aggregate.ApplyStringUpdateIfChanged(profile.ListeningDirectory,
-                                             request.ListeningDirectory,
-                                             value => new FileProfileListeningDirectoryUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
-        aggregate.ApplyStringUpdateIfChanged(profile.RequestType,
-                                             request.RequestType,
-                                             value => new FileProfileRequestTypeUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
-        aggregate.ApplyStringUpdateIfChanged(profile.OperatorName,
-                                             request.OperatorName,
-                                             value => new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
-        aggregate.ApplyStringUpdateIfChanged(profile.LineTerminator,
-                                             request.LineTerminator,
-                                             value => new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
-        aggregate.ApplyStringUpdateIfChanged(profile.FileFormatHandler,
-                                             request.FileFormatHandler,
-                                             value => new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, value));
+        if (IsDomainEventRequired(profile.ListeningDirectory, request.ListeningDirectory)) {
+            aggregate.ApplyAndAppend(new FileProfileListeningDirectoryUpdatedEvent(aggregate.AggregateId, fileProfileId, request.ListeningDirectory));
+        }
+
+        if (IsDomainEventRequired(profile.RequestType, request.RequestType)) {
+            aggregate.ApplyAndAppend(new FileProfileRequestTypeUpdatedEvent(aggregate.AggregateId, fileProfileId, request.RequestType));
+        }
+
+        if (IsDomainEventRequired(profile.OperatorName, request.OperatorName)) {
+            aggregate.ApplyAndAppend(new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.OperatorName));
+        }
+
+        if (IsDomainEventRequired(profile.FileFormatHandler, request.FileFormatHandler)) {
+            aggregate.ApplyAndAppend(new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, request.FileFormatHandler));
+        }
+
+        if (IsDomainEventRequired(profile.LineTerminator, request.LineTerminator)) {
+            aggregate.ApplyAndAppend(new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, request.LineTerminator));
+        }
 
         return Result.Success();
+    }
+
+    private static String? TrimWhitespaceExceptLineBreaks(String value)
+    {
+        if (String.IsNullOrEmpty(value))
+            return value;
+
+        int start = 0;
+        int end = value.Length - 1;
+
+        while (start <= end &&
+               Char.IsWhiteSpace(value[start]) &&
+               value[start] != '\r' &&
+               value[start] != '\n')
+        {
+            start++;
+        }
+
+        while (end >= start &&
+               Char.IsWhiteSpace(value[end]) &&
+               value[end] != '\r' &&
+               value[end] != '\n')
+        {
+            end--;
+        }
+
+        return value.Substring(start, end - start + 1);
+    }
+
+    private static Boolean IsDomainEventRequired(String originalValue, String newValue)
+    {
+        String trimmedNewValue = TrimWhitespaceExceptLineBreaks(newValue);
+
+        if (String.IsNullOrEmpty(trimmedNewValue))
+            return false;
+
+        String trimmedOriginalValue = TrimWhitespaceExceptLineBreaks(originalValue);
+        
+        return !String.Equals(trimmedOriginalValue, trimmedNewValue, StringComparison.InvariantCultureIgnoreCase);
     }
 
     public static Result ArchiveProfile(this FileProfileAggregate aggregate, Guid fileProfileId)
@@ -337,25 +373,6 @@ public static class FileProfileAggregateExtensions
         return ValidateStringField(value, errorMessage);
     }
 
-    private static void ApplyStringUpdateIfChanged(this FileProfileAggregate aggregate,
-                                                   String currentValue,
-                                                   String proposedValue,
-                                                   Func<String, IDomainEvent> eventFactory)
-    {
-        if (proposedValue == null)
-        {
-            return;
-        }
-
-        String trimmedValue = proposedValue.Trim();
-        if (Comparer.Equals(currentValue, trimmedValue))
-        {
-            return;
-        }
-
-        aggregate.ApplyAndAppend(eventFactory(trimmedValue));
-    }
-
     private static FileProfileState GetRequiredProfileState(this FileProfileAggregate aggregate, Guid fileProfileId)
     {
         if (aggregate.FileProfiles.TryGetValue(fileProfileId, out FileProfileState fileProfile) == false || fileProfile.IsArchived)
@@ -385,8 +402,6 @@ public record FileProfileAggregate : Aggregate
     internal readonly Dictionary<Guid, FileProfileState> FileProfiles;
 
     public bool IsCreated { get; internal set; }
-
-    public int AppliedEventCount { get; internal set; }
 
     [ExcludeFromCodeCoverage]
     public FileProfileAggregate()

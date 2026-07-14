@@ -151,6 +151,7 @@ namespace FileProcessor.Testing
         public static Guid SafaricomFileProfileId = Guid.Parse("079F1FF5-F51E-4BE0-AF4F-2D4862E6D34F");
         public static String SafaricomProfileName = "Safaricom Profile";
 
+
         public static String SafaricomListeningDirectory = "/home/txnproc/bulkfiles/safaricom";
 
         public static String SafaricomRequestType = "SafaricomTopupRequest";
