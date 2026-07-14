@@ -24,7 +24,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomListeningDirectory,
             TestData.SafaricomRequestType,
             TestData.SafaricomOperatorIdentifier,
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
 
         Result secondCreate = aggregate.CreateProfile(this.CreateProfile(
@@ -33,7 +33,7 @@ public class FileProfileAggregateTests
             TestData.VoucherListeningDirectory,
             TestData.VoucherRequestType,
             TestData.VoucherOperatorIdentifier,
-            TestData.VoucherLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.VoucherFileFormatHandler));
 
         Result updateName = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
@@ -58,7 +58,7 @@ public class FileProfileAggregateTests
 
         Result updateLineTerminator = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
         {
-            LineTerminator = "\r\n"
+            LineTerminator = LineTerminatorType.CarriageReturnLineFeed
         });
 
         Result updateFileFormatHandler = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
@@ -72,7 +72,7 @@ public class FileProfileAggregateTests
             "/home/txnproc/bulkfiles/duplicate-name",
             "GammaRequest",
             "Gamma Operator",
-            "\n",
+            LineTerminatorType.LineFeed,
             "GammaHandler"));
 
         Result duplicateRequestTypeCreate = aggregate.CreateProfile(this.CreateProfile(
@@ -81,7 +81,7 @@ public class FileProfileAggregateTests
             "/home/txnproc/bulkfiles/duplicate-request",
             TestData.VoucherRequestType,
             "Gamma Operator",
-            "\n",
+            LineTerminatorType.LineFeed,
             "GammaHandler"));
 
         List<FileProcessor.Models.FileProfile> fileProfiles = aggregate.GetAllProfiles();
@@ -128,7 +128,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomListeningDirectory,
             TestData.SafaricomRequestType,
             TestData.SafaricomOperatorIdentifier,
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
         
         Result updateResult = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
@@ -137,7 +137,7 @@ public class FileProfileAggregateTests
             RequestType = TestData.SafaricomRequestType,
             ListeningDirectory = TestData.SafaricomListeningDirectory,
             OperatorName = TestData.SafaricomOperatorIdentifier,
-            LineTerminator = TestData.SafaricomLineTerminator,
+            LineTerminator = LineTerminatorType.LineFeed,
             FileFormatHandler = TestData.SafaricomFileFormatHandler
         });
 
@@ -154,7 +154,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomListeningDirectory,
             TestData.SafaricomRequestType,
             TestData.SafaricomOperatorIdentifier,
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
 
         Result updateResult = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
@@ -182,7 +182,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomListeningDirectory,
             TestData.SafaricomRequestType,
             TestData.SafaricomOperatorIdentifier,
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
 
         Result duplicateCreate = aggregate.CreateProfile(this.CreateProfile(
@@ -191,12 +191,49 @@ public class FileProfileAggregateTests
             "/tmp/other",
             "DifferentRequest",
             "Other",
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             "OtherHandler"));
 
         firstCreate.IsSuccess.ShouldBeTrue();
         duplicateCreate.IsFailed.ShouldBeTrue();
         duplicateCreate.Status.ShouldBe(ResultStatus.Invalid);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    public void FileProfileAggregate_Create_WithInvalidTerminator_IsRejected(LineTerminatorType? lineTerminator)
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+
+        Result firstCreate = aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            lineTerminator,
+            TestData.SafaricomFileFormatHandler));
+
+        firstCreate.IsFailed.ShouldBeTrue();
+        firstCreate.Status.ShouldBe(ResultStatus.Invalid);
+    }
+
+    [Fact]
+    public void FileProfileAggregate_Create_WithUnknownTerminator_IsRejected()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+
+        Result firstCreate = aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            (LineTerminatorType?)99,
+            TestData.SafaricomFileFormatHandler));
+
+        firstCreate.IsFailed.ShouldBeTrue();
+        firstCreate.Status.ShouldBe(ResultStatus.Invalid);
     }
 
     [Fact]
@@ -210,7 +247,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomListeningDirectory,
             TestData.SafaricomRequestType,
             TestData.SafaricomOperatorIdentifier,
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
 
         Result duplicateCreate = aggregate.CreateProfile(this.CreateProfile(
@@ -219,7 +256,7 @@ public class FileProfileAggregateTests
             "/tmp/other",
             TestData.SafaricomRequestType,
             "Other",
-            TestData.SafaricomLineTerminator,
+            LineTerminatorType.LineFeed,
             "OtherHandler"));
 
         firstCreate.IsSuccess.ShouldBeTrue();
@@ -232,7 +269,7 @@ public class FileProfileAggregateTests
                                                    string listeningDirectory,
                                                    string requestType,
                                                    string operatorName,
-                                                   string lineTerminator,
+                                                   LineTerminatorType? lineTerminator,
                                                    string fileFormatHandler)
     {
         return new CreateFileProfileRequest

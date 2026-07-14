@@ -8,6 +8,7 @@ using FileProcessor.FileProfile.DomainEvents;
 using Shared.DomainDrivenDesign.EventSourcing;
 using Shared.EventStore.Aggregate;
 using Shared.General;
+using Shared.Results;
 using SimpleResults;
 using FileProfileModel = FileProcessor.Models.FileProfile;
 
@@ -93,13 +94,17 @@ public static class FileProfileAggregateExtensions
             return Result.Invalid($"File profile [{request.FileProfileId}] already exists");
         }
 
+        var lineTerminatorResult = request.LineTerminator.Value.ToLineTerminator();
+        if (lineTerminatorResult.IsFailed)
+            return ResultHelpers.CreateFailure(lineTerminatorResult);
+
         FileProfileCreatedEvent fileProfileCreatedEvent = new(aggregate.AggregateId,
                                                               request.FileProfileId,
                                                               request.Name.Trim(),
                                                               request.ListeningDirectory.Trim(),
                                                               request.RequestType.Trim(),
                                                               request.OperatorName.Trim(),
-                                                              request.LineTerminator,
+                                                              lineTerminatorResult.Data,
                                                               request.FileFormatHandler.Trim());
 
         aggregate.ApplyAndAppend(fileProfileCreatedEvent);
@@ -135,12 +140,19 @@ public static class FileProfileAggregateExtensions
             aggregate.ApplyAndAppend(new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.OperatorName));
         }
 
-        if (IsDomainEventRequired(profile.FileFormatHandler, request.FileFormatHandler)) {
-            aggregate.ApplyAndAppend(new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, request.FileFormatHandler));
+        if (request.LineTerminator.HasValue) {
+            Result<String> lineTerminatorResult = request.LineTerminator.Value.ToLineTerminator();
+            if (lineTerminatorResult.IsFailed) {
+                return ResultHelpers.CreateFailure(lineTerminatorResult);
+            }
+
+            if (IsDomainEventRequired(profile.LineTerminator, lineTerminatorResult.Data)) {
+                aggregate.ApplyAndAppend(new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, lineTerminatorResult.Data));
+            }
         }
 
-        if (IsDomainEventRequired(profile.LineTerminator, request.LineTerminator)) {
-            aggregate.ApplyAndAppend(new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, request.LineTerminator));
+        if (IsDomainEventRequired(profile.FileFormatHandler, request.FileFormatHandler)) {
+            aggregate.ApplyAndAppend(new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, request.FileFormatHandler));
         }
 
         return Result.Success();
@@ -270,18 +282,42 @@ public static class FileProfileAggregateExtensions
                Comparer.Equals(profile.ListeningDirectory, request.ListeningDirectory.Trim()) &&
                Comparer.Equals(profile.RequestType, request.RequestType.Trim()) &&
                Comparer.Equals(profile.OperatorName, request.OperatorName.Trim()) &&
-               Comparer.Equals(profile.LineTerminator, request.LineTerminator) &&
+               Comparer.Equals(profile.LineTerminator, request.LineTerminator.Value.ToLineTerminator()) &&
                Comparer.Equals(profile.FileFormatHandler, request.FileFormatHandler.Trim()) &&
                profile.IsArchived == false;
     }
 
     private static Result ValidateRequiredCreateFields(CreateFileProfileRequest request)
     {
-        return ValidateStringField(request.ListeningDirectory, "No listening directory provided") ??
-               ValidateStringField(request.RequestType, "No request type provided") ??
-               ValidateStringField(request.OperatorName, "No operator name provided") ??
-               ValidateStringField(request.LineTerminator, "No line terminator provided") ??
-               ValidateStringField(request.FileFormatHandler, "No file format handler provided");
+        var errors = new List<string>();
+
+        AddIfInvalid(request.ListeningDirectory, "No listening directory provided", errors);
+        AddIfInvalid(request.RequestType, "No request type provided", errors);
+        AddIfInvalid(request.OperatorName, "No operator name provided", errors);
+        AddLineTerminatorIfInvalid(request.LineTerminator, "No line terminator provided", errors);
+        AddIfInvalid(request.FileFormatHandler, "No file format handler provided", errors);
+
+        return errors.Count == 0
+            ? Result.Success()
+            : Result.Invalid(errors);
+    }
+
+    private static void AddIfInvalid(string? value, string errorMessage, ICollection<string> errors)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            errors.Add(errorMessage);
+        }
+    }
+
+    private static void AddLineTerminatorIfInvalid(LineTerminatorType? value,
+                                                   string errorMessage,
+                                                   ICollection<string> errors)
+    {
+        if (value.HasValue == false || Enum.IsDefined(typeof(LineTerminatorType), value.Value) == false)
+        {
+            errors.Add(errorMessage);
+        }
     }
 
     private static Result ValidateProposedUpdateValues(UpdateFileProfileRequest request)
@@ -290,8 +326,20 @@ public static class FileProfileAggregateExtensions
                ValidateOptionalStringField(request.ListeningDirectory, "No listening directory provided") ??
                ValidateOptionalStringField(request.RequestType, "No request type provided") ??
                ValidateOptionalStringField(request.OperatorName, "No operator name provided") ??
-               ValidateOptionalStringField(request.LineTerminator, "No line terminator provided") ??
+               ValidateOptionalLineTerminatorField(request.LineTerminator, "No line terminator provided") ??
                ValidateOptionalStringField(request.FileFormatHandler, "No file format handler provided");
+    }
+
+    private static Result ValidateOptionalLineTerminatorField(LineTerminatorType? value, string errorMessage)
+    {
+        if (value.HasValue == false)
+        {
+            return Result.Success();
+        }
+
+        return Enum.IsDefined(typeof(LineTerminatorType), value.Value)
+            ? Result.Success()
+            : Result.Invalid(errorMessage);
     }
 
     private static Result ValidateCreateUniqueness(this FileProfileAggregate aggregate, CreateFileProfileRequest request)
@@ -392,6 +440,20 @@ public static class FileProfileAggregateExtensions
                                     fileProfile.OperatorName,
                                     fileProfile.LineTerminator,
                                     fileProfile.FileFormatHandler);
+    }
+}
+
+public static class LineTerminatorTypeExtensions
+{
+    public static Result<string> ToLineTerminator(this LineTerminatorType lineTerminator)
+    {
+        return lineTerminator switch
+        {
+            LineTerminatorType.LineFeed => Result.Success<string>("\n"),
+            LineTerminatorType.CarriageReturnLineFeed => Result.Success<string>("\r\n"),
+            LineTerminatorType.CarriageReturn => Result.Success<string>("\r"),
+            _ => Result.Invalid($"Invalid line terminator type {lineTerminator}")
+        };
     }
 }
 

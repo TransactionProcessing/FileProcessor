@@ -10,7 +10,7 @@ public class UpdateFileProfileRequest
 
     public string OperatorName { get; set; }
 
-    public string LineTerminator { get; set; }
+    public LineTerminatorType? LineTerminator { get; set; }
 
     public string FileFormatHandler { get; set; }
 }

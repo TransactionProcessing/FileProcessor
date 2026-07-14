@@ -57,7 +57,7 @@ public class FileProfileSteps
             string basedOn = row["BasedOn"];
             FileProfile sourceProfile = await this.GetProfileByAlias(basedOn);
 
-            CreateFileProfileRequest request = duplicateType.Equals("Name", StringComparison.OrdinalIgnoreCase)
+                CreateFileProfileRequest request = duplicateType.Equals("Name", StringComparison.OrdinalIgnoreCase)
                 ? new CreateFileProfileRequest
                 {
                     FileProfileId = Guid.NewGuid(),
@@ -65,7 +65,7 @@ public class FileProfileSteps
                     ListeningDirectory = $"/tmp/{Guid.NewGuid():N}",
                     RequestType = $"{sourceProfile.RequestType}-duplicate",
                     OperatorName = sourceProfile.OperatorName,
-                    LineTerminator = sourceProfile.LineTerminator,
+                    LineTerminator = ParseLineTerminator(sourceProfile.LineTerminator),
                     FileFormatHandler = sourceProfile.FileFormatHandler
                 }
                 : new CreateFileProfileRequest
@@ -75,7 +75,7 @@ public class FileProfileSteps
                     ListeningDirectory = $"/tmp/{Guid.NewGuid():N}",
                     RequestType = sourceProfile.RequestType,
                     OperatorName = sourceProfile.OperatorName,
-                    LineTerminator = sourceProfile.LineTerminator,
+                    LineTerminator = ParseLineTerminator(sourceProfile.LineTerminator),
                     FileFormatHandler = sourceProfile.FileFormatHandler
                 };
 
@@ -125,7 +125,7 @@ public class FileProfileSteps
             ListeningDirectory = row["ListeningDirectory"],
             RequestType = row["RequestType"],
             OperatorName = row["OperatorName"],
-            LineTerminator = row["LineTerminator"],
+            LineTerminator = ParseLineTerminator(row["LineTerminator"]),
             FileFormatHandler = row["FileFormatHandler"]
         };
     }
@@ -148,8 +148,25 @@ public class FileProfileSteps
             ListeningDirectory = row["ListeningDirectory"],
             RequestType = row["RequestType"],
             OperatorName = row["OperatorName"],
-            LineTerminator = row["LineTerminator"],
+            LineTerminator = ParseLineTerminator(row["LineTerminator"]),
             FileFormatHandler = row["FileFormatHandler"]
+        };
+    }
+
+    private static LineTerminatorType? ParseLineTerminator(string lineTerminator)
+    {
+        if (string.IsNullOrWhiteSpace(lineTerminator))
+        {
+            return null;
+        }
+
+        return lineTerminator switch
+        {
+            "\n" => LineTerminatorType.LineFeed,
+            "\r\n" => LineTerminatorType.CarriageReturnLineFeed,
+            "\r" => LineTerminatorType.CarriageReturn,
+            _ when Enum.TryParse<LineTerminatorType>(lineTerminator, true, out LineTerminatorType parsed) => parsed,
+            _ => throw new ArgumentOutOfRangeException(nameof(lineTerminator), lineTerminator, "Unsupported line terminator value")
         };
     }
 
