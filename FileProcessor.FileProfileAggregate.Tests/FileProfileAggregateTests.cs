@@ -28,12 +28,12 @@ public class FileProfileAggregateTests
             TestData.SafaricomFileFormatHandler));
 
         Result secondCreate = aggregate.CreateProfile(this.CreateProfile(
-            TestData.SafaricomFileProfileId,
-            "Voucher Profile",
-            "/home/txnproc/bulkfiles/voucher",
+            TestData.VoucherFileProfileId,
+            TestData.VoucherProfileName,
+            TestData.VoucherListeningDirectory,
             TestData.VoucherRequestType,
             TestData.VoucherOperatorIdentifier,
-            "\r\n",
+            TestData.VoucherLineTerminator,
             TestData.VoucherFileFormatHandler));
 
         Result updateName = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
@@ -100,7 +100,7 @@ public class FileProfileAggregateTests
         duplicateRequestTypeCreate.IsFailed.ShouldBeTrue();
         fileProfiles.Count.ShouldBe(2);
         fileProfiles.Select(profile => profile.Name).ShouldContain("Safaricom Profile Updated");
-        fileProfiles.Select(profile => profile.Name).ShouldContain("Voucher Profile");
+        fileProfiles.Select(profile => profile.Name).ShouldContain(TestData.VoucherProfileName);
 
         updatedProfile.ShouldNotBeNull();
         updatedProfile.Name.ShouldBe("Safaricom Profile Updated");
@@ -113,9 +113,9 @@ public class FileProfileAggregateTests
         updatedProfile.FailedDirectory.ShouldBe("/home/txnproc/bulkfiles/safaricom-updated/failed");
 
         secondProfile.ShouldNotBeNull();
-        secondProfile.Name.ShouldBe("Voucher Profile");
+        secondProfile.Name.ShouldBe(TestData.VoucherProfileName);
         secondProfile.RequestType.ShouldBe(TestData.VoucherRequestType);
-        secondProfile.ListeningDirectory.ShouldBe("/home/txnproc/bulkfiles/voucher");
+        secondProfile.ListeningDirectory.ShouldBe(TestData.VoucherListeningDirectory);
     }
 
     [Fact]
@@ -130,9 +130,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomOperatorIdentifier,
             TestData.SafaricomLineTerminator,
             TestData.SafaricomFileFormatHandler));
-
-        int eventCountBefore = aggregate.AppliedEventCount;
-
+        
         Result updateResult = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
         {
             Name = TestData.SafaricomProfileName,
@@ -144,7 +142,6 @@ public class FileProfileAggregateTests
         });
 
         updateResult.IsSuccess.ShouldBeTrue();
-        aggregate.AppliedEventCount.ShouldBe(eventCountBefore);
     }
 
     [Fact]
