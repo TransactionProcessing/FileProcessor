@@ -111,7 +111,7 @@ public class FileProfileSteps
             fileProfile.ListeningDirectory.ShouldBe(row["ListeningDirectory"]);
             fileProfile.RequestType.ShouldBe(row["RequestType"]);
             fileProfile.OperatorName.ShouldBe(row["OperatorName"]);
-            fileProfile.LineTerminator.ShouldBe(row["LineTerminator"]);
+            fileProfile.LineTerminator.ShouldBe(FormatLineTerminator(ParseLineTerminator(row["LineTerminator"])));
             fileProfile.FileFormatHandler.ShouldBe(row["FileFormatHandler"]);
         }
     }
@@ -166,6 +166,17 @@ public class FileProfileSteps
             "\r\n" => LineTerminatorType.CarriageReturnLineFeed,
             "\r" => LineTerminatorType.CarriageReturn,
             _ when Enum.TryParse<LineTerminatorType>(lineTerminator, true, out LineTerminatorType parsed) => parsed,
+            _ => throw new ArgumentOutOfRangeException(nameof(lineTerminator), lineTerminator, "Unsupported line terminator value")
+        };
+    }
+
+    private static string FormatLineTerminator(LineTerminatorType? lineTerminator)
+    {
+        return lineTerminator switch
+        {
+            LineTerminatorType.LineFeed => "\n",
+            LineTerminatorType.CarriageReturnLineFeed => "\r\n",
+            LineTerminatorType.CarriageReturn => "\r",
             _ => throw new ArgumentOutOfRangeException(nameof(lineTerminator), lineTerminator, "Unsupported line terminator value")
         };
     }

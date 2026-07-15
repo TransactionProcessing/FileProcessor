@@ -208,7 +208,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-a",
                             "ProfileARequest",
                             "Operator A",
-                            "\n",
+                            "1",
                             "ProfileAHandler"});
                 table5.AddRow(new string[] {
                             "Profile B",
@@ -217,7 +217,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-b",
                             "ProfileBRequest",
                             "Operator B",
-                            "\\r\n",
+                            "2",
                             "ProfileBHandler"});
 #line 22
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table5, "When ");
@@ -236,7 +236,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-a-updated",
                             "ProfileARequestUpdated",
                             "Operator A Updated",
-                            "\\r\n",
+                            "2",
                             "ProfileAHandlerUpdated"});
 #line 26
  await testRunner.AndAsync("I update the following file profiles", ((string)(null)), table6, "And ");
@@ -258,7 +258,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-a-updated",
                             "ProfileARequestUpdated",
                             "Operator A Updated",
-                            "\\r\n",
+                            "2",
                             "ProfileAHandlerUpdated"});
                 table7.AddRow(new string[] {
                             "Profile B",
@@ -266,7 +266,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-b",
                             "ProfileBRequest",
                             "Operator B",
-                            "\\r\n",
+                            "2",
                             "ProfileBHandler"});
 #line 30
  await testRunner.AndAsync("the file profiles should have the following values", ((string)(null)), table7, "And ");
@@ -314,7 +314,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-a",
                             "ProfileARequest",
                             "Operator A",
-                            "\n",
+                            "1",
                             "ProfileAHandler"});
                 table8.AddRow(new string[] {
                             "Profile B",
@@ -323,7 +323,7 @@ await this.FeatureBackgroundAsync();
                             "/home/txnproc/bulkfiles/profile-b",
                             "ProfileBRequest",
                             "Operator B",
-                            "\\r\n",
+                            "2",
                             "ProfileBHandler"});
 #line 36
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table8, "When ");
@@ -339,9 +339,6 @@ await this.FeatureBackgroundAsync();
                             "Profile B"});
 #line 40
  await testRunner.AndAsync("I try to create the following duplicate file profiles", ((string)(null)), table9, "And ");
-#line hidden
-#line 44
- await testRunner.AndAsync("the file profiles list should contain 2 items", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
