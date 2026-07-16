@@ -171,15 +171,17 @@ namespace FileProcessor.IntegrationTests.Features
         
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Create, update and list file profiles")]
+        [global::NUnit.Framework.CategoryAttribute("PRTest")]
         public async global::System.Threading.Tasks.Task CreateUpdateAndListFileProfiles()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "PRTest"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Create, update and list file profiles", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 21
+#line 22
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -219,7 +221,7 @@ await this.FeatureBackgroundAsync();
                             "Operator B",
                             "2",
                             "ProfileBHandler"});
-#line 22
+#line 23
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table5, "When ");
 #line hidden
                 global::Reqnroll.Table table6 = new global::Reqnroll.Table(new string[] {
@@ -238,10 +240,10 @@ await this.FeatureBackgroundAsync();
                             "Operator A Updated",
                             "2",
                             "ProfileAHandlerUpdated"});
-#line 26
+#line 27
  await testRunner.AndAsync("I update the following file profiles", ((string)(null)), table6, "And ");
 #line hidden
-#line 29
+#line 30
  await testRunner.ThenAsync("the file profiles list should contain 2 items", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
                 global::Reqnroll.Table table7 = new global::Reqnroll.Table(new string[] {
@@ -268,7 +270,7 @@ await this.FeatureBackgroundAsync();
                             "Operator B",
                             "2",
                             "ProfileBHandler"});
-#line 30
+#line 31
  await testRunner.AndAsync("the file profiles should have the following values", ((string)(null)), table7, "And ");
 #line hidden
             }
@@ -285,7 +287,7 @@ await this.FeatureBackgroundAsync();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reject duplicate file profile name and request type", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 35
+#line 36
 this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -325,7 +327,7 @@ await this.FeatureBackgroundAsync();
                             "Operator B",
                             "2",
                             "ProfileBHandler"});
-#line 36
+#line 37
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table8, "When ");
 #line hidden
                 global::Reqnroll.Table table9 = new global::Reqnroll.Table(new string[] {
@@ -337,10 +339,10 @@ await this.FeatureBackgroundAsync();
                 table9.AddRow(new string[] {
                             "RequestType",
                             "Profile B"});
-#line 40
+#line 41
  await testRunner.AndAsync("I try to create the following duplicate file profiles", ((string)(null)), table9, "And ");
 #line hidden
-#line 44
+#line 45
  await testRunner.AndAsync("the file profiles list should contain 2 items", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

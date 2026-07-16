@@ -4,6 +4,7 @@ namespace FileProcessor.Common;
 
 using EventStore.Client;
 using FileProcessor.BusinessLogic.Managers;
+using FileProcessor.BusinessLogic.Services;
 using KurrentDB.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -67,28 +68,18 @@ public static class Extensions
 
     public static void PreWarm(this IApplicationBuilder applicationBuilder){
         IFileSystem fileSystem = Startup.Container.GetInstance<IFileSystem>();
-        IFileProcessorManager fileProcessorManager = Startup.Container.GetInstance<IFileProcessorManager>();
+        IFileProfileDirectorySynchronizer directorySynchronizer = Startup.Container.GetInstance<IFileProfileDirectorySynchronizer>();
         // TODO: Do we poll here for files incase they have been left from a previous run
         var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
         Logger.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
 
         fileSystem.Directory.CreateDirectory(temporaryFileLocation);
         Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
-        Result<List<FileProfileModel>> fileProfilesResult = fileProcessorManager.GetAllFileProfiles(CancellationToken.None).Result;
-
-        if (fileProfilesResult.IsFailed) {
-            Logger.LogWarning($"Error getting file profiles {fileProfilesResult.Message}");
-            throw new ApplicationStartupException(fileProfilesResult.Message);
-        }
-
-        List<FileProfileModel> fileProfiles = fileProfilesResult.Data;
-        foreach (FileProfileModel fileProfile in fileProfiles){
-            fileSystem.Directory.CreateDirectory($"{fileProfile.ListeningDirectory}//inprogress");
-            Logger.LogInformation($"Created in progress at [{fileProfile.ListeningDirectory}//inprogress");
-            fileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
-            Logger.LogInformation($"Created ProcessedDirectory at [{fileProfile.ProcessedDirectory}]");
-            fileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
-            Logger.LogInformation($"Created FailedDirectory at [{fileProfile.FailedDirectory}]");
+        Result syncResult = directorySynchronizer.SyncAsync(CancellationToken.None).GetAwaiter().GetResult();
+        if (syncResult.IsFailed)
+        {
+            Logger.LogWarning($"Error getting file profiles {syncResult.Message}");
+            throw new ApplicationStartupException(syncResult.Message);
         }
 
         TypeProvider.LoadDomainEventsTypeDynamically();

@@ -24,6 +24,7 @@ public class MiscRegistry : ServiceRegistry
     {
         this.AddSingleton<IModelFactory, ModelFactory>();
         this.AddSingleton<IFileProcessorDomainService, FileProcessorDomainService>();
+        this.AddSingleton<IFileProfileDirectorySynchronizer, FileProfileDirectorySynchronizer>();
 
         bool logRequests = ConfigurationReader.GetValueOrDefault<Boolean>("MiddlewareLogging", "LogRequests", true);
         bool logResponses = ConfigurationReader.GetValueOrDefault<Boolean>("MiddlewareLogging", "LogResponses", true);

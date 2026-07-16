@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DotNet.Testcontainers.Builders;
 
 namespace FileProcessor.IntegrationTests.Common
 {
@@ -65,6 +66,17 @@ namespace FileProcessor.IntegrationTests.Common
             }
         }
 
+        public override ContainerBuilder SetupFileProcessorContainer() {
+
+            var variables = new Dictionary<String, String>()
+            {
+                { "AppSettings:FileProfilePollingWindowInSeconds", "5" }
+            };
+
+            this.AdditionalVariables.Add(ContainerType.FileProcessor, variables);
+            return base.SetupFileProcessorContainer();
+        }
+        
         public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
             
             await base.StartContainersForScenarioRun(scenarioName, dockerServices);

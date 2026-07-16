@@ -14,6 +14,7 @@ namespace FileProcessor
     using EventStore.Client;
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
+    using FileProcessor.Services;
     using Lamar.Microsoft.DependencyInjection;
     using MediatR;
     using Microsoft.Extensions.DependencyInjection;
@@ -69,6 +70,10 @@ namespace FileProcessor
                                              logging.AddConsole();
                                              logging.AddNLog();
                                          });
+            hostBuilder.ConfigureServices((context, services) =>
+            {
+                services.AddHostedService<FileProfileDirectoryRefreshService>();
+            });
             hostBuilder.ConfigureWebHostDefaults(webBuilder =>
                                                  {
                                                      webBuilder.ConfigureAppConfiguration((context, configBuilder) =>
