@@ -76,7 +76,6 @@ Background:
 	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
 
-@Nightly2	
 Scenario: Process Voucher File with 1 detail row for recipient email
 	Given I have a file named 'VoucherIssue.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
@@ -89,7 +88,6 @@ Scenario: Process Voucher File with 1 detail row for recipient email
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
-@Nightly2
 Scenario: Process Voucher File with 1 detail row for recipient mobile
 	Given I have a file named 'VoucherIssue.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
@@ -102,7 +100,6 @@ Scenario: Process Voucher File with 1 detail row for recipient mobile
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 1 transaction should be returned
 
-@Nightly2
 Scenario: Process Voucher File with 2 detail rows
 	Given I have a file named 'VoucherIssue.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
@@ -116,7 +113,6 @@ Scenario: Process Voucher File with 2 detail rows
 
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
-@Nightly2
 Scenario: Process 2 Voucher Files
 	Given I have a file named 'VoucherIssue1.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |
@@ -141,7 +137,6 @@ Scenario: Process 2 Voucher Files
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 4 transaction should be returned
 
 @PRTest
-@Nightly2
 Scenario: Process Duplicate Voucher Topup File with 1 detail row
 	Given I have a file named 'VoucherIssue1.txt' with the following contents
 	| Column1 | Column2    | Column3                      | Column4 |

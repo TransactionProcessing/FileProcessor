@@ -83,7 +83,6 @@ Background:
 	| Deposit1  | 300.00 | Today    | Test Merchant 2 | Test Estate 1 |
 
 @PRTest
-@Nightly1
 Scenario: Get File Import Log Details
 	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |

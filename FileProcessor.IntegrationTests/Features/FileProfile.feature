@@ -41,4 +41,4 @@ Scenario: Reject duplicate file profile name and request type
 	| DuplicateType | BasedOn |
 	| Name | Profile A |
 	| RequestType | Profile B |
-	#And the file profiles list should contain 2 items
+	And the file profiles list should contain 2 items

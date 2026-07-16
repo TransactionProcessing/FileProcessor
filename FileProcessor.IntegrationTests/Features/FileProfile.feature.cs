@@ -340,6 +340,9 @@ await this.FeatureBackgroundAsync();
 #line 40
  await testRunner.AndAsync("I try to create the following duplicate file profiles", ((string)(null)), table9, "And ");
 #line hidden
+#line 44
+ await testRunner.AndAsync("the file profiles list should contain 2 items", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
             }
             await this.ScenarioCleanupAsync();
         }
