@@ -85,6 +85,7 @@ public class FileProfileSteps
     }
 
     [Then(@"the file profiles list should contain (.*) items")]
+    [When(@"the file profiles list should contain (.*) items")]
     public async Task ThenTheFileProfilesListShouldContainItems(int expectedCount)
     {
         Result<List<FileProfile>> fileProfilesResult = await this.FileProcessorSteps.GetFileProfiles(this.TestingContext.AccessToken, CancellationToken.None);
