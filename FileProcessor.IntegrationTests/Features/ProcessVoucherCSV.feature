@@ -1,4 +1,4 @@
-﻿@base @shared @processvouchercsv
+﻿@base @shared @processvouchercsv @fileprofiles
 Feature: Process Voucher CSV Files
 
 Background: 

@@ -1,4 +1,4 @@
-﻿@base @shared
+﻿@base @shared @fileprofiles
 Feature: Process Topup CSV Files
 
 Background: 

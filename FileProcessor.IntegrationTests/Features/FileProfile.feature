@@ -18,6 +18,7 @@ Background:
 	| ClientId |
 	| serviceClient |
 
+@PRTest
 Scenario: Create, update and list file profiles
 	When I create the following file profiles
 	| Alias | FileProfileId | Name | ListeningDirectory | RequestType | OperatorName | LineTerminator | FileFormatHandler |

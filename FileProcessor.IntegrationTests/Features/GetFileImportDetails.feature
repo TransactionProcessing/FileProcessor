@@ -1,4 +1,4 @@
-﻿@base @shared  @getfileimportdetails
+﻿@base @shared  @getfileimportdetails @fileprofiles
 Feature: GetFileImportDetails
 
 Background: 
