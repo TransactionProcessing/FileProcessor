@@ -278,6 +278,23 @@ namespace FileProcessor.Testing
             return fileAggregate;
         }
 
+        public static FileDetails GetCreatedFileDetails()
+        {
+            return new FileDetails
+            {
+                FileReceivedDateTime = TestData.FileUploadedDateTime,
+                ProcessingCompleted = false,
+                FileLines = new List<FileLine>(),
+                EstateId = TestData.EstateId,
+                MerchantId = TestData.MerchantId,
+                FileProfileId = TestData.FileProfileId,
+                FileId = TestData.FileId,
+                FileImportLogId = TestData.FileImportLogId,
+                FileLocation = TestData.FilePathWithName,
+                UserId = TestData.UserId
+            };
+        }
+
         public static FileAggregate GetFileAggregateWithLines()
         {
             FileAggregate fileAggregate = new FileAggregate();
