@@ -69,7 +69,7 @@ public static class Extensions
     public static void PreWarm(this IApplicationBuilder applicationBuilder){
         IFileSystem fileSystem = Startup.Container.GetInstance<IFileSystem>();
         IFileProfileDirectorySynchronizer directorySynchronizer = Startup.Container.GetInstance<IFileProfileDirectorySynchronizer>();
-        // TODO: Do we poll here for files incase they have been left from a previous run
+        IFileProfileDirectoryRecoveryService recoveryService = Startup.Container.GetInstance<IFileProfileDirectoryRecoveryService>();
         var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
         Logger.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
 
@@ -80,6 +80,12 @@ public static class Extensions
         {
             Logger.LogWarning($"Error getting file profiles {syncResult.Message}");
             throw new ApplicationStartupException(syncResult.Message);
+        }
+
+        Result recoveryResult = recoveryService.RecoverInProgressFilesAsync(CancellationToken.None).GetAwaiter().GetResult();
+        if (recoveryResult.IsFailed)
+        {
+            Logger.LogWarning($"Error recovering in-progress files {recoveryResult.Message}");
         }
 
         TypeProvider.LoadDomainEventsTypeDynamically();
