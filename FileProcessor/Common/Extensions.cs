@@ -79,7 +79,7 @@ public static class Extensions
         if (syncResult.IsFailed)
         {
             Logger.LogWarning($"Error getting file profiles {syncResult.Message}");
-            throw new ApplicationStartupException(syncResult.Message);
+            return;
         }
 
         Result recoveryResult = recoveryService.RecoverInProgressFilesAsync(CancellationToken.None).GetAwaiter().GetResult();
