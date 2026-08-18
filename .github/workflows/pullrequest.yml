@@ -65,7 +65,7 @@ jobs:
         with:
           name: Integration Test Results
           path: '**/TestResults/*.xml'
-          reporter: nunit
+          reporter: dotnet-nunit
           fail-on-error: true
 
       - name: Upload test results
