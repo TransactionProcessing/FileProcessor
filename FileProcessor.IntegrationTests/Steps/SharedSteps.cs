@@ -39,9 +39,9 @@ namespace FileProcessor.IntegrationTests.Steps
 
         private readonly SecurityServiceSteps SecurityServiceSteps;
 
-        private readonly TransactionProcessorSteps TransactionProcessorSteps;
+        private TransactionProcessorSteps? TransactionProcessorSteps;
 
-        private readonly FileProcessorSteps FileProcessorSteps;
+        private FileProcessorSteps? FileProcessorSteps;
         
         public SharedSteps(ScenarioContext scenarioContext,
                            TestingContext testingContext)
@@ -49,15 +49,29 @@ namespace FileProcessor.IntegrationTests.Steps
             ScenarioContext = scenarioContext;
             TestingContext = testingContext;
             this.SecurityServiceSteps = new SecurityServiceSteps(testingContext.DockerHelper.SecurityServiceClient);
-            this.TransactionProcessorSteps = new TransactionProcessorSteps(testingContext.DockerHelper.TransactionProcessorClient,testingContext.DockerHelper.TestHostHttpClient, 
-                testingContext.DockerHelper.ProjectionManagementClient, testingContext.DockerHelper.AgencyBankingClient);
-            this.FileProcessorSteps = new FileProcessorSteps(testingContext.DockerHelper.FileProcessorClient);
+        }
+
+        private TransactionProcessorSteps GetTransactionProcessorSteps()
+        {
+            this.TransactionProcessorSteps ??= new TransactionProcessorSteps(this.TestingContext.DockerHelper.TransactionProcessorClient,
+                                                                              this.TestingContext.DockerHelper.TestHostHttpClient,
+                                                                              this.TestingContext.DockerHelper.ProjectionManagementClient,
+                                                                              this.TestingContext.DockerHelper.AgencyBankingClient);
+
+            return this.TransactionProcessorSteps;
+        }
+
+        private FileProcessorSteps GetFileProcessorSteps()
+        {
+            this.FileProcessorSteps ??= new FileProcessorSteps(this.TestingContext.DockerHelper.FileProcessorClient);
+
+            return this.FileProcessorSteps;
         }
 
         [Given(@"I have a file named '(.*)' with the following contents")]
         public void GivenIHaveAFileNamedWithTheFollowingContents(string fileName, DataTable table){
             String fileData = table.Rows.ToFileData();
-            this.TestingContext.UploadFile = this.FileProcessorSteps.WriteDileToDisk(fileName, fileData);
+            this.TestingContext.UploadFile = this.GetFileProcessorSteps().WriteDileToDisk(fileName, fileData);
         }
 
         [Given(@"I upload this file for processing")]
@@ -67,7 +81,7 @@ namespace FileProcessor.IntegrationTests.Steps
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
             (EstateDetails1, UploadFileRequest) uploadFileRequest = table.Rows.ToUploadFileRequest(this.TestingContext.Estates, fileData);
 
-            await this.FileProcessorSteps.GivenIUploadThisFileForProcessing(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item1, uploadFileRequest.Item2);
+            await this.GetFileProcessorSteps().GivenIUploadThisFileForProcessing(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item1, uploadFileRequest.Item2);
         }
 
         [Given(@"I upload this file for processing an error should be returned indicating the file is a duplicate")]
@@ -76,12 +90,12 @@ namespace FileProcessor.IntegrationTests.Steps
             String filePath = TestingContext.UploadFile;
             Byte[] fileData = await File.ReadAllBytesAsync(filePath);
             (EstateDetails1, UploadFileRequest) uploadFileRequest = table.Rows.ToUploadFileRequest(this.TestingContext.Estates, fileData);
-            await this.FileProcessorSteps.GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item2);
+            await this.GetFileProcessorSteps().GivenIUploadThisFileForProcessingAnErrorShouldBeReturnedIndicatingTheFileIsADuplicate(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item2);
         }
 
         [When(@"I get the import log for estate '([^']*)' the date on the import log is '([^']*)'")]
         public async Task WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(string estateName, string expectedDateString){
-            await this.FileProcessorSteps.WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(this.TestingContext.AccessToken, estateName, expectedDateString, this.TestingContext.Estates);
+            await this.GetFileProcessorSteps().WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(this.TestingContext.AccessToken, estateName, expectedDateString, this.TestingContext.Estates);
         }
 
         //[When(@"As merchant ""(.*)"" on Estate ""(.*)"" I get my transactions (.*) transaction should be returned")]
@@ -115,7 +129,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             List<CreateEstateRequest> requests = table.Rows.ToCreateEstateRequests();
             
-            List<EstateResponse> verifiedEstates = await this.TransactionProcessorSteps.WhenICreateTheFollowingEstatesX(this.TestingContext.AccessToken, requests);
+            List<EstateResponse> verifiedEstates = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingEstatesX(this.TestingContext.AccessToken, requests);
 
             foreach (EstateResponse verifiedEstate in verifiedEstates)
             {
@@ -139,7 +153,7 @@ namespace FileProcessor.IntegrationTests.Steps
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, TransactionProcessor.DataTransferObjects.Requests.Merchant.AssignOperatorRequest)> requests = table.Rows.ToAssignOperatorRequests(estates);
 
-            List<(EstateDetails, TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantOperatorResponse)> results = await this.TransactionProcessorSteps.WhenIAssignTheFollowingOperatorToTheMerchants(this.TestingContext.AccessToken, requests);
+            List<(EstateDetails, TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantOperatorResponse)> results = await this.GetTransactionProcessorSteps().WhenIAssignTheFollowingOperatorToTheMerchants(this.TestingContext.AccessToken, requests);
 
             foreach ((EstateDetails, MerchantOperatorResponse) result in results)
             {
@@ -154,7 +168,7 @@ namespace FileProcessor.IntegrationTests.Steps
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails estate, CreateOperatorRequest request)> requests = table.Rows.ToCreateOperatorRequests(estates);
 
-            List<(Guid, EstateOperatorResponse)> results = await this.TransactionProcessorSteps.WhenICreateTheFollowingOperators(this.TestingContext.AccessToken, requests);
+            List<(Guid, EstateOperatorResponse)> results = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingOperators(this.TestingContext.AccessToken, requests);
 
             foreach ((Guid, EstateOperatorResponse) result in results)
             {
@@ -167,7 +181,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             List<(EstateDetails estate, AssignOperatorRequest request)> requests = dataTable.Rows.ToAssignOperatorToEstateRequests(this.TestingContext.Estates.Select(s => s.EstateDetails).ToList());
 
-            await this.TransactionProcessorSteps.GivenIHaveAssignedTheFollowingOperatorsToTheEstates(this.TestingContext.AccessToken, requests);
+            await this.GetTransactionProcessorSteps().GivenIHaveAssignedTheFollowingOperatorsToTheEstates(this.TestingContext.AccessToken, requests);
 
             // TODO Verify
         }
@@ -179,7 +193,7 @@ namespace FileProcessor.IntegrationTests.Steps
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             var requests = table.Rows.ToCreateMerchantRequests(estates);
 
-            List<TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse> verifiedMerchants = await this.TransactionProcessorSteps.WhenICreateTheFollowingMerchants(this.TestingContext.AccessToken, requests);
+            List<TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse> verifiedMerchants = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingMerchants(this.TestingContext.AccessToken, requests);
 
             foreach (TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse verifiedMerchant in verifiedMerchants)
             {
@@ -194,7 +208,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, CreateContractRequest)> requests = table.Rows.ToCreateContractRequests(estates);
-            List<ContractResponse> responses = await this.TransactionProcessorSteps.GivenICreateAContractWithTheFollowingValues(this.TestingContext.AccessToken, requests);
+            List<ContractResponse> responses = await this.GetTransactionProcessorSteps().GivenICreateAContractWithTheFollowingValues(this.TestingContext.AccessToken, requests);
             foreach (ContractResponse contractResponse in responses)
             {
                 EstateDetails1 estate = this.TestingContext.Estates.Single(e => e.EstateDetails.EstateId == contractResponse.EstateId);
@@ -208,7 +222,7 @@ namespace FileProcessor.IntegrationTests.Steps
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
 
             List<(EstateDetails, TransactionProcessor.IntegrationTesting.Helpers.Contract, AddProductToContractRequest)> requests = table.Rows.ToAddProductToContractRequest(estates);
-            await this.TransactionProcessorSteps.WhenICreateTheFollowingProducts(this.TestingContext.AccessToken, requests);
+            await this.GetTransactionProcessorSteps().WhenICreateTheFollowingProducts(this.TestingContext.AccessToken, requests);
         }
 
         [When(@"I add the following Transaction Fees")]
@@ -216,7 +230,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, TransactionProcessor.IntegrationTesting.Helpers.Contract, TransactionProcessor.IntegrationTesting.Helpers.Product, AddTransactionFeeForProductToContractRequest)> requests = table.Rows.ToAddTransactionFeeForProductToContractRequests(estates);
-            await this.TransactionProcessorSteps.WhenIAddTheFollowingTransactionFees(this.TestingContext.AccessToken, requests);
+            await this.GetTransactionProcessorSteps().WhenIAddTheFollowingTransactionFees(this.TestingContext.AccessToken, requests);
         }
 
         [Given(@"the following api resources exist")]
@@ -253,7 +267,7 @@ namespace FileProcessor.IntegrationTests.Steps
             List<EstateDetails> estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, AddMerchantDeviceRequest)> requests = table.Rows.ToAddMerchantDeviceRequests(estates);
 
-            List<(EstateDetails, TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse, String)> results = await this.TransactionProcessorSteps.GivenIHaveAssignedTheFollowingDevicesToTheMerchants(this.TestingContext.AccessToken, requests);
+            List<(EstateDetails, TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse, String)> results = await this.GetTransactionProcessorSteps().GivenIHaveAssignedTheFollowingDevicesToTheMerchants(this.TestingContext.AccessToken, requests);
             foreach ((EstateDetails, MerchantResponse, String) result in results)
             {
                 this.TestingContext.Logger.LogInformation($"Device {result.Item3} assigned to Merchant {result.Item2.MerchantName} Estate {result.Item1.EstateName}");
@@ -265,7 +279,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             List<EstateDetails> estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             List<(EstateDetails, Guid, Guid)> requests = table.Rows.ToAddContractToMerchantRequests(estates);
-            await this.TransactionProcessorSteps.WhenIAddTheFollowingContractsToTheFollowingMerchants(this.TestingContext.AccessToken, requests);
+            await this.GetTransactionProcessorSteps().WhenIAddTheFollowingContractsToTheFollowingMerchants(this.TestingContext.AccessToken, requests);
         }
 
         private async Task<Decimal> GetMerchantBalance(Guid merchantId)
@@ -283,7 +297,7 @@ namespace FileProcessor.IntegrationTests.Steps
             foreach ((EstateDetails, Guid, MakeMerchantDepositRequest) request in requests){
                 Decimal previousMerchantBalance = await this.GetMerchantBalance(request.Item2);
 
-                await this.TransactionProcessorSteps.GivenIMakeTheFollowingManualMerchantDeposits(this.TestingContext.AccessToken, request);
+                await this.GetTransactionProcessorSteps().GivenIMakeTheFollowingManualMerchantDeposits(this.TestingContext.AccessToken, request);
 
                 await Retry.For(async () => {
                                     Decimal currentMerchantBalance = await this.GetMerchantBalance(request.Item2);

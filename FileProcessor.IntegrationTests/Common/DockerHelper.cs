@@ -76,7 +76,7 @@ namespace FileProcessor.IntegrationTests.Common
                 { "AppSettings:FileProfilePollingWindowInSeconds", "5" }
             };
 
-            this.AdditionalVariables.Add(ContainerType.FileProcessor, variables);
+            this.AdditionalVariables[ContainerType.FileProcessor] = variables;
             return base.SetupFileProcessorContainer();
         }
         
