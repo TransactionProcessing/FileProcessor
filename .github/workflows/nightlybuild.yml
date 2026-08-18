@@ -12,54 +12,59 @@ permissions:
 
 jobs:
   build:
-    name: "Nightly Build"
+    name: Nightly Build
     env:
-        ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: Production
 
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
   
-    - name: Set Up Variables
-      run: echo "action_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
+      - name: Set Up Variables
+        run: echo "action_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
 
-    - name: Restore Nuget Packages
-      run: dotnet restore FileProcessor.sln --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
+      - name: Restore Nuget Packages
+        run: dotnet restore FileProcessor.sln --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
 
-    - name: Build Code
-      run: dotnet build FileProcessor.sln --configuration Release
+      - name: Build Code
+        run: dotnet build FileProcessor.sln --configuration Release --no-restore
 
-    - name: Run Unit Tests
-      run: |
-        echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
-        dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj" /p:CollectCoverage=true /p:Exclude="[xunit*]*" /p:ExcludeByAttribute="Obsolete" /p:ExcludeByAttribute="GeneratedCodeAttribute" /p:ExcludeByAttribute="CompilerGeneratedAttribute" /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:CoverletOutput="../lcov1.info" /maxcpucount:1 /p:CoverletOutputFormat="lcov"
-        dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj" /p:CollectCoverage=true /p:Exclude="[xunit*]*" /p:ExcludeByAttribute="Obsolete" /p:ExcludeByAttribute="GeneratedCodeAttribute" /p:ExcludeByAttribute="CompilerGeneratedAttribute" /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:CoverletOutput="../lcov2.info" /maxcpucount:1 /p:CoverletOutputFormat="lcov"
-        dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj" /p:CollectCoverage=true /p:Exclude="[xunit*]*" /p:ExcludeByAttribute="Obsolete" /p:ExcludeByAttribute="GeneratedCodeAttribute" /p:ExcludeByAttribute="CompilerGeneratedAttribute" /p:ExcludeByAttribute="ExcludeFromCodeCoverageAttribute" /p:CoverletOutput="../lcov3.info" /maxcpucount:1 /p:CoverletOutputFormat="lcov"
+      - name: Run Unit Tests
+        run: |
+          echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
+          dotnet test "FileProcessor.BusinessLogic.Tests/FileProcessor.BusinessLogic.Tests.csproj" --configuration Release --no-build
+          dotnet test "FileProcessor.FileAggregate.Tests/FileProcessor.FileAggregate.Tests.csproj" --configuration Release --no-build
+          dotnet test "FileProcessor.FileImportLogAggregate.Tests/FileProcessor.FileImportLogAggregate.Tests.csproj" --configuration Release --no-build
                
-    - name: Build Docker Image
-      run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
-           
-    - name: Run Integration Tests        
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj"    
+      - name: Build Docker Image
+        run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
+            
+      - name: Run Integration Tests        
+        run: dotnet test "FileProcessor.IntegrationTests/FileProcessor.IntegrationTests.csproj" --configuration Release --no-build
 
-    - uses: actions/upload-artifact@v4.4.0      
-      with:
-        name: tracelogs
-        path: /home/runner/trace/     
+      - uses: actions/upload-artifact@v4.4.0      
+        with:
+          name: tracelogs
+          path: /home/runner/trace/     
     
 
-    - name: Notify on nightly failure
-      if: ${{ failure() }}
-      uses: TransactionProcessing/org-ci-workflows/.github/actions/nightly-failure-issue@main
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        title: Investigate Nightly Build Failure
-        labels: nightlybuild
-        dedupe_key: nightlybuild
-        body: |
-          Repo: ${{ github.repository }}
-          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          Commit: ${{ github.sha }}
-          Workflow: ${{ github.workflow }}
-          Job: ${{ github.job }}
+      - name: Notify on nightly failure
+        if: ${{ failure() }}
+        uses: TransactionProcessing/org-ci-workflows/.github/actions/nightly-failure-issue@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: Investigate Nightly Build Failure
+          labels: nightlybuild
+          dedupe_key: nightlybuild
+          body: |
+            Repo: ${{ github.repository }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Commit: ${{ github.sha }}
+            Workflow: ${{ github.workflow }}
+            Job: ${{ github.job }}

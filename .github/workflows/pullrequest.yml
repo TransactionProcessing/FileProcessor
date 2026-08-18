@@ -7,57 +7,62 @@ on:
 
 jobs:
   build:
-    name: "Build and Test Pull Requests"
+    name: Build and Test Pull Requests
     env:
-        ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: Production
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v6
 
-    - name: Echo vars
-      run: |
-        echo "CI is > ${CI}"
-        echo "HOME is > ${HOME}"
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
-    - name: Restore Nuget Packages
-      run: dotnet restore FileProcessor.sln --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
+      - name: Echo vars
+        run: |
+          echo "CI is > ${CI}"
+          echo "HOME is > ${HOME}"
 
-    - name: Build Code
-      run: dotnet build FileProcessor.sln --configuration Release
+      - name: Restore Nuget Packages
+        run: dotnet restore FileProcessor.sln --source ${{ secrets.PUBLICFEEDURL }} --source ${{ secrets.PRIVATEFEED_URL }}
 
-    - name: Run Unit Tests
-      run: |
-        echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
-        dotnet test "FileProcessor.BusinessLogic.Tests\FileProcessor.BusinessLogic.Tests.csproj" --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=businesslogic-test-results.trx"
-        dotnet test "FileProcessor.FileAggregate.Tests\FileProcessor.FileAggregate.Tests.csproj" --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=fileaggregate-test-results.trx"
-        dotnet test "FileProcessor.FileImportLogAggregate.Tests\FileProcessor.FileImportLogAggregate.Tests.csproj" --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=fileimportlogaggregate-test-results.trx"
-               
-    - name: Build Docker Image
-      run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
-           
-    - name: Run Integration Tests        
-      run: dotnet test "FileProcessor.IntegrationTests\FileProcessor.IntegrationTests.csproj" --filter Category=PRTest  --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=integration-test-results.trx"
+      - name: Build Code
+        run: dotnet build FileProcessor.sln --configuration Release --no-restore
 
-    - uses: actions/upload-artifact@v4.4.0
-      with:
-        name: tracelogs
-        path: /home/runner/trace/         
+      - name: Run Unit Tests
+        run: |
+          echo "ASPNETCORE_ENVIRONMENT are > ${ASPNETCORE_ENVIRONMENT}"
+          dotnet test "FileProcessor.BusinessLogic.Tests/FileProcessor.BusinessLogic.Tests.csproj" --configuration Release --no-build --verbosity normal -- --report-xunit-trx --report-xunit-trx-filename businesslogic-test-results.trx
+          dotnet test "FileProcessor.FileAggregate.Tests/FileProcessor.FileAggregate.Tests.csproj" --configuration Release --no-build --verbosity normal -- --report-xunit-trx --report-xunit-trx-filename fileaggregate-test-results.trx
+          dotnet test "FileProcessor.FileImportLogAggregate.Tests/FileProcessor.FileImportLogAggregate.Tests.csproj" --configuration Release --no-build --verbosity normal -- --report-xunit-trx --report-xunit-trx-filename fileimportlogaggregate-test-results.trx
 
-    - name: Publish test results
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
+      - name: Build Docker Image
+        run: docker build . --file FileProcessor/Dockerfile --tag fileprocessor:latest
+
+      - name: Run Integration Tests
+        run: dotnet test "FileProcessor.IntegrationTests/FileProcessor.IntegrationTests.csproj" --configuration Release --no-build --verbosity normal -- --filter "Category=PRTest"
+
+      - uses: actions/upload-artifact@v4.4.0
+        with:
+          name: tracelogs
+          path: /home/runner/trace/
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
           name: Unit Test Results
           path: '**/TestResults/*.trx'
           reporter: dotnet-trx
           fail-on-error: true
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
           name: test-results
-          path: '**/TestResults/*.trx'
+          path: '**/TestResults/*'
           retention-days: 30
