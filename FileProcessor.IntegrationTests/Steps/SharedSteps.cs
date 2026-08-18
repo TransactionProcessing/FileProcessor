@@ -27,6 +27,7 @@ namespace FileProcessor.IntegrationTests.Steps
     using System.IO;
     using System.Text.Json;
     using System.Threading;
+    using TestHosts.Clients;
 
     [Binding]
     [Scope(Tag = "shared")]
@@ -41,14 +42,15 @@ namespace FileProcessor.IntegrationTests.Steps
         private readonly TransactionProcessorSteps TransactionProcessorSteps;
 
         private readonly FileProcessorSteps FileProcessorSteps;
-
+        
         public SharedSteps(ScenarioContext scenarioContext,
                            TestingContext testingContext)
         {
             ScenarioContext = scenarioContext;
             TestingContext = testingContext;
             this.SecurityServiceSteps = new SecurityServiceSteps(testingContext.DockerHelper.SecurityServiceClient);
-            this.TransactionProcessorSteps = new TransactionProcessorSteps(testingContext.DockerHelper.TransactionProcessorClient,testingContext.DockerHelper.TestHostHttpClient, testingContext.DockerHelper.ProjectionManagementClient);
+            this.TransactionProcessorSteps = new TransactionProcessorSteps(testingContext.DockerHelper.TransactionProcessorClient,testingContext.DockerHelper.TestHostHttpClient, 
+                testingContext.DockerHelper.ProjectionManagementClient, testingContext.DockerHelper.AgencyBankingClient);
             this.FileProcessorSteps = new FileProcessorSteps(testingContext.DockerHelper.FileProcessorClient);
         }
 
@@ -175,7 +177,7 @@ namespace FileProcessor.IntegrationTests.Steps
         public async Task WhenICreateTheFollowingMerchants(DataTable table)
         {
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
-            List<(EstateDetails estate, CreateMerchantRequest)> requests = table.Rows.ToCreateMerchantRequests(estates);
+            var requests = table.Rows.ToCreateMerchantRequests(estates);
 
             List<TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse> verifiedMerchants = await this.TransactionProcessorSteps.WhenICreateTheFollowingMerchants(this.TestingContext.AccessToken, requests);
 
