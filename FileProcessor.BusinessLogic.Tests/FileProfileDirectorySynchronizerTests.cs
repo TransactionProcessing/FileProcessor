@@ -7,7 +7,7 @@ using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.BusinessLogic.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using Imposter.Abstractions;
 using SimpleResults;
 using Shouldly;
 using System.IO.Abstractions.TestingHelpers;
@@ -22,7 +22,7 @@ public class FileProfileDirectorySynchronizerTests
     public async Task SyncAsync_CreatesTemporaryAndProfileDirectories()
     {
         MockFileSystem fileSystem = new MockFileSystem();
-        Mock<IFileProfileManager> fileProfileManager = new Mock<IFileProfileManager>();
+        IFileProfileManagerImposter fileProfileManager = new IFileProfileManagerImposter();
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -40,12 +40,12 @@ public class FileProfileDirectorySynchronizerTests
             "ProfileAHandler");
 
         fileProfileManager
-            .Setup(manager => manager.GetAllFileProfiles(It.IsAny<CancellationToken>()))
+            .GetAllFileProfiles(Arg<CancellationToken>.Any())
             .Returns(Task.FromResult(Result.Success(new List<FileProfileModel> { profile })));
 
         FileProfileDirectorySynchronizer synchronizer = new FileProfileDirectorySynchronizer(
             configuration,
-            fileProfileManager.Object,
+            fileProfileManager.Instance(),
             fileSystem,
             NullLogger<FileProfileDirectorySynchronizer>.Instance);
 

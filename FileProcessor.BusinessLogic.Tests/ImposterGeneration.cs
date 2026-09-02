@@ -1,0 +1,26 @@
+using FileProcessor.BusinessLogic.Common;
+using FileProcessor.BusinessLogic.FileFormatHandlers;
+using FileProcessor.BusinessLogic.Managers;
+using FileProcessor.BusinessLogic.Services;
+using FileProcessor.FileAggregate;
+using FileProcessor.FileImportLogAggregate;
+using Imposter.Abstractions;
+using MediatR;
+using Microsoft.AspNetCore.Hosting;
+using Shared.DomainDrivenDesign.EventSourcing;
+using Shared.EntityFramework;
+using Shared.EventStore.Aggregate;
+using SecurityService.Client;
+using TransactionProcessor.Client;
+using TransactionProcessor.Database.Contexts;
+
+[assembly: GenerateImposter(typeof(IMediator))]
+[assembly: GenerateImposter(typeof(IFileProfileManager))]
+[assembly: GenerateImposter(typeof(IFileProcessorManager))]
+[assembly: GenerateImposter(typeof(IFileProcessorDomainService))]
+[assembly: GenerateImposter(typeof(IFileFormatHandler))]
+[assembly: GenerateImposter(typeof(ITransactionProcessorClient))]
+[assembly: GenerateImposter(typeof(ISecurityServiceClient))]
+[assembly: GenerateImposter(typeof(IWebHostEnvironment))]
+[assembly: GenerateImposter(typeof(IDbContextResolver<EstateManagementContext>))]
+[assembly: GenerateImposter(typeof(IAggregateRepository<,>))]

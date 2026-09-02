@@ -1,9 +1,9 @@
-﻿using FileProcessor.Testing;
+using FileProcessor.Testing;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Moq;
+using Imposter.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,16 +38,16 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task Mediator_Send_RequestHandled()
         {
-            Mock<IWebHostEnvironment> hostingEnvironment = new Mock<IWebHostEnvironment>();
-            hostingEnvironment.Setup(he => he.EnvironmentName).Returns("Development");
-            hostingEnvironment.Setup(he => he.ContentRootPath).Returns("/home");
-            hostingEnvironment.Setup(he => he.ApplicationName).Returns("Test Application");
+            IWebHostEnvironmentImposter hostingEnvironment = new IWebHostEnvironmentImposter();
+            hostingEnvironment.EnvironmentName.Getter().Returns("Development");
+            hostingEnvironment.ContentRootPath.Getter().Returns("/home");
+            hostingEnvironment.ApplicationName.Getter().Returns("Test Application");
 
             ServiceRegistry services = new ServiceRegistry();
-            Startup s = new Startup(hostingEnvironment.Object);
+            Startup s = new Startup(hostingEnvironment.Instance());
             Startup.Configuration = this.SetupMemoryConfiguration();
 
-            this.AddTestRegistrations(services, hostingEnvironment.Object);
+            this.AddTestRegistrations(services, hostingEnvironment.Instance());
             s.ConfigureContainer(services);
 
             List<String> errors = new List<String>();

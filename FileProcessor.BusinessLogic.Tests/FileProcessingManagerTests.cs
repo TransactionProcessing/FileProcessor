@@ -1,4 +1,4 @@
-﻿using FileProcessor.Models;
+using FileProcessor.Models;
 using SimpleResults;
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using Microsoft.EntityFrameworkCore.Internal;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Moq;
+    using Imposter.Abstractions;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EntityFramework;
     using Shared.EventStore.Aggregate;
@@ -34,36 +34,36 @@ namespace FileProcessor.BusinessLogic.Tests
     using FileLine = FileProcessor.Models.FileLine;
 
     public class FileProcessingManagerTests {
-        private Mock<IFileProfileManager> FileProfileManager;
-        private Mock<IAggregateRepository<FileAggregate, DomainEvent>> FileAggregateRepository;
+        private IFileProfileManagerImposter FileProfileManager;
+        private IAggregateRepositoryImposter<FileAggregate, DomainEvent> FileAggregateRepository;
         private FileProcessorManager Manager;
-        private Mock<IDbContextResolver<EstateManagementContext>> DbContextFactory;
+        private IDbContextResolverImposter<EstateManagementContext> DbContextFactory;
         private EstateManagementContext Context;
         public FileProcessingManagerTests() {
             List<FileProfileModel> fileProfiles = TestData.FileProfiles;
-            this.FileProfileManager = new Mock<IFileProfileManager>();
-            this.FileProfileManager.Setup(f => f.GetAllFileProfiles(It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(fileProfiles));
-            this.FileProfileManager.Setup(f => f.GetFileProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Guid fileProfileId, CancellationToken cancellationToken) =>
+            this.FileProfileManager = new IFileProfileManagerImposter();
+            this.FileProfileManager.GetAllFileProfiles(Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileProfiles));
+            this.FileProfileManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).Returns((Guid fileProfileId, CancellationToken cancellationToken) =>
             {
                 FileProfileModel fileProfile = fileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
                 if (fileProfile == null)
                 {
-                    return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
+                    return Task.FromResult<Result<FileProfileModel>>(Result.NotFound($"No file profile found for File Profile Id {fileProfileId}"));
                 }
 
-                return Result.Success(fileProfile);
+                return Task.FromResult<Result<FileProfileModel>>(Result.Success(fileProfile));
             });
-            this.DbContextFactory = new Mock<IDbContextResolver<EstateManagementContext>>();
+            this.DbContextFactory = new IDbContextResolverImposter<EstateManagementContext>();
             this.Context = this.GetContext(Guid.NewGuid().ToString("N"));
             ServiceCollection services = new ServiceCollection();
             services.AddTransient<EstateManagementContext>(_ => this.Context);
             ServiceProvider serviceProvider = services.BuildServiceProvider();
             IServiceScope scope = serviceProvider.CreateScope();
-            this.DbContextFactory.Setup(d => d.Resolve(It.IsAny<String>(), It.IsAny<String>())).Returns(new ResolvedDbContext<EstateManagementContext>(scope));
+            this.DbContextFactory.Resolve(Arg<String>.Any(), Arg<String>.Any()).Returns(new ResolvedDbContext<EstateManagementContext>(scope));
 
             var modelFactory= new Common.ModelFactory();
-            this.FileAggregateRepository = new Mock<IAggregateRepository<FileAggregate, DomainEvent>>();
-            this.Manager = new FileProcessorManager(this.FileProfileManager.Object, this.DbContextFactory.Object, modelFactory, this.FileAggregateRepository.Object);
+            this.FileAggregateRepository = new IAggregateRepositoryImposter<FileAggregate, DomainEvent>();
+            this.Manager = new FileProcessorManager(this.FileProfileManager.Instance(), this.DbContextFactory.Instance(), modelFactory, this.FileAggregateRepository.Instance());
         }
 
         private EstateManagementContext GetContext(String databaseName)
@@ -158,7 +158,7 @@ namespace FileProcessor.BusinessLogic.Tests
             {
                 TestData.FileProfile
             };
-            this.FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             
              Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
@@ -171,7 +171,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileAggregateFailed_ErrorReturned()
         {
-            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Failure());
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
@@ -189,7 +189,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 Name = TestData.MerchantName
             });
             await this.Context.SaveChangesAsync();
-            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
@@ -209,7 +209,7 @@ namespace FileProcessor.BusinessLogic.Tests
             });
             await this.Context.SaveChangesAsync();
             
-            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
@@ -237,7 +237,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 EmailAddress = TestData.UserEmailAddress
             });
             await Context.SaveChangesAsync();
-            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
@@ -248,7 +248,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileNotFound_ErrorThrown()
         {
-            FileAggregateRepository.Setup(f => f.GetLatestVersion(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
             
             Result<FileDetails> result = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             
