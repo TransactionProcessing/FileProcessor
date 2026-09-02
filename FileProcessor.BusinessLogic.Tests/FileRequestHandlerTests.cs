@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using MediatR;
 namespace FileProcessor.BusinessLogic.Tests
 {
     using System.Threading;
-    using Moq;
+    using Imposter.Abstractions;
     using RequestHandlers;
     using Services;
     using Shouldly;
@@ -16,14 +16,14 @@ namespace FileProcessor.BusinessLogic.Tests
 
     public class FileRequestHandlerTests
     {
-        private Mock<IFileProcessorDomainService> FileProcessorDomainService;
+        private IFileProcessorDomainServiceImposter FileProcessorDomainService;
         private FileRequestHandler FileRequestHandler;
-        private Mock<IFileProcessorManager> Manager;
+        private IFileProcessorManagerImposter Manager;
 
         public FileRequestHandlerTests() {
-            this.FileProcessorDomainService = new Mock<IFileProcessorDomainService>();
-            this.Manager = new Mock<IFileProcessorManager>();
-            this.FileRequestHandler = new FileRequestHandler(this.FileProcessorDomainService.Object, this.Manager.Object);
+            this.FileProcessorDomainService = new IFileProcessorDomainServiceImposter();
+            this.Manager = new IFileProcessorManagerImposter();
+            this.FileRequestHandler = new FileRequestHandler(this.FileProcessorDomainService.Instance(), this.Manager.Instance());
         }
 
         public async Task FileRequestHandler_HandleUploadFileRequest_RequestHandled() {

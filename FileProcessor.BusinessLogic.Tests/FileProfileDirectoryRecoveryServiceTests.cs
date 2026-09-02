@@ -10,7 +10,7 @@ using FileProcessor.BusinessLogic.Services;
 using FileProcessor.Models;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using Imposter.Abstractions;
 using Shared.Results;
 using Shouldly;
 using SimpleResults;
@@ -27,8 +27,8 @@ public class FileProfileDirectoryRecoveryServiceTests
     {
         Shared.Logger.Logger.Initialise(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
 
-        Mock<IFileProcessorManager> fileProcessorManager = new();
-        Mock<IMediator> mediator = new();
+        IFileProcessorManagerImposter fileProcessorManager = new();
+        IMediatorImposter mediator = new();
         MockFileSystem fileSystem = new();
 
         FileProfileModel fileProfile = TestData.FileProfile;
@@ -39,31 +39,31 @@ public class FileProfileDirectoryRecoveryServiceTests
         fileSystem.AddFile(inProgressFilePath, new MockFileData("D,1,1,1"));
 
         fileProcessorManager
-            .Setup(manager => manager.GetAllFileProfiles(It.IsAny<CancellationToken>()))
+            .GetAllFileProfiles(Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
 
         fileProcessorManager
-            .Setup(manager => manager.GetFile(TestData.FileId, TestData.EstateId, It.IsAny<CancellationToken>()))
+            .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
 
         mediator
-            .Setup(send => send.Send(It.IsAny<FileCommands.ProcessUploadedFileCommand>(), It.IsAny<CancellationToken>()))
+            .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success());
 
         FileProfileDirectoryRecoveryService service = new(
-            fileProcessorManager.Object,
-            mediator.Object,
+            fileProcessorManager.Instance(),
+            mediator.Instance(),
             fileSystem);
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        mediator.Verify(send => send.Send(
-            It.Is<FileCommands.ProcessUploadedFileCommand>(command =>
+        mediator.Send(
+            Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
                 command.FileId == TestData.FileId &&
                 Path.GetFileName(command.FilePath) == Path.GetFileName(inProgressFilePath) &&
                 command.FileProfileId == TestData.FileProfileId &&
                 command.EstateId == TestData.EstateId),
-            It.IsAny<CancellationToken>()), Times.Once);
+            Arg<CancellationToken>.Any()).Called(Count.Once());
     }
 }

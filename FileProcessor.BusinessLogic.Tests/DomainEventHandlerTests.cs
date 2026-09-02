@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +11,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using File.DomainEvents;
     using FileImportLog.DomainEvents;
     using MediatR;
-    using Moq;
+    using Imposter.Abstractions;
     using Shouldly;
     using Shouldly.Configuration;
     using Testing;
@@ -22,8 +22,8 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public void FileDomainEventHandler_FileLineAddedEvent_EventIsHandled()
         {
-            Mock<IMediator> mediator = new Mock<IMediator>();
-            FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Object);
+            IMediatorImposter mediator = new IMediatorImposter();
+            FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
             FileLineAddedEvent fileLineAddedEvent = TestData.FileLineAddedEvent;
             Should.NotThrow(async () =>
                             {
@@ -34,8 +34,8 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public void FileDomainEventHandler_FileAddedToImportLogEvent_EventIsHandled()
         {
-            Mock<IMediator> mediator = new Mock<IMediator>();
-            FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Object);
+            IMediatorImposter mediator = new IMediatorImposter();
+            FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
             FileAddedToImportLogEvent fileAddedToImportLogEvent = TestData.FileAddedToImportLogEvent;
             Should.NotThrow(async () =>
                             {
