@@ -58,3 +58,55 @@ jobs:
         docker build . --file FileProcessor/Dockerfile --tag stuartferguson/fileprocessor:master
         docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
         docker push stuartferguson/fileprocessor:master
+
+    - name: Publish API
+      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained --no-restore
+              -p:Version=${{ steps.next_version.outputs.VERSION }}
+              -p:AssemblyVersion=${{ steps.next_version.outputs.VERSION }}
+              -p:FileVersion=${{ steps.next_version.outputs.VERSION }}
+              -p:InformationalVersion=${{ steps.next_version.outputs.VERSION }}
+
+    - name: Build Release Package
+      run: |
+         cd /home/runner/work/FileProcessor/FileProcessor/publishOutput
+         zip -r ../fileprocessor.zip ./*
+
+    - name: Upload the artifact
+      uses: actions/upload-artifact@v4.4.0
+      with:
+        name: fileprocessor
+        path: fileprocessor.zip              
+
+  deploydevelopment:
+    runs-on: [developmentserver,windows]
+    needs: build
+    environment: development
+    name: "Deploy to Development"
+    
+    steps:
+      - name: Download the artifact
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: fileprocessor
+  
+      - name: Remove existing  Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          # Check if the service exists
+          if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue) {
+            Stop-Service -Name $serviceName
+            sc.exe delete $serviceName
+          }
+
+      - name: Unzip the files
+        run: |
+          Expand-Archive -Path fileprocessor.zip -DestinationPath "C:\txnproc\transactionprocessing\fileprocessor" -Force
+      
+      - name: Install as a Windows service
+        run: |
+          $serviceName = "Transaction Processing - File Processor"
+          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
+                   
+          New-Service -Name $serviceName -BinaryPathName $servicePath -Description $serviceName -DisplayName $serviceName -StartupType Automatic
+          Start-Service -Name $serviceName  
+        
