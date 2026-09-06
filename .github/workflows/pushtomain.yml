@@ -60,7 +60,7 @@ jobs:
         docker push stuartferguson/fileprocessor:master
 
     - name: Publish API
-      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained --no-restore
+      run: dotnet publish "FileProcessor\FileProcessor.csproj" --configuration Release --output publishOutput -r win-x64 --self-contained false --no-restore
               -p:Version=${{ steps.next_version.outputs.VERSION }}
               -p:AssemblyVersion=${{ steps.next_version.outputs.VERSION }}
               -p:FileVersion=${{ steps.next_version.outputs.VERSION }}
