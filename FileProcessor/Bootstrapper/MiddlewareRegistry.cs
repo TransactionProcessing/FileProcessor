@@ -1,5 +1,6 @@
 ﻿using KurrentDB.Client;
 using Microsoft.OpenApi;
+using Shared.Monitoring;
 
 namespace FileProcessor.Bootstrapper
 {
@@ -118,6 +119,8 @@ namespace FileProcessor.Bootstrapper
                 options.MultipartBodyLengthLimit = long.MaxValue;         // multipart body length
                 options.MemoryBufferThreshold = int.MaxValue;             // buffer threshold
             });
+
+            this.AddUptimeKuma();
         }
 
         #endregion

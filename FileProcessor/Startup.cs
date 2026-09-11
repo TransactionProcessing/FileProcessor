@@ -1,18 +1,16 @@
+using FileProcessor.Endpoints;
+using ImTools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shared.Serialisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FileProcessor.Endpoints;
-using ImTools;
-using Shared.Serialisation;
 
 namespace FileProcessor
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
     using Bootstrapper;
     using Common;
     using HealthChecks.UI.Client;
@@ -26,6 +24,9 @@ namespace FileProcessor
     using Shared.General;
     using Shared.Logger;
     using Shared.Middleware;
+    using Shared.Monitoring;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Reflection;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
 
     [ExcludeFromCodeCoverage]
@@ -100,7 +101,8 @@ namespace FileProcessor
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory,
+                              IHostApplicationLifetime lifetime, IHost host)
         {
             if (env.IsDevelopment())
             {
@@ -144,6 +146,13 @@ namespace FileProcessor
             app.UseSwagger();
 
             app.UseSwaggerUI();
+
+            lifetime.ApplicationStarted.Register(() =>
+            {
+                host.RegisterWithUptimeKumaAsync()
+                    .GetAwaiter()
+                    .GetResult();
+            });
 
             app.PreWarm();
         }
