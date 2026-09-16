@@ -2,7 +2,6 @@
 using System;
 using Shared.Logger;
 using SimpleResults;
-using Microsoft.Extensions.Logging;
 
 namespace FileProcessor.BusinessLogic.EventHandling
 {
@@ -24,7 +23,6 @@ namespace FileProcessor.BusinessLogic.EventHandling
         /// The mediator
         /// </summary>
         private readonly IMediator Mediator;
-        private readonly ILogger<FileDomainEventHandler> DiagnosticLogger;
 
         #region Fields
 
@@ -37,14 +35,8 @@ namespace FileProcessor.BusinessLogic.EventHandling
         /// </summary>
         /// <param name="mediator">The mediator.</param>
         public FileDomainEventHandler(IMediator mediator)
-            : this(mediator, Microsoft.Extensions.Logging.Abstractions.NullLogger<FileDomainEventHandler>.Instance)
-        {
-        }
-
-        public FileDomainEventHandler(IMediator mediator, ILogger<FileDomainEventHandler> diagnosticLogger)
         {
             this.Mediator = mediator;
-            this.DiagnosticLogger = diagnosticLogger;
         }
 
         #endregion
@@ -76,36 +68,18 @@ namespace FileProcessor.BusinessLogic.EventHandling
                 Result result = await this.Mediator.Send(command, cancellationToken);
                 if (result.IsFailed)
                 {
-                    this.DiagnosticLogger.LogError("event-handler-dispatch-failed FileId {FileId} LineNumber {LineNumber} EstateId {EstateId} MerchantId {MerchantId} EventType {EventType} ResultStatus {ResultStatus} Error {Error}",
-                                                   domainEvent.FileId,
-                                                   domainEvent.LineNumber,
-                                                   domainEvent.EstateId,
-                                                   domainEvent.MerchantId,
-                                                   nameof(FileLineAddedEvent),
-                                                   result.Status,
-                                                   result.Message);
+                    Logger.LogError($"event-handler-dispatch-failed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} ResultStatus={result.Status} Error={result.Message}");
                 }
                 else
                 {
-                    this.DiagnosticLogger.LogDebug("event-handler-dispatch-completed FileId {FileId} LineNumber {LineNumber} EstateId {EstateId} MerchantId {MerchantId} EventType {EventType}",
-                                                   domainEvent.FileId,
-                                                   domainEvent.LineNumber,
-                                                   domainEvent.EstateId,
-                                                   domainEvent.MerchantId,
-                                                   nameof(FileLineAddedEvent));
+                    Logger.LogDebug($"event-handler-dispatch-completed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)}");
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                this.DiagnosticLogger.LogError(ex,
-                                               "event-handler-dispatch-threw FileId {FileId} LineNumber {LineNumber} EstateId {EstateId} MerchantId {MerchantId} EventType {EventType}",
-                                               domainEvent.FileId,
-                                               domainEvent.LineNumber,
-                                               domainEvent.EstateId,
-                                               domainEvent.MerchantId,
-                                               nameof(FileLineAddedEvent));
+                Logger.LogError($"event-handler-dispatch-threw FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} Exception={ex}");
                 throw;
             }
         }

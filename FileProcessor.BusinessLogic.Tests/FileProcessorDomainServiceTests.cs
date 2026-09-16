@@ -17,7 +17,6 @@ using FileFormatHandlers;
 using FileImportLogAggregate;
 using Managers;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Imposter.Abstractions;
 using Requests;
 using SecurityService.Client;
@@ -80,9 +79,8 @@ public class FileProcessorDomainServiceTests
                                                                          this.TransactionProcessorClient.Instance(),
                                                                          this.SecurityServiceClient.Instance(),
                                                                          fileFormatHandlerResolver,
-                                                                         this.FileSystem,
-                                                                         this.DiagnosticLogger);
-        Logger.Initialise(NullLogger.Instance);
+                                                                         this.FileSystem);
+        Logger.Initialise(this.DiagnosticLogger);
     }
 
     [Fact]
