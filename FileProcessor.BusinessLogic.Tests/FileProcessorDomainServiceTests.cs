@@ -661,13 +661,13 @@ public class FileProcessorDomainServiceTests
         this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success());
         FileCommands.ProcessTransactionForFileLineCommand processTransactionForFileLineRequest1 =
-            new (TestData.FileId, 1, TestData.FileLine1);
+            new (TestData.FileId, TestData.FileLineAddedEvent.EventId, 1, TestData.FileLine1);
         FileCommands.ProcessTransactionForFileLineCommand processTransactionForFileLineRequest2 =
-            new (TestData.FileId, 1, TestData.FileLine2);
+            new (TestData.FileId, TestData.FileLineAddedEvent.EventId, 1, TestData.FileLine2);
         FileCommands.ProcessTransactionForFileLineCommand processTransactionForFileLineRequest3 =
-            new (TestData.FileId, 3, TestData.FileLine3);
+            new (TestData.FileId, TestData.FileLineAddedEvent.EventId, 3, TestData.FileLine3);
         FileCommands.ProcessTransactionForFileLineCommand processTransactionForFileLineRequest4 =
-            new (TestData.FileId, 4, TestData.FileLine4);
+            new (TestData.FileId, TestData.FileLineAddedEvent.EventId, 4, TestData.FileLine4);
 
         var result1 = await this.FileProcessorDomainService.ProcessTransactionForFileLine(processTransactionForFileLineRequest1, CancellationToken.None);
         var result2 = await this.FileProcessorDomainService.ProcessTransactionForFileLine(processTransactionForFileLineRequest2, CancellationToken.None);

@@ -7,7 +7,7 @@ namespace FileProcessor.BusinessLogic.Requests;
 
 [ExcludeFromCodeCoverage]
 public record FileCommands {
-    public record ProcessTransactionForFileLineCommand(Guid FileId, Int32 LineNumber, String FileLine)
+    public record ProcessTransactionForFileLineCommand(Guid FileId, Guid EventId, Int32 LineNumber, String FileLine)
         : IRequest<Result>;
 
     public record ProcessUploadedFileCommand(Guid EstateId,

@@ -860,7 +860,7 @@ namespace FileProcessor.Testing
                                            TestData.FileUploadedDateTime);
         
         public static FileCommands.ProcessTransactionForFileLineCommand ProcessTransactionForFileLineCommand =>
-            new (TestData.FileId, TestData.LineNumber, TestData.FileLine);
+            new (TestData.FileId, TestData.FileLineAddedEvent.EventId, TestData.LineNumber, TestData.FileLine);
 
         public static FileQueries.GetFileQuery GetFileQuery => new(FileId, EstateId);
 
