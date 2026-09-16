@@ -452,7 +452,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // Add the file data to the request metadata
         transactionMetadata.Add("FileId", command.FileId.ToString());
         transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
-
+        transactionMetadata.Add("EventId", command.EventId.ToString());
+        
         operatorName = fileProfile.OperatorName;
         if (transactionMetadata.ContainsKey("OperatorName")) {
             // extract the value

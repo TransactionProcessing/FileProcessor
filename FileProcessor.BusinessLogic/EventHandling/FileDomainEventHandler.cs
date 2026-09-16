@@ -62,7 +62,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
         private async Task<Result> HandleSpecificDomainEvent(FileLineAddedEvent domainEvent,
                                                     CancellationToken cancellationToken)
         {
-            FileCommands.ProcessTransactionForFileLineCommand command = new (domainEvent.FileId, domainEvent.LineNumber, domainEvent.FileLine);
+            FileCommands.ProcessTransactionForFileLineCommand command = new (domainEvent.FileId, domainEvent.EventId, domainEvent.LineNumber, domainEvent.FileLine);
             try
             {
                 Result result = await this.Mediator.Send(command, cancellationToken);
