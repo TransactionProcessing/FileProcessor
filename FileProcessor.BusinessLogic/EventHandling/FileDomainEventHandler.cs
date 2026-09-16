@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System;
-using Shared.Logger;
 using SimpleResults;
+using FileProcessor.BusinessLogic.Common;
 
 namespace FileProcessor.BusinessLogic.EventHandling
 {
@@ -68,18 +68,18 @@ namespace FileProcessor.BusinessLogic.EventHandling
                 Result result = await this.Mediator.Send(command, cancellationToken);
                 if (result.IsFailed)
                 {
-                    Logger.LogError($"event-handler-dispatch-failed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} ResultStatus={result.Status} Error={result.Message}");
+                    FileLineProcessingDiagnostics.EventHandlerDispatchFailed(domainEvent, result);
                 }
                 else
                 {
-                    Logger.LogDebug($"event-handler-dispatch-completed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)}");
+                    FileLineProcessingDiagnostics.EventHandlerDispatchCompleted(domainEvent);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                Logger.LogError($"event-handler-dispatch-threw FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} Exception={ex}");
+                FileLineProcessingDiagnostics.EventHandlerDispatchThrew(domainEvent, ex);
                 throw;
             }
         }

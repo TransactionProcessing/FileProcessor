@@ -299,22 +299,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) {
-        String processingStage = "file-aggregate-load";
-        Boolean transactionDispatchAttempted = false;
-        Boolean transactionDispatchSucceeded = false;
-        Guid estateId = Guid.Empty;
-        Guid merchantId = Guid.Empty;
-        Guid fileProfileId = Guid.Empty;
-        String operatorName = null;
-        String responseCode = null;
+        FileLineProcessingContext processingContext = new(command);
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             FileDetails fileDetails = fileAggregate.GetFile();
-            estateId = fileDetails.EstateId;
-            merchantId = fileDetails.MerchantId;
-            fileProfileId = fileDetails.FileProfileId;
-            Logger.LogInformation($"line-processing-started FileId={command.FileId} LineNumber={command.LineNumber} EstateId={estateId} MerchantId={merchantId} FileProfileId={fileDetails.FileProfileId}");
+            processingContext.EstateId = fileDetails.EstateId;
+            processingContext.MerchantId = fileDetails.MerchantId;
+            processingContext.FileProfileId = fileDetails.FileProfileId;
+            FileLineProcessingDiagnostics.LineProcessingStarted(processingContext);
 
-            processingStage = "file-line-lookup";
+            processingContext.Stage = FileLineProcessingStage.FileLineLookup;
             if (fileDetails.FileLines.Any() == false) {
                 return Result.Invalid($"File Id [{command.FileId}] has no lines added");
             }
@@ -327,48 +320,48 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             if (fileLine.ProcessingResult != ProcessingResult.NotProcessed) {
                 // Line already processed
-                Logger.LogInformation($"file-line-processing-skipped FileId={command.FileId} LineNumber={command.LineNumber} ProcessingResult={fileLine.ProcessingResult}");
+                FileLineProcessingDiagnostics.LineProcessingSkipped(processingContext, fileLine.ProcessingResult);
                 return Result.Success();
             }
 
-            processingStage = "file-profile-lookup";
+            processingContext.Stage = FileLineProcessingStage.FileProfileLookup;
             Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
 
             if (fileProfileResult.IsFailed)
                 return ResultHelpers.CreateFailure(fileProfileResult);
 
             FileProfileModel fileProfile = fileProfileResult.Data;
-            operatorName = fileProfile.OperatorName;
+            processingContext.OperatorName = fileProfile.OperatorName;
             
             Result stateResult;
 
             // Determine if we need to actually process this file line
-            processingStage = "line-ignore-evaluation";
+            processingContext.Stage = FileLineProcessingStage.LineIgnoreEvaluation;
             if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
             {
-                processingStage = "file-line-state-update";
+                processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
                 // Write something to aggregate to say line was explicity ignored
                 stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
                 if (stateResult.IsFailed)
                     return stateResult;
-                Logger.LogInformation($"file-line-ignored FileId={command.FileId} LineNumber={command.LineNumber} EstateId={estateId} MerchantId={merchantId} Operator={operatorName} Reason=Ignored by file format handler");
-                processingStage = "file-line-state-persisted";
+                FileLineProcessingDiagnostics.LineIgnored(processingContext);
+                processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
                 return Result.Success();
             }
 
-            processingStage = "transaction-details-parsing";
+            processingContext.Stage = FileLineProcessingStage.TransactionDetailsParsing;
             Result<Dictionary<String, String>> metadataResult = this.BuildTransactionMetadata(command, fileLine, fileProfile, out String parsedOperatorName);
-            operatorName = parsedOperatorName;
+            processingContext.OperatorName = parsedOperatorName;
             if (metadataResult.IsFailed) {
-                processingStage = "file-line-state-update";
+                processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
                 stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
                 if (stateResult.IsFailed)
                     return ResultHelpers.CreateFailure(stateResult);
 
                 if (stateResult.IsSuccess)
                 {
-                    Logger.LogWarning($"file-line-rejected FileId={command.FileId} LineNumber={command.LineNumber} EstateId={estateId} MerchantId={merchantId} Operator={operatorName} Reason=Invalid Format");
-                    processingStage = "file-line-state-persisted";
+                    FileLineProcessingDiagnostics.LineRejected(processingContext, "Invalid Format");
+                    processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
                 }
                 return stateResult;
             }
@@ -378,49 +371,46 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction = await this.GetDetailsForTransaction(cancellationToken,
                                                                                                                                                    fileDetails,
                                                                                                                                                    fileProfile,
-                                                                                                                                                   operatorName,
-                                                                                                                                                   stage => processingStage = stage);
+                                                                                                                                                   processingContext.OperatorName,
+                                                                                                                                                   processingContext);
             if (detailsForTransaction.IsFailed)
                 return ResultHelpers.CreateFailure(detailsForTransaction);
             
-            processingStage = "transaction-details-resolved";
+            processingContext.Stage = FileLineProcessingStage.TransactionDetailsResolved;
             Result<SaleTransactionResponse> saleResult = await this.SendSaleTransaction(fileDetails,
                                                                                          detailsForTransaction,
                                                                                          metadataResult.Data,
-                                                                                         command,
-                                                                                         operatorName,
-                                                                                         stage => processingStage = stage,
-                                                                                         () => transactionDispatchAttempted = true,
+                                                                                         processingContext,
                                                                                          cancellationToken);
-            transactionDispatchSucceeded = saleResult.IsSuccess;
+            processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess;
             if (saleResult.IsSuccess)
-                responseCode = saleResult.Data.ResponseCode;
+                processingContext.ResponseCode = saleResult.Data.ResponseCode;
             
-            processingStage = "file-line-state-update";
+            processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
             stateResult = saleResult switch {
                 _ when saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000" => fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId),
                 _ when saleResult.IsSuccess => fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage),
                 _ when saleResult.IsFailed => fileAggregate.RecordFileLineAsFailed(command.LineNumber, Guid.Empty, "9999", "Failed to Send to Transaction Processor"),
             };
 
-            Logger.LogInformation($"file-line-state-determined FileId={command.FileId} LineNumber={command.LineNumber} ProcessingResult={(saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000" ? "Successful" : "Failed")} TransactionDispatchAttempted={transactionDispatchAttempted} TransactionDispatchSucceeded={transactionDispatchSucceeded} ResponseCode={responseCode}");
+            ProcessingResult processingResult = saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000"
+                ? ProcessingResult.Successful
+                : ProcessingResult.Failed;
+            FileLineProcessingDiagnostics.LineStateDetermined(processingContext, processingResult);
             if (stateResult.IsSuccess)
-                processingStage = "file-line-state-persisted";
+                processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
 
             return stateResult;
         }, command.FileId, cancellationToken);
 
         if (result.IsFailed)
         {
-            String failureStage = processingStage == "file-line-state-persisted"
-                ? "file-line-state-persisted/failed"
-                : processingStage;
-            Logger.LogError($"{failureStage} failed FileId={command.FileId} LineNumber={command.LineNumber} EstateId={estateId} MerchantId={merchantId} FileProfileId={fileProfileId} Operator={operatorName} TransactionDispatchAttempted={transactionDispatchAttempted} TransactionDispatchSucceeded={transactionDispatchSucceeded} ResponseCode={responseCode} ResultStatus={result.Status} Error={result.Message}");
+            FileLineProcessingDiagnostics.ProcessingFailed(processingContext, result);
             Logger.LogWarning($"{command.LineNumber} Status {result.Status} Message {result.Message}");
         }
-        else if (processingStage == "file-line-state-persisted")
+        else if (processingContext.Stage == FileLineProcessingStage.FileLineStatePersisted)
         {
-            Logger.LogInformation($"file-line-state-persisted FileId={command.FileId} LineNumber={command.LineNumber} EstateId={estateId} MerchantId={merchantId} FileProfileId={fileProfileId} Operator={operatorName} TransactionDispatchAttempted={transactionDispatchAttempted} TransactionDispatchSucceeded={transactionDispatchSucceeded} ResponseCode={responseCode}");
+            FileLineProcessingDiagnostics.LineStatePersisted(processingContext);
         }
 
         return result;
@@ -456,12 +446,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     private async Task<Result<SaleTransactionResponse>> SendSaleTransaction(FileDetails fileDetails,
                                                                             Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction,
                                                                             Dictionary<String, String> transactionMetadata,
-                                                                            FileCommands.ProcessTransactionForFileLineCommand command,
-                                                                            String operatorName,
-                                                                            Action<String> setProcessingStage,
-                                                                            Action markDispatchAttempted,
+                                                                            FileLineProcessingContext processingContext,
                                                                             CancellationToken cancellationToken) {
-        setProcessingStage("token-acquisition");
+        processingContext.Stage = FileLineProcessingStage.TokenAcquisition;
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
         if (getTokenResult.IsFailed) {
             return ResultHelpers.CreateFailure(getTokenResult);
@@ -486,29 +473,29 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             
             
         // Send request to transaction processor
-        setProcessingStage("transaction-dispatch-started");
-        markDispatchAttempted();
-        Logger.LogInformation($"transaction-dispatch-started FileId={command.FileId} LineNumber={command.LineNumber} EstateId={fileDetails.EstateId} MerchantId={fileDetails.MerchantId} Operator={operatorName} ClientOperation=PerformTransaction");
+        processingContext.Stage = FileLineProcessingStage.TransactionDispatchStarted;
+        processingContext.TransactionDispatchAttempted = true;
+        FileLineProcessingDiagnostics.TransactionDispatchStarted(processingContext);
         Result<SaleTransactionResponse> result = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
         if (result.IsFailed)
         {
-            Logger.LogError($"transaction-dispatch-failed FileId={command.FileId} LineNumber={command.LineNumber} EstateId={fileDetails.EstateId} MerchantId={fileDetails.MerchantId} Operator={operatorName} ClientOperation=PerformTransaction ResultStatus={result.Status} Error={result.Message}");
+            FileLineProcessingDiagnostics.TransactionDispatchFailed(processingContext, result);
             return ResultHelpers.CreateFailure(result);
         }
 
-        Logger.LogInformation($"transaction-dispatch-completed FileId={command.FileId} LineNumber={command.LineNumber} EstateId={fileDetails.EstateId} MerchantId={fileDetails.MerchantId} Operator={operatorName} ClientOperation=PerformTransaction TransactionId={result.Data.TransactionId} ResponseCode={result.Data.ResponseCode} ResponseMessage={result.Data.ResponseMessage}");
-        setProcessingStage("transaction-dispatch-completed");
+        FileLineProcessingDiagnostics.TransactionDispatchCompleted(processingContext, result.Data);
+        processingContext.Stage = FileLineProcessingStage.TransactionDispatchCompleted;
 
         return result;
     }
 
     private async Task<Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)>> GetDetailsForTransaction(CancellationToken cancellationToken,
-                                                                                                                                                                                                   FileDetails fileDetails,
-                                                                                                                                                                                                   FileProfileModel fileProfile,
-                                                                                                                                   String operatorName,
-                                                                                                                                   Action<String> setProcessingStage) {
+                                                                                                                                   FileDetails fileDetails,
+                                                                                                                                   FileProfileModel fileProfile,
+                                                                                                                                  String operatorName,
+                                                                                                                                   FileLineProcessingContext processingContext) {
 
-        setProcessingStage("token-acquisition");
+        processingContext.Stage = FileLineProcessingStage.TokenAcquisition;
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
         if (getTokenResult.IsFailed)
         {
@@ -518,7 +505,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         this.TokenResponse = getTokenResult.Data;
 
         // Get the merchant details
-        setProcessingStage("merchant-lookup");
+        processingContext.Stage = FileLineProcessingStage.MerchantLookup;
         Result<MerchantResponse> getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
         if (getMerchantResult.IsFailed) {
             return ResultHelpers.CreateFailure(getMerchantResult);
@@ -528,7 +515,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (merchant == null)
             return Result.NotFound($"Merchant Id {fileDetails.MerchantId} not found on estate Id {fileDetails.EstateId}");
 
-        setProcessingStage("contract-lookup");
+        processingContext.Stage = FileLineProcessingStage.ContractLookup;
         Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
         if (getContractsResult.IsFailed) {
             return ResultHelpers.CreateFailure(getContractsResult);
@@ -540,7 +527,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
         }
 
-        setProcessingStage("contract-operator-match");
+        processingContext.Stage = FileLineProcessingStage.ContractOperatorMatch;
         ContractResponse contract = fileProfile.OperatorName switch {
             "Voucher" => contracts.SingleOrDefault(c => c.Description.Contains(operatorName)),
             _ => contracts.SingleOrDefault(c => c.OperatorName == operatorName)
@@ -550,14 +537,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
         }
 
-        setProcessingStage("variable-value-product-lookup");
+        processingContext.Stage = FileLineProcessingStage.VariableValueProductLookup;
         ContractProduct product = contract.Products?.SingleOrDefault(p => p.Value == null);
 
         if (product == null) {
             return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
         }
 
-        setProcessingStage("merchant-device-resolution");
+        processingContext.Stage = FileLineProcessingStage.MerchantDeviceResolution;
         if (merchant == null || merchant.Devices == null || merchant.Devices.Any() == false || String.IsNullOrWhiteSpace(merchant.Devices.First().Value))
             return Result.NotFound($"No valid merchant device found for Merchant Id {merchant.MerchantId} on estate Id {fileDetails.EstateId}");
 
