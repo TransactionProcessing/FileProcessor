@@ -17,6 +17,7 @@ using FileFormatHandlers;
 using FileImportLogAggregate;
 using Managers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Imposter.Abstractions;
 using Requests;
 using SecurityService.Client;
@@ -49,6 +50,7 @@ public class FileProcessorDomainServiceTests
     private FileProcessorDomainService FileProcessorDomainService;
 
     private MockFileSystem FileSystem;
+    private CapturingLogger<FileProcessorDomainService> DiagnosticLogger;
     public FileProcessorDomainServiceTests()
     {
         IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
@@ -65,6 +67,7 @@ public class FileProcessorDomainServiceTests
         this.SecurityServiceClient = new ISecurityServiceClientImposter();
         this.FileFormatHandler = new IFileFormatHandlerImposter();
         this.FileSystem = new MockFileSystem();
+        this.DiagnosticLogger = new CapturingLogger<FileProcessorDomainService>();
 
         Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
                                                                      {
@@ -77,7 +80,8 @@ public class FileProcessorDomainServiceTests
                                                                          this.TransactionProcessorClient.Instance(),
                                                                          this.SecurityServiceClient.Instance(),
                                                                          fileFormatHandlerResolver,
-                                                                         this.FileSystem);
+                                                                         this.FileSystem,
+                                                                         this.DiagnosticLogger);
         Logger.Initialise(NullLogger.Instance);
     }
 
@@ -552,6 +556,9 @@ public class FileProcessorDomainServiceTests
 
         Result result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
         result.IsFailed.ShouldBeTrue();
+        this.DiagnosticLogger.Messages.ShouldContain(message => message.Contains("file-line-state-persisted/failed") &&
+                                                                 message.Contains(TestData.FileId.ToString()) &&
+                                                                 message.Contains(TestData.ProcessTransactionForFileLineCommand.LineNumber.ToString()));
     }
 
     [Theory]
@@ -810,6 +817,11 @@ var result =                             await this.FileProcessorDomainService.P
         var result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
         result.IsFailed.ShouldBeTrue();
         result.Status.ShouldBe(ResultStatus.NotFound);
+        this.DiagnosticLogger.Messages.ShouldContain(message => message.Contains("contract-lookup") &&
+                                                                 message.Contains(TestData.FileId.ToString()) &&
+                                                                 message.Contains(TestData.ProcessTransactionForFileLineCommand.LineNumber.ToString()));
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
+            .Called(Count.Never());
     }
 
     [Fact]
@@ -944,6 +956,9 @@ var result =                             await this.FileProcessorDomainService.P
         var result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
         result.IsFailed.ShouldBeTrue();
         result.Status.ShouldBe(ResultStatus.Failure);
+        this.DiagnosticLogger.Messages.ShouldContain(message => message.Contains("transaction-dispatch-failed") &&
+                                                                 message.Contains("PerformTransaction") &&
+                                                                 message.Contains(TestData.FileId.ToString()));
     }
 
     [Fact]
@@ -970,6 +985,9 @@ var result =                             await this.FileProcessorDomainService.P
         var result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
         result.IsFailed.ShouldBeTrue();
         result.Status.ShouldBe(ResultStatus.Failure);
+        this.DiagnosticLogger.Messages.ShouldContain(message => message.Contains("transaction-dispatch-completed") &&
+                                                                 message.Contains(TestData.ResponseCodeFailed) &&
+                                                                 message.Contains(TestData.FileId.ToString()));
     }
     
 
