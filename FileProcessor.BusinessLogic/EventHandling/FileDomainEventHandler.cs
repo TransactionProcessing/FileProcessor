@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Shared.Logger;
+using System;
 using SimpleResults;
+using FileProcessor.BusinessLogic.Common;
 
 namespace FileProcessor.BusinessLogic.EventHandling
 {
@@ -62,8 +63,25 @@ namespace FileProcessor.BusinessLogic.EventHandling
                                                     CancellationToken cancellationToken)
         {
             FileCommands.ProcessTransactionForFileLineCommand command = new (domainEvent.FileId, domainEvent.LineNumber, domainEvent.FileLine);
+            try
+            {
+                Result result = await this.Mediator.Send(command, cancellationToken);
+                if (result.IsFailed)
+                {
+                    FileLineProcessingDiagnostics.EventHandlerDispatchFailed(domainEvent, result);
+                }
+                else
+                {
+                    FileLineProcessingDiagnostics.EventHandlerDispatchCompleted(domainEvent);
+                }
 
-            return await this.Mediator.Send(command, cancellationToken);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                FileLineProcessingDiagnostics.EventHandlerDispatchThrew(domainEvent, ex);
+                throw;
+            }
         }
 
         /// <summary>
