@@ -301,6 +301,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) {
         FileLineProcessingContext processingContext = new(command);
+        Result dispatchFailureResult = null;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             FileDetails fileDetails = fileAggregate.GetFile();
             processingContext.EstateId = fileDetails.EstateId;
@@ -389,9 +390,20 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 processingContext.ResponseCode = saleResult.Data.ResponseCode;
 
             // A failed dispatch has no definitive processor response. Leave the line unmodified so
-            // the file processing workflow can retry it with the same transaction number.
+            // the file processing workflow can retry it with the same file and line identity.
             if (saleResult.IsFailed)
-                return ResultHelpers.CreateFailure(saleResult);
+            {
+                stateResult = fileAggregate.RecordTransactionDispatchFailure(command.LineNumber,
+                                                                              transactionNumber,
+                                                                              processingContext.TransactionDispatchFailureType,
+                                                                              DateTime.UtcNow);
+                if (stateResult.IsFailed)
+                    return stateResult;
+
+                dispatchFailureResult = ResultHelpers.CreateFailure(saleResult);
+                processingContext.Stage = FileLineProcessingStage.TransactionDispatchAttemptPersisted;
+                return Result.Success();
+            }
             
             processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
             stateResult = saleResult.Data.ResponseCode == "0000"
@@ -407,6 +419,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             return stateResult;
         }, command.FileId, cancellationToken);
+
+        if (result.IsSuccess && dispatchFailureResult != null)
+            result = dispatchFailureResult;
 
         if (result.IsFailed)
         {
@@ -482,9 +497,26 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         processingContext.Stage = FileLineProcessingStage.TransactionDispatchStarted;
         processingContext.TransactionDispatchAttempted = true;
         FileLineProcessingDiagnostics.TransactionDispatchStarted(processingContext);
-        Result<SaleTransactionResponse> result = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
+        Result<SaleTransactionResponse> result;
+        try
+        {
+            result = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            processingContext.TransactionDispatchFailureType = exception is TimeoutException or TaskCanceledException
+                ? "Timeout"
+                : "SendFailure";
+            return Result.Failure(exception.GetExceptionMessages());
+        }
+
         if (result.IsFailed)
         {
+            processingContext.TransactionDispatchFailureType = "SendFailure";
             FileLineProcessingDiagnostics.TransactionDispatchFailed(processingContext, result);
             return ResultHelpers.CreateFailure(result);
         }

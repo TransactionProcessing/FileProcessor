@@ -84,6 +84,13 @@ namespace FileProcessor.BusinessLogic.EventHandling
             }
         }
 
+        private Task<Result> HandleSpecificDomainEvent(FileLineTransactionDispatchFailedEvent domainEvent,
+                                                       CancellationToken cancellationToken)
+        {
+            // The event records an attempt for audit purposes; it must not enqueue the line as completed.
+            return Task.FromResult(Result.Success());
+        }
+
         /// <summary>
         /// Handles the specific domain event.
         /// </summary>

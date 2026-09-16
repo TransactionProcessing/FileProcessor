@@ -1,6 +1,7 @@
 ﻿namespace FileProcessor.Models
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// 
@@ -49,6 +50,10 @@
         /// The rejected reason.
         /// </value>
         public String RejectedReason { get; set; }
+
+        public Int32 DispatchAttemptCount { get; set; }
+
+        public List<TransactionDispatchAttempt> FailedDispatchAttempts { get; set; } = new();
 
         #endregion
     }

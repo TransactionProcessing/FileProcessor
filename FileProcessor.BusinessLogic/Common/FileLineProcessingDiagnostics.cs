@@ -25,6 +25,7 @@ internal enum FileLineProcessingStage
     TransactionDetailsResolved,
     TransactionDispatchStarted,
     TransactionDispatchCompleted,
+    TransactionDispatchAttemptPersisted,
     FileLineStateUpdate,
     FileLineStatePersisted
 }
@@ -43,6 +44,8 @@ internal sealed class FileLineProcessingContext
     public Boolean TransactionDispatchAttempted { get; set; }
 
     public Boolean TransactionDispatchSucceeded { get; set; }
+
+    public String TransactionDispatchFailureType { get; set; }
 
     public Guid EstateId { get; set; }
 
@@ -141,6 +144,7 @@ internal static class FileLineProcessingDiagnostics
         FileLineProcessingStage.TransactionDetailsResolved => "transaction-details-resolved",
         FileLineProcessingStage.TransactionDispatchStarted => "transaction-dispatch-started",
         FileLineProcessingStage.TransactionDispatchCompleted => "transaction-dispatch-completed",
+        FileLineProcessingStage.TransactionDispatchAttemptPersisted => "transaction-dispatch-attempt-persisted",
         FileLineProcessingStage.FileLineStateUpdate => "file-line-state-update",
         FileLineProcessingStage.FileLineStatePersisted => "file-line-state-persisted",
         _ => throw new ArgumentOutOfRangeException(nameof(stage), stage, "Unknown file-line processing stage")

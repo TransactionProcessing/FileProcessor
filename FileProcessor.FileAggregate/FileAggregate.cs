@@ -59,7 +59,8 @@ namespace FileProcessor.FileAggregate
             aggregate.FileLines.Add(new FileLine
                                     {
                                         LineData = domainEvent.FileLine,
-                                        LineNumber = domainEvent.LineNumber
+                                        LineNumber = domainEvent.LineNumber,
+                                        FailedDispatchAttempts = new List<TransactionDispatchAttempt>()
                                     });
         }
 
@@ -84,6 +85,7 @@ namespace FileProcessor.FileAggregate
             FileLine fileLine = aggregate.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
             fileLine.ProcessingResult = ProcessingResult.Successful;
+            fileLine.DispatchAttemptCount++;
         }
         
         public static void PlayEvent(this FileAggregate aggregate, FileLineProcessingFailedEvent domainEvent)
@@ -92,6 +94,19 @@ namespace FileProcessor.FileAggregate
             FileLine fileLine = aggregate.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
             fileLine.ProcessingResult = ProcessingResult.Failed;
+            fileLine.DispatchAttemptCount++;
+        }
+
+        public static void PlayEvent(this FileAggregate aggregate, FileLineTransactionDispatchFailedEvent domainEvent)
+        {
+            FileLine fileLine = aggregate.FileLines.Single(line => line.LineNumber == domainEvent.LineNumber);
+            fileLine.DispatchAttemptCount++;
+            fileLine.FailedDispatchAttempts.Add(new TransactionDispatchAttempt
+                                                {
+                                                    TransactionNumber = domainEvent.TransactionNumber,
+                                                    FailureType = domainEvent.FailureType,
+                                                    AttemptedAt = domainEvent.AttemptedAt
+                                                });
         }
 
         public static void PlayEvent(this FileAggregate aggregate, FileProcessingCompletedEvent domainEvent)
@@ -212,6 +227,30 @@ namespace FileProcessor.FileAggregate
             aggregate.ApplyAndAppend(fileLineProcessingFailedEvent);
 
             aggregate.CompletedChecks();
+
+            return Result.Success();
+        }
+
+        public static Result RecordTransactionDispatchFailure(this FileAggregate aggregate,
+                                                               Int32 lineNumber,
+                                                               Int32 transactionNumber,
+                                                               String failureType,
+                                                               DateTime attemptedAt)
+        {
+            if (aggregate.FileLines.Any() == false)
+                return Result.Invalid("File has no lines to record a dispatch failure for");
+
+            if (aggregate.FileLines.SingleOrDefault(line => line.LineNumber == lineNumber) == null)
+                return Result.NotFound($"File line with number {lineNumber} not found to record a dispatch failure for");
+
+            FileLineTransactionDispatchFailedEvent dispatchFailedEvent = new(aggregate.AggregateId,
+                                                                             aggregate.EstateId,
+                                                                             aggregate.MerchantId,
+                                                                             lineNumber,
+                                                                             transactionNumber,
+                                                                             failureType,
+                                                                             attemptedAt);
+            aggregate.ApplyAndAppend(dispatchFailedEvent);
 
             return Result.Success();
         }
