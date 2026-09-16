@@ -13,6 +13,7 @@ getSupportedEventTypes = function () {
     eventTypes.push('FileLineProcessingSuccessfulEvent');
     eventTypes.push('FileLineProcessingIgnoredEvent');
     eventTypes.push('FileLineProcessingFailedEvent');
+    eventTypes.push('FileLineTransactionDispatchFailedEvent');
     eventTypes.push('FileProcessingCompletedEvent');
 
     return eventTypes;

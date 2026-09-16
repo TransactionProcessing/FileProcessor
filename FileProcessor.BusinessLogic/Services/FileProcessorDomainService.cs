@@ -11,6 +11,7 @@ using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -300,6 +301,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) {
         FileLineProcessingContext processingContext = new(command);
+        Result dispatchFailureResult = null;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             FileDetails fileDetails = fileAggregate.GetFile();
             processingContext.EstateId = fileDetails.EstateId;
@@ -366,7 +368,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return stateResult;
             }
 
-            Interlocked.Increment(ref TransactionNumber);
+            Int32 transactionNumber = Interlocked.Increment(ref TransactionNumber);
 
             Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction = await this.GetDetailsForTransaction(cancellationToken,
                                                                                                                                                    fileDetails,
@@ -380,18 +382,33 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result<SaleTransactionResponse> saleResult = await this.SendSaleTransaction(fileDetails,
                                                                                          detailsForTransaction,
                                                                                          metadataResult.Data,
+                                                                                         transactionNumber,
                                                                                          processingContext,
                                                                                          cancellationToken);
             processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess;
             if (saleResult.IsSuccess)
                 processingContext.ResponseCode = saleResult.Data.ResponseCode;
+
+            // A failed dispatch has no definitive processor response. Leave the line unmodified so
+            // the file processing workflow can retry it with the same file and line identity.
+            if (saleResult.IsFailed)
+            {
+                stateResult = fileAggregate.RecordTransactionDispatchFailure(command.LineNumber,
+                                                                              transactionNumber,
+                                                                              processingContext.TransactionDispatchFailureType,
+                                                                              DateTime.UtcNow);
+                if (stateResult.IsFailed)
+                    return stateResult;
+
+                dispatchFailureResult = ResultHelpers.CreateFailure(saleResult);
+                processingContext.Stage = FileLineProcessingStage.TransactionDispatchAttemptPersisted;
+                return Result.Success();
+            }
             
             processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
-            stateResult = saleResult switch {
-                _ when saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000" => fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId),
-                _ when saleResult.IsSuccess => fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage),
-                _ when saleResult.IsFailed => fileAggregate.RecordFileLineAsFailed(command.LineNumber, Guid.Empty, "9999", "Failed to Send to Transaction Processor"),
-            };
+            stateResult = saleResult.Data.ResponseCode == "0000"
+                ? fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId)
+                : fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage);
 
             ProcessingResult processingResult = saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000"
                 ? ProcessingResult.Successful
@@ -402,6 +419,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             return stateResult;
         }, command.FileId, cancellationToken);
+
+        if (result.IsSuccess && dispatchFailureResult != null)
+            result = dispatchFailureResult;
 
         if (result.IsFailed)
         {
@@ -446,6 +466,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     private async Task<Result<SaleTransactionResponse>> SendSaleTransaction(FileDetails fileDetails,
                                                                             Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction,
                                                                             Dictionary<String, String> transactionMetadata,
+                                                                            Int32 transactionNumber,
                                                                             FileLineProcessingContext processingContext,
                                                                             CancellationToken cancellationToken) {
         processingContext.Stage = FileLineProcessingStage.TokenAcquisition;
@@ -461,7 +482,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             EstateId = fileDetails.EstateId,
             MerchantId = fileDetails.MerchantId,
             TransactionDateTime = fileDetails.FileReceivedDateTime,
-            TransactionNumber = TransactionNumber.ToString(),
+            TransactionNumber = transactionNumber.ToString(CultureInfo.InvariantCulture),
             TransactionType = "Sale",
             ContractId = detailsForTransaction.Data.ContractId,
             DeviceIdentifier = detailsForTransaction.Data.MerchantDevice,
@@ -476,9 +497,26 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         processingContext.Stage = FileLineProcessingStage.TransactionDispatchStarted;
         processingContext.TransactionDispatchAttempted = true;
         FileLineProcessingDiagnostics.TransactionDispatchStarted(processingContext);
-        Result<SaleTransactionResponse> result = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
+        Result<SaleTransactionResponse> result;
+        try
+        {
+            result = await this.TransactionProcessorClient.PerformTransaction(this.TokenResponse.AccessToken, saleTransactionRequest, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            processingContext.TransactionDispatchFailureType = exception is TimeoutException or TaskCanceledException
+                ? "Timeout"
+                : "SendFailure";
+            return Result.Failure(exception.GetExceptionMessages());
+        }
+
         if (result.IsFailed)
         {
+            processingContext.TransactionDispatchFailureType = "SendFailure";
             FileLineProcessingDiagnostics.TransactionDispatchFailed(processingContext, result);
             return ResultHelpers.CreateFailure(result);
         }
@@ -641,7 +679,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     }
 
     private static Int32 TransactionNumber = 0;
-    
+
     private Boolean FileLineCanBeIgnored(String domainEventFileLine,
                                          String fileProfileFileFormatHandler)
     {

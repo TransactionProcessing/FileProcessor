@@ -9,6 +9,8 @@
 
     public record FileLineProcessingFailedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, Guid TransactionId, String ResponseCode, String ResponseMessage) : DomainEvent(FileId, Guid.NewGuid());
 
+    public record FileLineTransactionDispatchFailedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, Int32 TransactionNumber, String FailureType, DateTime AttemptedAt) : DomainEvent(FileId, Guid.NewGuid());
+
     public record FileLineProcessingRejectedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String Reason) : DomainEvent(FileId, Guid.NewGuid());
 
     public record FileLineProcessingIgnoredEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber) : DomainEvent(FileId, Guid.NewGuid());

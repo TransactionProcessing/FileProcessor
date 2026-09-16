@@ -10,11 +10,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FileAggregate;
 using FileFormatHandlers;
 using FileImportLogAggregate;
+using Models;
 using Managers;
 using Microsoft.Extensions.Configuration;
 using Imposter.Abstractions;
@@ -960,11 +962,113 @@ var result =                             await this.FileProcessorDomainService.P
     }
 
     [Fact]
+    public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_SendFailure_LeavesLineEligibleForRetry()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLines();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Failure());
+        this.TransactionProcessorClient.GetMerchant(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
+        this.TransactionProcessorClient.GetMerchantContracts(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetMerchantContractsResponse()));
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+        this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns(TestData.TransactionMetadata);
+
+        Result result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
+        fileAggregate.GetFile().FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.NotProcessed);
+        fileAggregate.GetFile().FileLines.Single().FailedDispatchAttempts.ShouldHaveSingleItem().FailureType.ShouldBe("SendFailure");
+        fileAggregate.GetFile().FileLines.Single().DispatchAttemptCount.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_RetryCarriesSameFileLineIdentity()
+    {
+        Int32 aggregateReadCount = 0;
+        Int32 transactionAttemptCount = 0;
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLines();
+        List<String> transactionNumbers = new();
+        List<String> retryKeys = new();
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .Returns((Guid fileId, CancellationToken cancellationToken) =>
+            {
+                aggregateReadCount++;
+                return Task.FromResult(Result.Success(fileAggregate));
+            });
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
+            .Returns(async (String accessToken, SaleTransactionRequest request, CancellationToken cancellationToken) =>
+            {
+                transactionAttemptCount++;
+                transactionNumbers.Add(request.TransactionNumber);
+                retryKeys.Add($"{request.AdditionalTransactionMetadata["FileId"]}:{request.AdditionalTransactionMetadata["FileLineNumber"]}");
+                if (transactionAttemptCount == 1)
+                    return Result.Failure();
+
+                return TestData.ClientSaleTransactionResponse;
+            });
+        this.TransactionProcessorClient.GetMerchant(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
+        this.TransactionProcessorClient.GetMerchantContracts(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetMerchantContractsResponse()));
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+        this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns((String line) => new Dictionary<String, String>(TestData.TransactionMetadata));
+
+        Result firstAttempt = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
+        Result retry = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
+
+        firstAttempt.IsFailed.ShouldBeTrue();
+        retry.IsSuccess.ShouldBeTrue();
+        aggregateReadCount.ShouldBe(2);
+        transactionAttemptCount.ShouldBe(2);
+        transactionNumbers.Count.ShouldBe(2);
+        Int32.TryParse(transactionNumbers[0], out _).ShouldBeTrue();
+        Int32.TryParse(transactionNumbers[1], out _).ShouldBeTrue();
+        retryKeys[0].ShouldBe(retryKeys[1]);
+        fileAggregate.GetFile().FileLines.Single().DispatchAttemptCount.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_TransactionDispatchTimeout_RecordsAttemptAndLeavesLineEligibleForRetry()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLines();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
+            .ThrowsAsync(new TimeoutException("Transaction processor request timed out"));
+        this.TransactionProcessorClient.GetMerchant(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
+        this.TransactionProcessorClient.GetMerchantContracts(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetMerchantContractsResponse()));
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+        this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns(TestData.TransactionMetadata);
+
+        Result result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
+        fileAggregate.GetFile().FileLines.Single().ProcessingResult.ShouldBe(ProcessingResult.NotProcessed);
+        fileAggregate.GetFile().FileLines.Single().FailedDispatchAttempts.ShouldHaveSingleItem().FailureType.ShouldBe("Timeout");
+        fileAggregate.GetFile().FileLines.Single().DispatchAttemptCount.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_TransactionNotSuccessful_RequestIsHandled()
     {
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
 
-        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLines();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileAggregate));
 
         this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(TestData.ClientSaleTransactionFailedResponse);
@@ -986,6 +1090,7 @@ var result =                             await this.FileProcessorDomainService.P
         this.DiagnosticLogger.Messages.ShouldContain(message => message.Contains("transaction-dispatch-completed") &&
                                                                  message.Contains(TestData.ResponseCodeFailed) &&
                                                                  message.Contains(TestData.FileId.ToString()));
+        fileAggregate.GetFile().FileLines.Single().DispatchAttemptCount.ShouldBe(1);
     }
     
 
