@@ -146,14 +146,6 @@ namespace FileProcessor
             app.UseSwagger();
 
             app.UseSwaggerUI();
-
-            lifetime.ApplicationStarted.Register(() =>
-            {
-                host.RegisterWithUptimeKumaAsync()
-                    .GetAwaiter()
-                    .GetResult();
-            });
-
             app.PreWarm();
         }
     }
