@@ -1,4 +1,5 @@
-﻿using KurrentDB.Client;
+﻿using HealthMonitoring.Client;
+using KurrentDB.Client;
 using Microsoft.OpenApi;
 using Shared.Monitoring;
 
@@ -120,7 +121,7 @@ namespace FileProcessor.Bootstrapper
                 options.MemoryBufferThreshold = int.MaxValue;             // buffer threshold
             });
 
-            this.AddUptimeKuma();
+            this.AddHealthMonitoringRegistration(Startup.Configuration);
         }
 
         #endregion
