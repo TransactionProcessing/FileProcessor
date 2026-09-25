@@ -17,7 +17,8 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                                       IRequestHandler<FileCommands.UploadFileCommand, Result>,
                                       IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>,
                                       IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>,
-                                      IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>
+                                      IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>,
+                                      IRequestHandler<FileCommands.ReplayFileLineCommand, Result>
     {
         private readonly IFileProcessorDomainService DomainService;
         private readonly IFileProcessorManager Manager;
@@ -55,6 +56,11 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
         public async Task<Result<Models.FileImportLog>> Handle(FileQueries.GetImportLogQuery query,
                                                                CancellationToken cancellationToken) {
             return await this.Manager.GetFileImportLog(query.FileImportLogId, query.EstateId, query.MerchantId, cancellationToken);
+        }
+
+        public async Task<Result> Handle(FileCommands.ReplayFileLineCommand request, CancellationToken cancellationToken)
+        {
+            return await this.DomainService.ReplayFileLine(request, cancellationToken);
         }
     }
 }

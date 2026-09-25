@@ -1092,6 +1092,67 @@ var result =                             await this.FileProcessorDomainService.P
                                                                  message.Contains(TestData.FileId.ToString()));
         fileAggregate.GetFile().FileLines.Single().DispatchAttemptCount.ShouldBe(1);
     }
+
+    [Fact]
+    public async Task FileRequestHandler_ReplayFileLineRequest_UnprocessedLineIsProcessed()
+    {
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLines();
+        FileLine fileLine = fileAggregate.GetFile().FileLines.Single();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.TransactionProcessorClient.GetMerchant(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.GetMerchantResponseWithOperator);
+        this.TransactionProcessorClient.GetMerchantContracts(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetMerchantContractsResponse()));
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.ClientSaleTransactionResponse);
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+        this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns(TestData.TransactionMetadata);
+
+        FileCommands.ReplayFileLineCommand command = new(TestData.FileId, TestData.EstateId, fileLine.LineNumber);
+
+        Result result = await this.FileProcessorDomainService.ReplayFileLine(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        fileLine.ProcessingResult.ShouldBe(ProcessingResult.Successful);
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).Called(Count.Twice());
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ReplayFileLineRequest_AlreadyProcessedLineIsIgnored()
+    {
+        FileAggregate fileAggregate = TestData.GetFileAggregateWithLinesAlreadyProcessed();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+
+        Result result = await this.FileProcessorDomainService.ReplayFileLine(
+            new FileCommands.ReplayFileLineCommand(TestData.FileId, TestData.EstateId, 1), CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ReplayFileLineRequest_LineNotFound_ReturnsFailure()
+    {
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+
+        Result result = await this.FileProcessorDomainService.ReplayFileLine(
+            new FileCommands.ReplayFileLineCommand(TestData.FileId, TestData.EstateId, TestData.NotFoundLineNumber), CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task FileRequestHandler_ReplayFileLineRequest_FileAggregateNotFound_ReturnsNotFound()
+    {
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.NotFound());
+
+        Result result = await this.FileProcessorDomainService.ReplayFileLine(
+            new FileCommands.ReplayFileLineCommand(TestData.FileId, TestData.EstateId, TestData.LineNumber), CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Status.ShouldBe(ResultStatus.NotFound);
+    }
     
 
     private void VerifyFileProcessing(String filePath)

@@ -5,6 +5,7 @@ using Xunit;
 namespace FileProcessor.FileAggregate.Tests
 {
     using System.Linq;
+    using File.DomainEvents;
     using FileProcessor.Models;
     using Shared.Exceptions;
     using Shouldly;
@@ -86,6 +87,17 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.ProcessingSummary.FailedLines.ShouldBe(0);
             fileDetails.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(0);
             fileDetails.ProcessingSummary.IgnoredLines.ShouldBe(0);
+        }
+
+        [Fact]
+        public void FileAggregate_PlayFileLineAddedEvent_PreservesEventIdOnFileLine()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            FileLineAddedEvent domainEvent = TestData.FileLineAddedEvent;
+
+            fileAggregate.PlayEvent(domainEvent);
+
+            fileAggregate.GetFile().FileLines.Single().EventId.ShouldBe(domainEvent.EventId);
         }
 
         [Fact]

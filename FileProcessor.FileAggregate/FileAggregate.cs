@@ -60,7 +60,8 @@ namespace FileProcessor.FileAggregate
                                     {
                                         LineData = domainEvent.FileLine,
                                         LineNumber = domainEvent.LineNumber,
-                                        FailedDispatchAttempts = new List<TransactionDispatchAttempt>()
+                                        FailedDispatchAttempts = new List<TransactionDispatchAttempt>(),
+                                        EventId= domainEvent.EventId
                                     });
         }
 
