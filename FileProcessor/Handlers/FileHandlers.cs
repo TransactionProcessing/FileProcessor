@@ -20,7 +20,7 @@ namespace FileProcessor.Handlers;
 
 public static class FileHandlers
 {
-    public static async Task<IResult> UploadFileAsync(IMediator mediator,
+    public static async Task<IResult> UploadFile(IMediator mediator,
                                                       [FromForm] UploadFileRequest request,
                                                       [FromForm] IFormCollection formCollection,
                                                       CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ public static class FileHandlers
         return ResponseFactory.FromResult(result, r => r);
     }
 
-    public static async Task<IResult> GetFileAsync(IMediator mediator,
+    public static async Task<IResult> GetFile(IMediator mediator,
                                                    [FromRoute] Guid fileId,
                                                    [FromQuery] Guid estateId,
                                                    CancellationToken cancellationToken)
@@ -65,5 +65,17 @@ public static class FileHandlers
         Result<FileDetails> result = await mediator.Send(query, cancellationToken);
 
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
+    }
+
+    public static async Task<IResult> ReplayLine(IMediator mediator,
+                                                   [FromRoute] Guid fileId,
+                                                   [FromQuery] Guid estateId,
+                                                   [FromRoute] Int32 lineNumber,
+                                                   CancellationToken cancellationToken)
+    {
+        FileCommands.ReplayFileLineCommand command = new(fileId, estateId, lineNumber);
+        Result result = await mediator.Send(command, cancellationToken);
+
+        return ResponseFactory.FromResult(result);
     }
 }

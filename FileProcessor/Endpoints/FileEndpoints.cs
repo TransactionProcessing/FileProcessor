@@ -16,12 +16,15 @@ public static class FileEndpoints
             .WithTags("Files")
             .RequireAuthorization();
 
-        group.MapPost("/", FileHandlers.UploadFileAsync)
+        group.MapPost("/", FileHandlers.UploadFile)
             .DisableAntiforgery()
             .Accepts<IFormFile>("multipart/form-data")
             .WithName("UploadFile");
 
-        group.MapGet("/{fileId:guid}", FileHandlers.GetFileAsync)
+        group.MapGet("/{fileId:guid}", FileHandlers.GetFile)
             .WithName("GetFile");
+
+        group.MapPost("/{fileId:guid}/lines/{lineNumber:int}/retry", FileHandlers.ReplayLine)
+            .WithName("ReplayLine");
     }
 }

@@ -47,6 +47,8 @@ public interface IFileProcessorDomainService
 
     Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                CancellationToken cancellationToken);
+
+    Task<Result> ReplayFileLine(FileCommands.ReplayFileLineCommand command, CancellationToken cancellationToken);
 }
 
 public class FileProcessorDomainService : IFileProcessorDomainService
@@ -297,6 +299,34 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         return Result.Success(@operator.OperatorId);
     }
+
+    public async Task<Result> ReplayFileLine(FileCommands.ReplayFileLineCommand command, CancellationToken cancellationToken)
+    {
+        Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) =>
+        {
+            FileDetails fileDetails = fileAggregate.GetFile();
+            // Now find the line to be resumbitted
+            FileLine fileLine = fileDetails.FileLines.SingleOrDefault(l => l.LineNumber == command.LineNumber);
+            if (fileLine == null)
+            {
+                return Result.NotFound($"Line number {command.LineNumber} not found in file Id {command.FileId}");
+            }
+
+            if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
+            {
+                return Result.Success();
+            }
+
+            // Build the command to reprocess the line
+            FileCommands.ProcessTransactionForFileLineCommand processTransactionForFileLineCommand = new FileCommands.ProcessTransactionForFileLineCommand(command.FileId, fileLine.EventId,
+                command.LineNumber, fileLine.LineData);
+            Result result = await this.ProcessTransactionForFileLine(processTransactionForFileLineCommand, cancellationToken);
+            return result;
+        }, command.FileId, cancellationToken);
+
+        return result;
+    }
+
 
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) {

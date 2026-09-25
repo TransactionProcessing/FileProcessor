@@ -5,7 +5,7 @@
     <PackageVersion Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
     <PackageVersion Include="ClientProxyBase" Version="2026.9.4" />
-    <PackageVersion Include="HealthMonitoring.Client" Version="2026.9.2.30" />
+    <PackageVersion Include="HealthMonitoring.Client" Version="2026.9.3.34" />
     <PackageVersion Include="OpenIddict.Validation.AspNetCore" Version="7.7.0" />
     <PackageVersion Include="OpenIddict.Validation.SystemNetHttp" Version="7.7.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />

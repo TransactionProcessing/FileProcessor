@@ -24,6 +24,8 @@ public class DummyFileProcessorDomainService : IFileProcessorDomainService {
 
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) => Result.Success();
+
+    public async Task<Result> ReplayFileLine(FileCommands.ReplayFileLineCommand command, CancellationToken cancellationToken) => Result.Success();
 }
 
 public class DummyFileProcessorManager : IFileProcessorManager {
