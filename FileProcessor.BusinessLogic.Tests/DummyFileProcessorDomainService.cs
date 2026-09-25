@@ -51,6 +51,12 @@ public class DummyFileProcessorManager : IFileProcessorManager {
         return Result.Success();
     }
 
+    public async Task<Result<Models.FileImportLog>> GetFileImportLogForFile(Guid fileId,
+                                                                             Guid estateId,
+                                                                             CancellationToken cancellationToken) {
+        return Result.Success();
+    }
+
     public async Task<Result<FileDetails>> GetFile(Guid fileId,
                                                    Guid estateId,
                                                    CancellationToken cancellationToken) {

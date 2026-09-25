@@ -11,6 +11,7 @@ using MediatR;
 using Shared.Results;
 using SimpleResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
+using FileImportLogModel = global::FileProcessor.Models.FileImportLog;
 
 namespace FileProcessor.BusinessLogic.Services;
 
@@ -68,28 +69,47 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         }
 
         Result<FileDetails> fileResult = await this.FileProcessorManager.GetFile(fileId, estateId, cancellationToken);
-        if (fileResult.IsFailed)
-        {
-            Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because file [{fileId}] could not be loaded: {fileResult.Message}");
-            return;
-        }
+        FileCommands.ProcessUploadedFileCommand command;
 
-        FileDetails fileDetails = fileResult.Data;
-        if (fileDetails == null)
+        if (fileResult.IsSuccess && fileResult.Data != null)
         {
-            Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because file [{fileId}] returned no details");
-            return;
+            FileDetails fileDetails = fileResult.Data;
+            command = new(
+                fileDetails.EstateId,
+                fileDetails.MerchantId,
+                fileDetails.FileImportLogId,
+                fileId,
+                fileDetails.UserId,
+                filePath,
+                fileDetails.FileProfileId,
+                fileDetails.FileReceivedDateTime);
         }
+        else
+        {
+            Result<FileImportLogModel> importLogResult = await this.FileProcessorManager.GetFileImportLogForFile(
+                fileId,
+                estateId,
+                cancellationToken);
 
-        FileCommands.ProcessUploadedFileCommand command = new(
-            fileDetails.EstateId,
-            fileDetails.MerchantId,
-            fileDetails.FileImportLogId,
-            fileDetails.FileId,
-            fileDetails.UserId,
-            filePath,
-            fileDetails.FileProfileId,
-            fileDetails.FileReceivedDateTime);
+            FileImportLogModel importLog = importLogResult.Data;
+            ImportLogFile importLogFile = importLog?.Files?.Find(file => file.FileId == fileId);
+
+            if (importLogResult.IsFailed || importLog == null || importLogFile == null)
+            {
+                Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because file [{fileId}] could not be loaded from the file aggregate or import log read model");
+                return;
+            }
+
+            command = new(
+                estateId,
+                importLogFile.MerchantId,
+                importLog.FileImportLogId,
+                fileId,
+                importLogFile.UserId,
+                filePath,
+                importLogFile.FileProfileId,
+                importLogFile.UploadedDateTime == default ? importLog.FileImportLogDateTime : importLogFile.UploadedDateTime);
+        }
 
         Result result = await this.Mediator.Send(command, cancellationToken);
         if (result.IsFailed)

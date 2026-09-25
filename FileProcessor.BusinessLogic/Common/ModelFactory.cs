@@ -49,7 +49,8 @@ namespace FileProcessor.BusinessLogic.Common
                                         FilePath = importLogFile.Item1.FilePath,
                                         FileProfileId = importLogFile.Item1.FileProfileId,
                                         OriginalFileName = importLogFile.Item1.OriginalFileName,
-                                        UserId = importLogFile.Item1.UserId
+                                        UserId = importLogFile.Item1.UserId,
+                                        UploadedDateTime = importLogFile.Item1.FileUploadedDateTime
                                     });
                 }
 
