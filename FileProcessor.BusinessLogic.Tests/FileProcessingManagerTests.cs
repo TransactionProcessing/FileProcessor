@@ -152,6 +152,22 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public async Task FileProcessingManager_GetFileImportLogForFile_ReturnsEntryWithoutFileReadModelRow()
+        {
+            this.Context.FileImportLogs.Add(TestData.FileImportLog1);
+            this.Context.FileImportLogFiles.Add(TestData.FileImportLog1Files.First());
+            await this.Context.SaveChangesAsync();
+
+            Result<FileImportLog> importLog = await this.Manager.GetFileImportLogForFile(TestData.FileId1, TestData.EstateId, CancellationToken.None);
+
+            importLog.IsSuccess.ShouldBeTrue();
+            importLog.Data.FileImportLogId.ShouldBe(TestData.FileImportLogId1);
+            importLog.Data.Files.ShouldHaveSingleItem();
+            importLog.Data.Files.Single().FileId.ShouldBe(TestData.FileId1);
+            importLog.Data.Files.Single().UploadedDateTime.ShouldBe(TestData.FileUploadedDateTime);
+        }
+
+        [Fact]
         public async Task FileProcessingManager_GetFile_FileReturned()
         {
             List<FileProfileModel> fileProfiles = new List<FileProfileModel>

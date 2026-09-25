@@ -24,6 +24,8 @@ namespace FileProcessor.BusinessLogic.Managers
 
         Task<Result<Models.FileImportLog>> GetFileImportLog(Guid fileImportLogId, Guid estateId, Guid? merchantId, CancellationToken cancellationToken);
 
+        Task<Result<Models.FileImportLog>> GetFileImportLogForFile(Guid fileId, Guid estateId, CancellationToken cancellationToken);
+
         Task<Result<FileDetails>> GetFile(Guid fileId, Guid estateId, CancellationToken cancellationToken);
 
         #endregion

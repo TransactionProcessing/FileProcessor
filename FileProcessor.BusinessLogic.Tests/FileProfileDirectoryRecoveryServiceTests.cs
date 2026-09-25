@@ -93,25 +93,22 @@ public class FileProfileDirectoryRecoveryServiceTests
             .ReturnsAsync(Result.NotFound("File aggregate not found"));
 
         fileProcessorManager
-            .GetFileImportLogs(TestData.EstateId, Arg<DateTime>.Any(), Arg<DateTime>.Any(), Arg<Guid?>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileImportLogModel>
+            .GetFileImportLogForFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(new FileImportLogModel
             {
-                new()
+                EstateId = TestData.EstateId,
+                FileImportLogId = TestData.FileImportLogId,
+                FileImportLogDateTime = TestData.FileUploadedDateTime,
+                Files = new List<ImportLogFile>
                 {
-                    EstateId = TestData.EstateId,
-                    FileImportLogId = TestData.FileImportLogId,
-                    FileImportLogDateTime = TestData.FileUploadedDateTime,
-                    Files = new List<ImportLogFile>
+                    new()
                     {
-                        new()
-                        {
-                            EstateId = TestData.EstateId,
-                            FileId = TestData.FileId,
-                            FileProfileId = TestData.FileProfileId,
-                            MerchantId = TestData.MerchantId,
-                            UserId = TestData.UserId,
-                            UploadedDateTime = TestData.FileUploadedDateTime
-                        }
+                        EstateId = TestData.EstateId,
+                        FileId = TestData.FileId,
+                        FileProfileId = TestData.FileProfileId,
+                        MerchantId = TestData.MerchantId,
+                        UserId = TestData.UserId,
+                        UploadedDateTime = TestData.FileUploadedDateTime
                     }
                 }
             }));

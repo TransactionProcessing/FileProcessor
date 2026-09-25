@@ -86,29 +86,15 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         }
         else
         {
-            Result<List<FileImportLogModel>> importLogsResult = await this.FileProcessorManager.GetFileImportLogs(
+            Result<FileImportLogModel> importLogResult = await this.FileProcessorManager.GetFileImportLogForFile(
+                fileId,
                 estateId,
-                DateTime.MinValue,
-                DateTime.MaxValue,
-                null,
                 cancellationToken);
 
-            ImportLogFile importLogFile = null;
-            FileImportLogModel importLog = null;
-            if (importLogsResult.IsSuccess && importLogsResult.Data != null)
-            {
-                foreach (FileImportLogModel candidate in importLogsResult.Data)
-                {
-                    importLogFile = candidate.Files?.Find(file => file.FileId == fileId);
-                    if (importLogFile != null)
-                    {
-                        importLog = candidate;
-                        break;
-                    }
-                }
-            }
+            FileImportLogModel importLog = importLogResult.Data;
+            ImportLogFile importLogFile = importLog?.Files?.Find(file => file.FileId == fileId);
 
-            if (importLog == null || importLogFile == null)
+            if (importLogResult.IsFailed || importLog == null || importLogFile == null)
             {
                 Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because file [{fileId}] could not be loaded from the file aggregate or import log read model");
                 return;

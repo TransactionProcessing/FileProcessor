@@ -162,6 +162,45 @@ namespace FileProcessor.BusinessLogic.Managers
             return Result.Success(x);
         }
 
+        public async Task<Result<FileImportLog>> GetFileImportLogForFile(Guid fileId,
+                                                                           Guid estateId,
+                                                                           CancellationToken cancellationToken)
+        {
+            EstateManagementContext context = await this.GetContext(estateId);
+
+            var importLogFile = await (from fileImportLogFile in context.FileImportLogFiles
+                                       join importLog in context.FileImportLogs on fileImportLogFile.FileImportLogId equals importLog.FileImportLogId
+                                       where fileImportLogFile.FileId == fileId
+                                       select new { fileImportLogFile, importLog })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (importLogFile == null)
+            {
+                return Result.NotFound($"No import log file found for File Id [{fileId}]");
+            }
+
+            return Result.Success(new FileImportLog
+            {
+                EstateId = estateId,
+                FileImportLogId = importLogFile.importLog.FileImportLogId,
+                FileImportLogDateTime = importLogFile.importLog.ImportLogDateTime,
+                Files = new List<ImportLogFile>
+                {
+                    new()
+                    {
+                        EstateId = estateId,
+                        FileId = importLogFile.fileImportLogFile.FileId,
+                        FilePath = importLogFile.fileImportLogFile.FilePath,
+                        FileProfileId = importLogFile.fileImportLogFile.FileProfileId,
+                        MerchantId = importLogFile.fileImportLogFile.MerchantId,
+                        OriginalFileName = importLogFile.fileImportLogFile.OriginalFileName,
+                        UploadedDateTime = importLogFile.fileImportLogFile.FileUploadedDateTime,
+                        UserId = importLogFile.fileImportLogFile.UserId
+                    }
+                }
+            });
+        }
+
         public async Task<Result<FileDetails>> GetFile(Guid fileId,
             Guid estateId,
             CancellationToken cancellationToken)
