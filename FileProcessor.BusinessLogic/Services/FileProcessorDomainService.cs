@@ -306,7 +306,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         {
             FileDetails fileDetails = fileAggregate.GetFile();
             // Now find the line to be resumbitted
-            var fileLine = fileDetails.FileLines.SingleOrDefault(l => l.LineNumber == command.LineNumber);
+            FileLine fileLine = fileDetails.FileLines.SingleOrDefault(l => l.LineNumber == command.LineNumber);
+            if (fileLine == null)
+            {
+                return Result.NotFound($"Line number {command.LineNumber} not found in file Id {command.FileId}");
+            }
+
             if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
             {
                 return Result.Success();

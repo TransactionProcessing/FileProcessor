@@ -13,8 +13,8 @@ public static class FileEndpoints
     public static void MapFileEndpoints(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup(BaseRoute)
-            .WithTags("Files");
-            //.RequireAuthorization();
+            .WithTags("Files")
+            .RequireAuthorization();
 
         group.MapPost("/", FileHandlers.UploadFile)
             .DisableAntiforgery()
