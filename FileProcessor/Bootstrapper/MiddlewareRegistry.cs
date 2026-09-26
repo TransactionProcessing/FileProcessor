@@ -1,7 +1,6 @@
 ﻿using HealthMonitoring.Client;
 using KurrentDB.Client;
 using Microsoft.OpenApi;
-using Shared.Monitoring;
 
 namespace FileProcessor.Bootstrapper
 {
@@ -17,7 +16,6 @@ namespace FileProcessor.Bootstrapper
     using Shared.Serialisation;
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
     using System.IO;
     using System.Net.Http;
     using System.Reflection;
