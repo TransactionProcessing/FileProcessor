@@ -24,7 +24,6 @@ namespace FileProcessor
     using Shared.General;
     using Shared.Logger;
     using Shared.Middleware;
-    using Shared.Monitoring;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using ILogger = Microsoft.Extensions.Logging.ILogger;
