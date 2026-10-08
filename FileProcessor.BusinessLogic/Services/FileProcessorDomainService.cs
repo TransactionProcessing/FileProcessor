@@ -398,55 +398,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return stateResult;
             }
 
-            Int32 transactionNumber = Interlocked.Increment(ref TransactionNumber);
-
-            Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction = await this.GetDetailsForTransaction(cancellationToken,
-                                                                                                                                                   fileDetails,
-                                                                                                                                                   fileProfile,
-                                                                                                                                                   processingContext.OperatorName,
-                                                                                                                                                   processingContext);
-            if (detailsForTransaction.IsFailed)
-                return ResultHelpers.CreateFailure(detailsForTransaction);
-            
-            processingContext.Stage = FileLineProcessingStage.TransactionDetailsResolved;
-            Result<SaleTransactionResponse> saleResult = await this.SendSaleTransaction(fileDetails,
-                                                                                         detailsForTransaction,
-                                                                                         metadataResult.Data,
-                                                                                         transactionNumber,
-                                                                                         processingContext,
-                                                                                         cancellationToken);
-            processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess;
-            if (saleResult.IsSuccess)
-                processingContext.ResponseCode = saleResult.Data.ResponseCode;
-
-            // A failed dispatch has no definitive processor response. Leave the line unmodified so
-            // the file processing workflow can retry it with the same file and line identity.
-            if (saleResult.IsFailed)
-            {
-                stateResult = fileAggregate.RecordTransactionDispatchFailure(command.LineNumber,
-                                                                              transactionNumber,
-                                                                              processingContext.TransactionDispatchFailureType,
-                                                                              DateTime.UtcNow);
-                if (stateResult.IsFailed)
-                    return stateResult;
-
-                dispatchFailureResult = ResultHelpers.CreateFailure(saleResult);
-                processingContext.Stage = FileLineProcessingStage.TransactionDispatchAttemptPersisted;
-                return Result.Success();
-            }
-            
-            processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
-            stateResult = saleResult.Data.ResponseCode == "0000"
-                ? fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId)
-                : fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage);
-
-            ProcessingResult processingResult = saleResult.IsSuccess && saleResult.Data.ResponseCode == "0000"
-                ? ProcessingResult.Successful
-                : ProcessingResult.Failed;
-            FileLineProcessingDiagnostics.LineStateDetermined(processingContext, processingResult);
-            if (stateResult.IsSuccess)
-                processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
-
+            (stateResult, dispatchFailureResult) = await this.ProcessTransaction(fileAggregate,
+                                                                                  command,
+                                                                                  fileDetails,
+                                                                                  fileProfile,
+                                                                                  metadataResult.Data,
+                                                                                  processingContext,
+                                                                                  cancellationToken);
             return stateResult;
         }, command.FileId, cancellationToken);
 
@@ -464,6 +422,65 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         return result;
+    }
+
+    private async Task<(Result StateResult, Result DispatchFailureResult)> ProcessTransaction(FileAggregate fileAggregate,
+                                                                                                FileCommands.ProcessTransactionForFileLineCommand command,
+                                                                                                FileDetails fileDetails,
+                                                                                                FileProfileModel fileProfile,
+                                                                                                Dictionary<String, String> transactionMetadata,
+                                                                                                FileLineProcessingContext processingContext,
+                                                                                                CancellationToken cancellationToken)
+    {
+        Int32 transactionNumber = Interlocked.Increment(ref TransactionNumber);
+
+        Result<(Guid ContractId, Guid OperatorId, Guid ProductId, String MerchantDevice)> detailsForTransaction = await this.GetDetailsForTransaction(cancellationToken,
+                                                                                                                                                       fileDetails,
+                                                                                                                                                       fileProfile,
+                                                                                                                                                       processingContext.OperatorName,
+                                                                                                                                                       processingContext);
+        if (detailsForTransaction.IsFailed)
+            return (ResultHelpers.CreateFailure(detailsForTransaction), null);
+
+        processingContext.Stage = FileLineProcessingStage.TransactionDetailsResolved;
+        Result<SaleTransactionResponse> saleResult = await this.SendSaleTransaction(fileDetails,
+                                                                                     detailsForTransaction,
+                                                                                     transactionMetadata,
+                                                                                     transactionNumber,
+                                                                                     processingContext,
+                                                                                     cancellationToken);
+        processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess;
+        if (saleResult.IsSuccess)
+            processingContext.ResponseCode = saleResult.Data.ResponseCode;
+
+        // A failed dispatch has no definitive processor response. Leave the line unmodified so
+        // the file processing workflow can retry it with the same file and line identity.
+        if (saleResult.IsFailed)
+        {
+            Result stateResult = fileAggregate.RecordTransactionDispatchFailure(command.LineNumber,
+                                                                                  transactionNumber,
+                                                                                  processingContext.TransactionDispatchFailureType,
+                                                                                  DateTime.UtcNow);
+            if (stateResult.IsFailed)
+                return (stateResult, null);
+
+            processingContext.Stage = FileLineProcessingStage.TransactionDispatchAttemptPersisted;
+            return (Result.Success(), ResultHelpers.CreateFailure(saleResult));
+        }
+
+        processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
+        Result stateUpdateResult = saleResult.Data.ResponseCode == "0000"
+            ? fileAggregate.RecordFileLineAsSuccessful(command.LineNumber, saleResult.Data.TransactionId)
+            : fileAggregate.RecordFileLineAsFailed(command.LineNumber, saleResult.Data.TransactionId, saleResult.Data.ResponseCode, saleResult.Data.ResponseMessage);
+
+        ProcessingResult processingResult = saleResult.Data.ResponseCode == "0000"
+            ? ProcessingResult.Successful
+            : ProcessingResult.Failed;
+        FileLineProcessingDiagnostics.LineStateDetermined(processingContext, processingResult);
+        if (stateUpdateResult.IsSuccess)
+            processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
+
+        return (stateUpdateResult, null);
     }
 
     private Result<Dictionary<String, String>> BuildTransactionMetadata(FileCommands.ProcessTransactionForFileLineCommand command,
