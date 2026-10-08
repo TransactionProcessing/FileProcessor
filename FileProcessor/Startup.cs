@@ -8,26 +8,25 @@ using Shared.Serialisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FileProcessor.Bootstrapper;
+using FileProcessor.Common;
+using HealthChecks.UI.Client;
+using Lamar;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Shared.DomainDrivenDesign.EventSourcing;
+using Shared.EventStore.Aggregate;
+using Shared.Extensions;
+using Shared.General;
+using Shared.Logger;
+using Shared.Middleware;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace FileProcessor
 {
-    using Bootstrapper;
-    using Common;
-    using HealthChecks.UI.Client;
-    using Lamar;
-    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Logging;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
-    using Shared.Extensions;
-    using Shared.General;
-    using Shared.Logger;
-    using Shared.Middleware;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using ILogger = Microsoft.Extensions.Logging.ILogger;
-
     [ExcludeFromCodeCoverage]
     public class Startup
     {

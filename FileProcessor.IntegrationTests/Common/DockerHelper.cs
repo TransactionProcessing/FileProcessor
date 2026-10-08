@@ -11,6 +11,7 @@ namespace FileProcessor.IntegrationTests.Common
     using Shared.IntegrationTesting;
     using Shared.Serialisation;
     using System.Net.Http;
+    using System.Threading;
     using TestHosts.Clients;
     using TransactionProcessor.Client;
 
@@ -79,7 +80,9 @@ namespace FileProcessor.IntegrationTests.Common
             this.AdditionalVariables[ContainerType.FileProcessor] = variables;
             return base.SetupFileProcessorContainer();
         }
-        
+
+        public String AccessToken;
+
         public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
             
             await base.StartContainersForScenarioRun(scenarioName, dockerServices);
@@ -116,6 +119,13 @@ namespace FileProcessor.IntegrationTests.Common
             this.AgencyBankingClient = new AgencyBankingClient(TestHostServiceBaseAddressResolver, httpClient, Serialise_CamelCase, this.Deserialise_CamelCase);
             
             this.ProjectionManagementClient = new EventStoreProjectionManagementClient(ConfigureEventStoreSettings());
+
+            SimpleResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
+            if (bootstrapToken.IsFailed || String.IsNullOrWhiteSpace(bootstrapToken.Data?.AccessToken))
+            {
+                throw new InvalidOperationException("Unable to obtain the integration-test management bootstrap token.");
+            }
+            this.AccessToken = bootstrapToken.Data.AccessToken;
         }
 
         String Serialise(Object arg)

@@ -48,7 +48,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             ScenarioContext = scenarioContext;
             TestingContext = testingContext;
-            this.SecurityServiceSteps = new SecurityServiceSteps(testingContext.DockerHelper.SecurityServiceClient);
+            this.SecurityServiceSteps = new SecurityServiceSteps(testingContext.DockerHelper.SecurityServiceClient, testingContext.DockerHelper.AccessToken);
         }
 
         private TransactionProcessorSteps GetTransactionProcessorSteps()
