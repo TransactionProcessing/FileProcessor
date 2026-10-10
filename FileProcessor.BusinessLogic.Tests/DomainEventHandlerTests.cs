@@ -21,6 +21,11 @@ namespace FileProcessor.BusinessLogic.Tests
 
     public class DomainEventHandlerTests
     {
+        public DomainEventHandlerTests()
+        {
+            Shared.Logger.Logger.Initialise(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+        }
+
         [Fact]
         public async Task FileDomainEventHandler_FileLineAddedEvent_MediatorFailureIsReturned()
         {
