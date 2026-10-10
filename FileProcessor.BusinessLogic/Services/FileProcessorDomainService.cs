@@ -605,8 +605,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         MerchantResponse merchant = getMerchantResult.Data;
-        if (merchant == null)
-            return Result.NotFound($"Merchant Id {fileDetails.MerchantId} not found on estate Id {fileDetails.EstateId}");
+        Result merchantResult = this.ValidateMerchant(merchant, fileDetails);
+        if (merchantResult.IsFailed)
+            return ResultHelpers.CreateFailure(merchantResult);
 
         processingContext.Stage = FileLineProcessingStage.ContractLookup;
         Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
@@ -615,33 +616,82 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         List<ContractResponse> contracts = getContractsResult.Data;
-
-        if (contracts == null || contracts.Any() == false) {
-            return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
-        }
+        Result contractsResult = this.ValidateContracts(contracts, fileDetails);
+        if (contractsResult.IsFailed)
+            return ResultHelpers.CreateFailure(contractsResult);
 
         processingContext.Stage = FileLineProcessingStage.ContractOperatorMatch;
-        ContractResponse contract = fileProfile.OperatorName switch {
+        Result<ContractResponse> contractResult = this.FindContract(contracts, fileProfile.OperatorName, operatorName, merchant.MerchantId);
+        if (contractResult.IsFailed)
+            return ResultHelpers.CreateFailure(contractResult);
+
+        processingContext.Stage = FileLineProcessingStage.VariableValueProductLookup;
+        Result<ContractProduct> productResult = this.FindVariableValueProduct(contractResult.Data, fileProfile.OperatorName, merchant.MerchantId);
+        if (productResult.IsFailed)
+            return ResultHelpers.CreateFailure(productResult);
+
+        processingContext.Stage = FileLineProcessingStage.MerchantDeviceResolution;
+        Result<String> merchantDeviceResult = this.ResolveMerchantDevice(merchant, fileDetails);
+        if (merchantDeviceResult.IsFailed)
+            return ResultHelpers.CreateFailure(merchantDeviceResult);
+
+        return Result.Success((contractResult.Data.ContractId, contractResult.Data.OperatorId, productResult.Data.ProductId, merchantDeviceResult.Data));
+    }
+
+    private Result ValidateMerchant(MerchantResponse merchant,
+                                     FileDetails fileDetails)
+    {
+        if (merchant == null)
+            return Result.NotFound($"Merchant Id {fileDetails.MerchantId} not found on estate Id {fileDetails.EstateId}");
+
+        return Result.Success();
+    }
+
+    private Result ValidateContracts(List<ContractResponse> contracts,
+                                     FileDetails fileDetails)
+    {
+        if (contracts == null || contracts.Any() == false)
+            return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
+
+        return Result.Success();
+    }
+
+    private Result<ContractResponse> FindContract(List<ContractResponse> contracts,
+                                                  String profileOperatorName,
+                                                  String operatorName,
+                                                  Guid merchantId)
+    {
+        ContractResponse contract = profileOperatorName switch
+        {
             "Voucher" => contracts.SingleOrDefault(c => c.Description.Contains(operatorName)),
             _ => contracts.SingleOrDefault(c => c.OperatorName == operatorName)
         };
 
-        if (contract == null) {
-            return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchant.MerchantId}");
-        }
+        if (contract == null)
+            return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchantId}");
 
-        processingContext.Stage = FileLineProcessingStage.VariableValueProductLookup;
+        return Result.Success(contract);
+    }
+
+    private Result<ContractProduct> FindVariableValueProduct(ContractResponse contract,
+                                                              String profileOperatorName,
+                                                              Guid merchantId)
+    {
         ContractProduct product = contract.Products?.SingleOrDefault(p => p.Value == null);
 
-        if (product == null) {
-            return Result.NotFound($"No variable value product found on the merchant contract for operator Id {fileProfile.OperatorName} and Merchant Id {merchant.MerchantId}");
-        }
+        if (product == null)
+            return Result.NotFound($"No variable value product found on the merchant contract for operator Id {profileOperatorName} and Merchant Id {merchantId}");
 
-        processingContext.Stage = FileLineProcessingStage.MerchantDeviceResolution;
-        if (merchant == null || merchant.Devices == null || merchant.Devices.Any() == false || String.IsNullOrWhiteSpace(merchant.Devices.First().Value))
+        return Result.Success(product);
+    }
+
+    private Result<String> ResolveMerchantDevice(MerchantResponse merchant,
+                                                  FileDetails fileDetails)
+    {
+        if (merchant.Devices == null || merchant.Devices.Any() == false || String.IsNullOrWhiteSpace(merchant.Devices.First().Value))
             return Result.NotFound($"No valid merchant device found for Merchant Id {merchant.MerchantId} on estate Id {fileDetails.EstateId}");
 
-        return Result.Success((contract.ContractId, contract.OperatorId, product.ProductId, merchant.Devices.First().Value));
+        return Result.Success(merchant.Devices.First().Value);
     }
 
     private async Task<Result> ProcessFile(Guid fileId,
