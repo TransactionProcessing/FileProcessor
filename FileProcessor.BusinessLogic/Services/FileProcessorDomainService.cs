@@ -333,78 +333,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         FileLineProcessingContext processingContext = new(command);
         Result dispatchFailureResult = null;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
-            FileDetails fileDetails = fileAggregate.GetFile();
-            processingContext.EstateId = fileDetails.EstateId;
-            processingContext.MerchantId = fileDetails.MerchantId;
-            processingContext.FileProfileId = fileDetails.FileProfileId;
-            FileLineProcessingDiagnostics.LineProcessingStarted(processingContext);
-
-            processingContext.Stage = FileLineProcessingStage.FileLineLookup;
-            if (fileDetails.FileLines.Any() == false) {
-                return Result.Invalid($"File Id [{command.FileId}] has no lines added");
-            }
-
-            FileLine fileLine = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == command.LineNumber);
-
-            if (fileLine == null) {
-                return Result.NotFound($"File Line Number {command.LineNumber} not found in File Id {command.FileId}");
-            }
-
-            if (fileLine.ProcessingResult != ProcessingResult.NotProcessed) {
-                // Line already processed
-                FileLineProcessingDiagnostics.LineProcessingSkipped(processingContext, fileLine.ProcessingResult);
-                return Result.Success();
-            }
-
-            processingContext.Stage = FileLineProcessingStage.FileProfileLookup;
-            Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
-
-            if (fileProfileResult.IsFailed)
-                return ResultHelpers.CreateFailure(fileProfileResult);
-
-            FileProfileModel fileProfile = fileProfileResult.Data;
-            processingContext.OperatorName = fileProfile.OperatorName;
-            
-            Result stateResult;
-
-            // Determine if we need to actually process this file line
-            processingContext.Stage = FileLineProcessingStage.LineIgnoreEvaluation;
-            if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
-            {
-                processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
-                // Write something to aggregate to say line was explicity ignored
-                stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
-                if (stateResult.IsFailed)
-                    return stateResult;
-                FileLineProcessingDiagnostics.LineIgnored(processingContext);
-                processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
-                return Result.Success();
-            }
-
-            processingContext.Stage = FileLineProcessingStage.TransactionDetailsParsing;
-            Result<Dictionary<String, String>> metadataResult = this.BuildTransactionMetadata(command, fileLine, fileProfile, out String parsedOperatorName);
-            processingContext.OperatorName = parsedOperatorName;
-            if (metadataResult.IsFailed) {
-                processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
-                stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
-                if (stateResult.IsFailed)
-                    return ResultHelpers.CreateFailure(stateResult);
-
-                if (stateResult.IsSuccess)
-                {
-                    FileLineProcessingDiagnostics.LineRejected(processingContext, "Invalid Format");
-                    processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
-                }
-                return stateResult;
-            }
-
-            (stateResult, dispatchFailureResult) = await this.ProcessTransaction(fileAggregate,
-                                                                                  command,
-                                                                                  fileDetails,
-                                                                                  fileProfile,
-                                                                                  metadataResult.Data,
-                                                                                  processingContext,
-                                                                                  cancellationToken);
+            (Result stateResult, Result dispatchResult) = await this.ProcessTransactionForFileLineInternal(fileAggregate,
+                                                                                                             command,
+                                                                                                             processingContext,
+                                                                                                             cancellationToken);
+            dispatchFailureResult = dispatchResult;
             return stateResult;
         }, command.FileId, cancellationToken);
 
@@ -422,6 +355,80 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         return result;
+    }
+
+    private async Task<(Result StateResult, Result DispatchFailureResult)> ProcessTransactionForFileLineInternal(FileAggregate fileAggregate,
+                                                                                                                    FileCommands.ProcessTransactionForFileLineCommand command,
+                                                                                                                    FileLineProcessingContext processingContext,
+                                                                                                                    CancellationToken cancellationToken)
+    {
+        FileDetails fileDetails = fileAggregate.GetFile();
+        processingContext.EstateId = fileDetails.EstateId;
+        processingContext.MerchantId = fileDetails.MerchantId;
+        processingContext.FileProfileId = fileDetails.FileProfileId;
+        FileLineProcessingDiagnostics.LineProcessingStarted(processingContext);
+
+        processingContext.Stage = FileLineProcessingStage.FileLineLookup;
+        if (fileDetails.FileLines.Any() == false)
+            return (Result.Invalid($"File Id [{command.FileId}] has no lines added"), null);
+
+        FileLine fileLine = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == command.LineNumber);
+        if (fileLine == null)
+            return (Result.NotFound($"File Line Number {command.LineNumber} not found in File Id {command.FileId}"), null);
+
+        if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
+        {
+            FileLineProcessingDiagnostics.LineProcessingSkipped(processingContext, fileLine.ProcessingResult);
+            return (Result.Success(), null);
+        }
+
+        processingContext.Stage = FileLineProcessingStage.FileProfileLookup;
+        Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
+        if (fileProfileResult.IsFailed)
+            return (ResultHelpers.CreateFailure(fileProfileResult), null);
+
+        FileProfileModel fileProfile = fileProfileResult.Data;
+        processingContext.OperatorName = fileProfile.OperatorName;
+
+        processingContext.Stage = FileLineProcessingStage.LineIgnoreEvaluation;
+        if (this.FileLineCanBeIgnored(fileLine.LineData, fileProfile.FileFormatHandler))
+        {
+            processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
+            Result stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
+            if (stateResult.IsFailed)
+                return (stateResult, null);
+
+            FileLineProcessingDiagnostics.LineIgnored(processingContext);
+            processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
+            return (Result.Success(), null);
+        }
+
+        processingContext.Stage = FileLineProcessingStage.TransactionDetailsParsing;
+        Result<Dictionary<String, String>> metadataResult = this.BuildTransactionMetadata(command, fileLine, fileProfile, out String parsedOperatorName);
+        processingContext.OperatorName = parsedOperatorName;
+        if (metadataResult.IsFailed)
+        {
+            processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
+            Result stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
+            if (stateResult.IsFailed)
+                return (ResultHelpers.CreateFailure(stateResult), null);
+
+            if (stateResult.IsSuccess)
+            {
+                FileLineProcessingDiagnostics.LineRejected(processingContext, "Invalid Format");
+                processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
+            }
+
+            return (stateResult, null);
+        }
+
+        return await this.ProcessTransaction(fileAggregate,
+                                             command,
+                                             fileDetails,
+                                             fileProfile,
+                                             metadataResult.Data,
+                                             processingContext,
+                                             cancellationToken);
     }
 
     private async Task<(Result StateResult, Result DispatchFailureResult)> ProcessTransaction(FileAggregate fileAggregate,
