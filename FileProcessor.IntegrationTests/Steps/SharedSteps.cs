@@ -129,7 +129,7 @@ namespace FileProcessor.IntegrationTests.Steps
         {
             List<CreateEstateRequest> requests = table.Rows.ToCreateEstateRequests();
             
-            List<EstateResponse> verifiedEstates = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingEstatesX(this.TestingContext.AccessToken, requests);
+            List<EstateResponse> verifiedEstates = await this.CreateAndVerifyEstates(requests);
 
             foreach (EstateResponse verifiedEstate in verifiedEstates)
             {
@@ -138,6 +138,46 @@ namespace FileProcessor.IntegrationTests.Steps
 
 
             }
+        }
+
+        private async Task<List<EstateResponse>> CreateAndVerifyEstates(List<CreateEstateRequest> requests)
+        {
+            List<EstateResponse> results = new List<EstateResponse>();
+
+            foreach (CreateEstateRequest request in requests)
+            {
+                var createResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
+                    .CreateEstate(this.TestingContext.AccessToken, request, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                createResult.IsSuccess.ShouldBeTrue($"CreateEstate failed for EstateId {request.EstateId}: {createResult.Message}");
+
+                EstateResponse estate = null;
+                await Retry.For(async () =>
+                                {
+                                    var getEstatesResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
+                                        .GetEstates(this.TestingContext.AccessToken, request.EstateId, CancellationToken.None)
+                                        .ConfigureAwait(false);
+
+                                    this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {request.EstateId}: " +
+                                                                             $"isSuccess={getEstatesResult.IsSuccess}, message={getEstatesResult.Message}, " +
+                                                                             $"rows={(getEstatesResult.Data == null ? "null" : getEstatesResult.Data.Count.ToString())}");
+
+                                    getEstatesResult.IsSuccess.ShouldBeTrue(getEstatesResult.Message);
+                                    List<EstateResponse> estates = getEstatesResult.Data;
+                                    estates.ShouldNotBeNull();
+                                    estates.ShouldHaveSingleItem();
+
+                                    estate = estates.Single();
+                                    estate.EstateName.ShouldBe(request.EstateName);
+                                    estate.EstateReference.ShouldNotBeNullOrWhiteSpace();
+                                },
+                                retryFor: TimeSpan.FromSeconds(180)).ConfigureAwait(false);
+
+                results.Add(estate);
+            }
+
+            return results;
         }
 
         [Given(@"I create the following api scopes")]

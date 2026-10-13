@@ -50,11 +50,43 @@ public class FileProcessorSteps
                             getFileResult.IsSuccess.ShouldBeTrue();
                             FileDetails? fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
+
+                            if (!fileDetails.ProcessingCompleted)
+                            {
+                                Console.WriteLine(this.FormatFileDetails(fileDetails));
+                            }
+
                             fileDetails.ProcessingCompleted.ShouldBeTrue();
                         }, TimeSpan.FromMinutes(5),
                         TimeSpan.FromSeconds(30));
 
         return fileId;
+    }
+
+    private String FormatFileDetails(FileDetails fileDetails)
+    {
+        String summary = fileDetails.ProcessingSummary == null
+                             ? "null"
+                             : $"total={fileDetails.ProcessingSummary.TotalLines}, "
+                               + $"successful={fileDetails.ProcessingSummary.SuccessfullyProcessedLines}, "
+                               + $"failed={fileDetails.ProcessingSummary.FailedLines}, "
+                               + $"ignored={fileDetails.ProcessingSummary.IgnoredLines}, "
+                               + $"rejected={fileDetails.ProcessingSummary.RejectedLines}, "
+                               + $"notProcessed={fileDetails.ProcessingSummary.NotProcessedLines}";
+
+        String lines = fileDetails.FileLines == null
+                           ? "null"
+                           : String.Join(Environment.NewLine,
+                                         fileDetails.FileLines.Select(line =>
+                                             $"  line={line.LineNumber}, result={line.ProcessingResult}, "
+                                             + $"transactionId={line.TransactionId}, rejectionReason={line.RejectionReason ?? "<none>"}, "
+                                             + $"data={line.LineData}"));
+
+        return $"[File processing state] fileId={fileDetails.FileId}, "
+               + $"processingCompleted={fileDetails.ProcessingCompleted}, "
+               + $"estateId={fileDetails.EstateId}, merchantId={fileDetails.MerchantId}, "
+               + $"fileProfileId={fileDetails.FileProfileId}, fileImportLogId={fileDetails.FileImportLogId}, "
+               + $"summary=[{summary}], lines={Environment.NewLine}{lines}";
     }
 
     public async Task<Result<List<FileProfileModel>>> GetFileProfiles(String accessToken, CancellationToken cancellationToken)

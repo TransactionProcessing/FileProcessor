@@ -56,7 +56,7 @@ namespace FileProcessor.IntegrationTests.Common
 
         #region Methods
 
-        public override async Task CreateSubscriptions(){
+        public override async Task CreateSubscriptions(CancellationToken cancellationToken){
             List<(String streamName, String groupName, Int32 maxRetries)> subscriptions = new();
             subscriptions.AddRange(MessagingService.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
             subscriptions.AddRange(TransactionProcessor.IntegrationTesting.Helpers.SubscriptionsHelper.GetSubscriptions());
@@ -83,9 +83,17 @@ namespace FileProcessor.IntegrationTests.Common
 
         public String AccessToken;
 
-        public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices){
+        protected override String GenerateEventStoreConnectionString(String userName = "admin", String password = "changeit")
+        {
+            String eventStoreAddress = $"esdb://{userName}:{password}@{this.EventStoreContainerName}:{DockerPorts.EventStoreHttpDockerPort}?tls=false&defaultDeadline=240000";
+
+            return eventStoreAddress;
+        }
+
+        public override async Task StartContainersForScenarioRun(String scenarioName, DockerServices dockerServices, CancellationToken cancellationToken)
+        {
             
-            await base.StartContainersForScenarioRun(scenarioName, dockerServices);
+            await base.StartContainersForScenarioRun(scenarioName, dockerServices, cancellationToken);
 
             // Setup the base address resolvers
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
