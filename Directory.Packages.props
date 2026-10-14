@@ -16,7 +16,7 @@
     <PackageVersion Include="Imposter" Version="0.1.11" />
     <PackageVersion Include="Lamar" Version="16.0.0" />
     <PackageVersion Include="Lamar.Microsoft.DependencyInjection" Version="16.0.0" />
-    <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.9.3.153" />
+    <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.9.3.154" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
@@ -55,9 +55,9 @@
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
     <PackageVersion Include="System.IO.Abstractions" Version="22.2.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.2.0" />
-    <PackageVersion Include="TransactionProcessor.Client" Version="2026.9.3.407" />
-    <PackageVersion Include="TransactionProcessor.Database" Version="2026.9.3.407" />
-    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.9.3.407" />
+    <PackageVersion Include="TransactionProcessor.Client" Version="2026.9.3.409" />
+    <PackageVersion Include="TransactionProcessor.Database" Version="2026.9.3.409" />
+    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.9.3.409" />
     <PackageVersion Include="xunit.v3" Version="4.0.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
   </ItemGroup>
