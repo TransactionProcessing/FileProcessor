@@ -350,3 +350,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/.superpowers/sdd/2026-10-15-simple-upload-processing
+/docs/superpowers

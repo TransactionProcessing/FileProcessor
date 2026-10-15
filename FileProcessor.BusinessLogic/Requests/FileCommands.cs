@@ -25,7 +25,8 @@ public record FileCommands {
                                     Guid UserId,
                                     String FilePath,
                                     Guid FileProfileId,
-                                    DateTime FileUploadedDateTime) : IRequest<Result>;
+                                    DateTime FileUploadedDateTime,
+                                    String OriginalFileName = null) : IRequest<Result>;
 
     public record ReplayFileLineCommand(Guid FileId,
                                     Guid EstateId,

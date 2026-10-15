@@ -162,28 +162,21 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 }
             }
 
-            // Move the file
             Result<FileProfileModel> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
-            if (getFileProfileResult.IsFailed) {
+            if (getFileProfileResult.IsFailed)
                 return ResultHelpers.CreateFailure(getFileProfileResult);
-            }
 
-            FileProfileModel fileProfile = getFileProfileResult.Data;
-            if (fileProfile == null) {
+            if (getFileProfileResult.Data == null)
                 return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
-            }
 
-            // Copy file from the temp location to file processing listening directory
             IFileInfo file = this.FileSystem.FileInfo.New(command.FilePath);
             if (file.Exists == false) {
                 return Result.NotFound($"File {file.FullName} not found");
             }
 
-            String originalName = file.Name;
-
-            if (this.FileSystem.Directory.Exists(fileProfile.ListeningDirectory) == false) {
-                return Result.NotFound($"Directory {fileProfile.ListeningDirectory} not found");
-            }
+            String originalName = String.IsNullOrWhiteSpace(command.OriginalFileName)
+                ? file.Name
+                : command.OriginalFileName;
 
             // Read the file data
             String fileContent = null;
@@ -201,11 +194,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return Result.Invalid("File content does not match the file id provided");
             }
             
-            String fileDestination = $"{fileProfile.ListeningDirectory}//{command.EstateId:N}-{command.FileId:N}";
-            file.MoveTo(fileDestination, overwrite: true);
-
             // Update Import log aggregate
-            Result stateResult= fileImportLogAggregate.AddImportedFile(command.FileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, fileDestination, command.FileUploadedDateTime);
+            Result stateResult= fileImportLogAggregate.AddImportedFile(command.FileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, command.FilePath, command.FileUploadedDateTime);
             if (stateResult.IsFailed)
                 return stateResult;
             
@@ -263,12 +253,32 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         }, command.FileId, cancellationToken, false );
 
-        if (result.IsFailed)
+        if (result.IsFailed) {
+            await MoveAcceptedFileToFailedDirectory(command.FileProfileId, command.FilePath, cancellationToken);
             return result;
+        }
         
         Result processResult = await this.ProcessFile(command.FileId, command.FileProfileId, command.FilePath, cancellationToken);
         
         return processResult;
+    }
+
+    private async Task MoveAcceptedFileToFailedDirectory(Guid fileProfileId,
+                                                          String filePath,
+                                                          CancellationToken cancellationToken)
+    {
+        Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
+        if (fileProfileResult.IsFailed || fileProfileResult.Data == null)
+            return;
+
+        IFileInfo file = this.FileSystem.FileInfo.New(filePath);
+        if (file.Exists == false)
+            return;
+
+        if (this.FileSystem.Directory.Exists(fileProfileResult.Data.FailedDirectory) == false)
+            this.FileSystem.Directory.CreateDirectory(fileProfileResult.Data.FailedDirectory);
+
+        file.MoveTo($"{fileProfileResult.Data.FailedDirectory}/{file.Name}", overwrite: true);
     }
 
     private async Task<Result<Guid>> GetOperatorIdForFileProfile(Guid estateId, Guid fileProfileId, CancellationToken cancellationToken){
