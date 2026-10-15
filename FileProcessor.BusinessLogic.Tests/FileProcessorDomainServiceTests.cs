@@ -105,6 +105,33 @@ public class FileProcessorDomainServiceTests
     }
 
     [Fact]
+    public async Task UploadFile_DoesNotRequireListeningDirectoryOrMoveTemporaryFile()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+
+        FileImportLogAggregate importLogAggregate = TestData.GetEmptyFileImportLogAggregate();
+        this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(importLogAggregate));
+        this.FileImportLogAggregateRepository.SaveChanges(Arg<FileImportLogAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+
+        var file = new MockFileData("D,1,1,1");
+        var fileId = FileProcessorDomainService.CreateGuidFromFileData(Encoding.UTF8.GetString(file.Contents));
+        this.FileSystem.AddFile(TestData.FilePathWithName, file);
+
+        FileCommands.UploadFileCommand command = TestData.UploadFileCommand with
+        {
+            FileId = fileId,
+            OriginalFileName = "client-name.csv"
+        };
+
+        Result result = await this.FileProcessorDomainService.UploadFile(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        this.FileSystem.File.Exists(TestData.FilePathWithName).ShouldBeTrue();
+        importLogAggregate.GetFileImportLog().Files.Single().FilePath.ShouldBe(TestData.FilePathWithName);
+        importLogAggregate.GetFileImportLog().Files.Single().OriginalFileName.ShouldBe("client-name.csv");
+    }
+
+    [Fact]
     public async Task FileRequestHandler_UploadFileRequest_SaveFailed_RequestIsHandled()
     {
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
@@ -204,22 +231,6 @@ public class FileProcessorDomainServiceTests
     }
 
     [Fact]
-    public async Task FileRequestHandler_UploadFileRequest_DestinationDirectoryNotFound_RequestIsHandled()
-    {
-        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
-
-        this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileImportLogAggregate()));
-
-        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
-
-        Logger.Initialise(NullLogger.Instance);
-
-        Result<Guid> result = await this.FileProcessorDomainService.UploadFile(TestData.UploadFileCommand, CancellationToken.None);
-        result.IsFailed.ShouldBeTrue();
-        result.Status.ShouldBe(ResultStatus.NotFound);
-    }
-    
-    [Fact]
     public async Task FileRequestHandler_ProcessUploadedFileRequest_RequestIsHandled()
     {
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
@@ -240,6 +251,19 @@ public class FileProcessorDomainServiceTests
         
         Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
         result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessUploadedFile_WhenOperatorLookupFails_MovesAcceptedFileToFailedDirectory()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
     }
     
     [Fact]

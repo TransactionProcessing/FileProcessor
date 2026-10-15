@@ -29,31 +29,57 @@ public static class FileHandlers
 
         string temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
         string fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-        string fullPath = Path.Combine(temporaryFileLocation, fileName);
+        string temporaryFileName = Guid.NewGuid().ToString("N");
+        string fullPath = Path.Combine(temporaryFileLocation, temporaryFileName);
+        bool uploadAccepted = false;
+        bool temporaryFileCreated = false;
 
-        await using (FileStream stream = new(fullPath, FileMode.Create))
+        try
         {
-            await file.CopyToAsync(stream, cancellationToken);
+            Directory.CreateDirectory(temporaryFileLocation);
+
+            await using (FileStream stream = new(fullPath, FileMode.CreateNew))
+            {
+                temporaryFileCreated = true;
+                await file.CopyToAsync(stream, cancellationToken);
+            }
+
+            if (request.UploadDateTime == DateTime.MinValue)
+                request.UploadDateTime = DateTime.Now;
+
+            FileCommands.UploadFileCommand command = new(request.FileId,
+                request.EstateId,
+                request.MerchantId,
+                request.UserId,
+                fullPath,
+                request.FileProfileId,
+                request.UploadDateTime,
+                fileName);
+
+            Result<Guid> result = await mediator.Send(command, cancellationToken);
+            uploadAccepted = result.IsSuccess;
+
+            Shared.Logger.Logger.LogDebug($"Day is {request.UploadDateTime.Day}");
+            Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
+            Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
+
+            return ResponseFactory.FromResult(result, r => r);
         }
-
-        if (request.UploadDateTime == DateTime.MinValue)
-            request.UploadDateTime = DateTime.Now;
-
-        FileCommands.UploadFileCommand command = new(request.FileId,
-            request.EstateId,
-            request.MerchantId,
-            request.UserId,
-            fullPath,
-            request.FileProfileId,
-            request.UploadDateTime);
-
-        Result<Guid> result = await mediator.Send(command, cancellationToken);
-
-        Shared.Logger.Logger.LogDebug($"Day is {request.UploadDateTime.Day}");
-        Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
-        Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
-
-        return ResponseFactory.FromResult(result, r => r);
+        finally
+        {
+            if (uploadAccepted == false && temporaryFileCreated)
+            {
+                try
+                {
+                    if (System.IO.File.Exists(fullPath))
+                        System.IO.File.Delete(fullPath);
+                }
+                catch (Exception exception)
+                {
+                    Shared.Logger.Logger.LogWarning($"Failed to remove temporary upload file [{fullPath}]. Error [{exception.Message}]");
+                }
+            }
+        }
     }
 
     public static async Task<IResult> GetFile(IMediator mediator,
