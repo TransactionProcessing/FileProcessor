@@ -154,19 +154,6 @@ namespace FileProcessor.BusinessLogic.Managers
             });
         }
 
-        public async Task<Result<List<FileImportLog>>> GetFileImportLogs(Guid estateId,
-                                                                           DateTime startDateTime,
-                                                                           DateTime endDateTime,
-                                                                           Guid? merchantId,
-                                                                           CancellationToken cancellationToken)
-        {
-            Result<FileImportLogQueryResult> result = await this.GetFileImportLogs(estateId, DateOnly.FromDateTime(startDateTime), DateOnly.FromDateTime(endDateTime), merchantId, 1, 50, false, cancellationToken);
-            if (result.IsFailed)
-                return ResultHelpers.CreateFailure(result);
-
-            return Result.Success(result.Data.FileImportLogs);
-        }
-
         public async Task<Result<FileImportLog>> GetFileImportLog(Guid fileImportLogId, 
                                                                      Guid estateId, 
                                                                      Guid? merchantId,

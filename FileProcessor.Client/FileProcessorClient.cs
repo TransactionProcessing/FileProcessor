@@ -180,57 +180,11 @@ namespace FileProcessor.Client {
         /// </summary>
         /// <param name="accessToken">The access token.</param>
         /// <param name="estateId">The estate identifier.</param>
-        /// <param name="startDateTime">The start date time.</param>
-        /// <param name="endDateTime">The end date time.</param>
+        /// <param name="startDate">The first calendar date.</param>
+        /// <param name="endDate">The last calendar date.</param>
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
-                                                               Guid estateId,
-                                                               DateTime startDateTime,
-                                                               DateTime endDateTime,
-                                                               Guid? merchantId,
-                                                               CancellationToken cancellationToken) {
-            DateOnly startDate = DateOnly.FromDateTime(startDateTime);
-            DateOnly endDate = DateOnly.FromDateTime(endDateTime);
-            const Int32 pageSize = 50;
-            Int32 pageNumber = 1;
-            List<FileImportLog> fileImportLogs = new();
-            Int32 totalCount = 0;
-
-            while (true) {
-                Result<FileImportLogList> pageResult = await this.GetFileImportLogs(accessToken,
-                                                                                     estateId,
-                                                                                     startDate,
-                                                                                     endDate,
-                                                                                     merchantId,
-                                                                                     pageNumber,
-                                                                                     pageSize,
-                                                                                     false,
-                                                                                     cancellationToken);
-
-                if (pageResult.IsFailed)
-                    return ResultHelpers.CreateFailure(pageResult);
-
-                FileImportLogList page = pageResult.Data;
-                fileImportLogs.AddRange(page.FileImportLogs);
-                totalCount = page.TotalCount;
-
-                if (!page.HasMore)
-                    break;
-
-                pageNumber++;
-            }
-
-            return Result.Success(new FileImportLogList {
-                FileImportLogs = fileImportLogs,
-                PageNumber = 1,
-                PageSize = fileImportLogs.Count,
-                TotalCount = totalCount,
-                HasMore = false
-            });
-        }
-
         public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
                                                                Guid estateId,
                                                                DateOnly startDate,
@@ -248,26 +202,6 @@ namespace FileProcessor.Client {
 
             Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
             return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
-        }
-
-        public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
-                                                               Guid estateId,
-                                                               DateTime startDateTime,
-                                                               DateTime endDateTime,
-                                                               Guid? merchantId,
-                                                               Int32 pageNumber,
-                                                               Int32 pageSize,
-                                                               Boolean descending,
-                                                               CancellationToken cancellationToken) {
-            return await this.GetFileImportLogs(accessToken,
-                                                estateId,
-                                                DateOnly.FromDateTime(startDateTime),
-                                                DateOnly.FromDateTime(endDateTime),
-                                                merchantId,
-                                                pageNumber,
-                                                pageSize,
-                                                descending,
-                                                cancellationToken);
         }
 
         /// <summary>

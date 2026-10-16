@@ -138,8 +138,11 @@ public class FileProcessorSteps
         await Retry.For(async () => {
                             var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                                                estate.EstateDetails.EstateId,
-                                                                                                               queryStartDate,
-                                                                                                               queryEndDate,
+                                                                                                               DateOnly.FromDateTime(queryStartDate),
+                                                                                                               DateOnly.FromDateTime(queryEndDate),
+                                                                                                               1,
+                                                                                                               50,
+                                                                                                               false,
                                                                                                                null,
                                                                                                                CancellationToken.None);
                             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
@@ -165,8 +168,11 @@ public class FileProcessorSteps
         DateTime queryStartDate = ReqnrollTableHelper.GetDateForDateString(startDate, DateTime.Now);
         var importLogListResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                            estate.EstateDetails.EstateId,
-                                                                                           queryStartDate,
-                                                                                           queryStartDate,
+                                                                                           DateOnly.FromDateTime(queryStartDate),
+                                                                                           DateOnly.FromDateTime(queryStartDate),
+                                                                                           1,
+                                                                                           50,
+                                                                                           false,
                                                                                            null,
                                                                                            CancellationToken.None);
         importLogListResult.IsSuccess.ShouldBeTrue();
@@ -205,8 +211,11 @@ public class FileProcessorSteps
 
         var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                          estate.EstateDetails.EstateId,
-                                                                                         expectedDate.AddDays(-1),
-                                                                                         DateTime.Now,
+                                                                                         DateOnly.FromDateTime(expectedDate.AddDays(-1)),
+                                                                                         DateOnly.FromDateTime(DateTime.Now),
+                                                                                         1,
+                                                                                         50,
+                                                                                         false,
                                                                                          null,
                                                                                          CancellationToken.None);
 

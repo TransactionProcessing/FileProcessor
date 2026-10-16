@@ -87,23 +87,6 @@ namespace FileProcessor.Client
                                                   Boolean descending,
                                                   CancellationToken cancellationToken);
 
-        Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
-                                                  Guid estateId,
-                                                  DateTime startDateTime,
-                                                  DateTime endDateTime,
-                                                  Guid? merchantId,
-                                                  CancellationToken cancellationToken);
-
-        Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
-                                                  Guid estateId,
-                                                  DateTime startDateTime,
-                                                  DateTime endDateTime,
-                                                  Guid? merchantId,
-                                                  Int32 pageNumber,
-                                                  Int32 pageSize,
-                                                  Boolean descending,
-                                                  CancellationToken cancellationToken);
-
         /// <summary>
         /// Uploads the file.
         /// </summary>
