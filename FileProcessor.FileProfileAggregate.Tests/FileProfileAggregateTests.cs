@@ -198,6 +198,34 @@ public class FileProfileAggregateTests
     }
 
     [Fact]
+    public void FileProfileAggregate_GetAllProfileVersions_IncludesArchivedProfilesAndRetainsDirectories()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+        aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            LineTerminatorType.LineFeed,
+            TestData.SafaricomFileFormatHandler));
+
+        aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
+        {
+            ListeningDirectory = "/home/txnproc/bulkfiles/safaricom-v2"
+        });
+        aggregate.ArchiveProfile(TestData.FileProfileId);
+
+        List<FileProcessor.Models.FileProfile> versions = aggregate.GetAllProfileVersions();
+
+        versions.Count.ShouldBe(2);
+        versions[0].ListeningDirectory.ShouldBe(TestData.SafaricomListeningDirectory);
+        versions[0].ProcessedDirectory.ShouldBe($"{TestData.SafaricomListeningDirectory}/processed");
+        versions[0].FailedDirectory.ShouldBe($"{TestData.SafaricomListeningDirectory}/failed");
+        versions[1].ListeningDirectory.ShouldBe("/home/txnproc/bulkfiles/safaricom-v2");
+    }
+
+    [Fact]
     public void FileProfileAggregate_Update_ListeningDirectoryUpdatesDerivedDirectories()
     {
         FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();

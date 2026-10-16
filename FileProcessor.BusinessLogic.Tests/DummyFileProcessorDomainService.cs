@@ -33,6 +33,10 @@ public class DummyFileProcessorManager : IFileProcessorManager {
         return Result.Success();
     }
 
+    public async Task<Result<List<FileProfileModel>>> GetAllFileProfileVersions(CancellationToken cancellationToken) {
+        return Result.Success();
+    }
+
     public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId,
                                                           CancellationToken cancellationToken) {
         return Result.Success();

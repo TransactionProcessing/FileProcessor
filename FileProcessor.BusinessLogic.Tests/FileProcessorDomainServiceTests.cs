@@ -393,6 +393,48 @@ public class FileProcessorDomainServiceTests
         result.IsFailed.ShouldBeTrue();
         this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
     }
+
+    [Fact]
+    public async Task ProcessUploadedFile_WhenRecordedVersionDiffers_MovesAcceptedFileToRecordedFailedDirectory()
+    {
+        FileProfile currentProfile = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            "/home/txnproc/bulkfiles/current-profile",
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            Guid.NewGuid(),
+            2);
+        FileProfile historicalProfile = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            "/home/txnproc/bulkfiles/historical-profile",
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            TestData.FileProfileVersionId,
+            1);
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(currentProfile);
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(historicalProfile);
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+        this.FileSystem.AddDirectory(currentProfile.FailedDirectory);
+        this.FileSystem.AddDirectory(historicalProfile.FailedDirectory);
+
+        FileCommands.ProcessUploadedFileCommand command = TestData.ProcessUploadedFileCommand with
+        {
+            FileProfileVersionId = historicalProfile.FileProfileVersionId
+        };
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(command, CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        this.FileSystem.File.Exists($"{historicalProfile.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
+        this.FileSystem.File.Exists($"{currentProfile.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeFalse();
+    }
     
     [Fact]
     public async Task FileRequestHandler_ProcessUploadedFileRequest_FileNotFound_RequestIsHandled()

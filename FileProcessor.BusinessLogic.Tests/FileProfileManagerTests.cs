@@ -56,6 +56,24 @@ public class FileProfileManagerTests
         result.Message.ShouldContain(missingVersionId.ToString());
     }
 
+    [Fact]
+    public async Task GetAllFileProfileVersions_IncludesVersionsForArchivedProfiles()
+    {
+        FileProfileAggregateRoot aggregate = this.CreateArchivedAggregate();
+        IAggregateRepositoryImposter<FileProfileAggregateRoot, DomainEvent> repository = new();
+        repository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+                  .ReturnsAsync(Result.Success(aggregate));
+        FileProfileManager manager = new(repository.Instance());
+
+        Result<List<FileProfileModel>> result = await manager.GetAllFileProfileVersions(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Data.Count.ShouldBe(2);
+        result.Data[0].FileProfileId.ShouldBe(TestData.FileProfileId);
+        result.Data[0].FileProfileVersion.ShouldBe(1);
+        result.Data[1].FileProfileVersion.ShouldBe(2);
+    }
+
     private FileProfileAggregateRoot CreateArchivedAggregate()
     {
         FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();

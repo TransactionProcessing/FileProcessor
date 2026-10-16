@@ -40,7 +40,7 @@ public class FileProfileDirectoryRecoveryServiceTests
         fileSystem.AddFile(inProgressFilePath, new MockFileData("D,1,1,1"));
 
         fileProcessorManager
-            .GetAllFileProfiles(Arg<CancellationToken>.Any())
+            .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
 
         fileProcessorManager
@@ -86,7 +86,7 @@ public class FileProfileDirectoryRecoveryServiceTests
         fileSystem.AddFile(inProgressFilePath, new MockFileData("D,1,1,1"));
 
         fileProcessorManager
-            .GetAllFileProfiles(Arg<CancellationToken>.Any())
+            .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
 
         fileProcessorManager
@@ -140,4 +140,107 @@ public class FileProfileDirectoryRecoveryServiceTests
                 Path.GetFileName(command.FilePath) == Path.GetFileName(inProgressFilePath)),
             Arg<CancellationToken>.Any()).Called(Count.Once());
     }
+
+    [Fact]
+    public async Task RecoverInProgressFilesAsync_ReplaysFilesFromHistoricalAndCurrentDirectories()
+    {
+        Shared.Logger.Logger.Initialise(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+
+        IFileProcessorManagerImposter fileProcessorManager = new();
+        IMediatorImposter mediator = new();
+        MockFileSystem fileSystem = new();
+        FileProfileModel historicalVersion = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            "/home/txnproc/bulkfiles/safaricom-old",
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            TestData.FileProfileVersionId,
+            1);
+        FileProfileModel currentVersion = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            "/home/txnproc/bulkfiles/safaricom-current",
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            Guid.NewGuid(),
+            2);
+        string historicalFilePath = $"{historicalVersion.ListeningDirectory}/inprogress/{TestData.EstateId:N}-{TestData.FileId:N}";
+        string currentFilePath = $"{currentVersion.ListeningDirectory}/inprogress/{TestData.EstateId:N}-{TestData.FileId2:N}";
+        fileSystem.AddFile(historicalFilePath, new MockFileData("D,1,1,1"));
+        fileSystem.AddFile(currentFilePath, new MockFileData("D,1,1,1"));
+
+        fileProcessorManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(new List<FileProfileModel> { historicalVersion, currentVersion }));
+        fileProcessorManager.GetFile(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+        mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success());
+
+        FileProfileDirectoryRecoveryService service = new(
+            fileProcessorManager.Instance(),
+            mediator.Instance(),
+            fileSystem);
+
+        Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        mediator.Send(Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
+            (Path.GetFileName(command.FilePath) == Path.GetFileName(historicalFilePath) ||
+             Path.GetFileName(command.FilePath) == Path.GetFileName(currentFilePath))),
+            Arg<CancellationToken>.Any()).Called(Count.Exactly(2));
+    }
+
+    [Fact]
+    public async Task RecoverInProgressFilesAsync_WhenVersionsShareDirectory_ReplaysFileOnce()
+    {
+        Shared.Logger.Logger.Initialise(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+
+        IFileProcessorManagerImposter fileProcessorManager = new();
+        IMediatorImposter mediator = new();
+        MockFileSystem fileSystem = new();
+        FileProfileModel firstVersion = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            Guid.NewGuid(),
+            1);
+        FileProfileModel secondVersion = new(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            Guid.NewGuid(),
+            2);
+        string filePath = $"{firstVersion.ListeningDirectory}/inprogress/{TestData.EstateId:N}-{TestData.FileId:N}";
+        fileSystem.AddFile(filePath, new MockFileData("D,1,1,1"));
+        fileProcessorManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(new List<FileProfileModel> { firstVersion, secondVersion }));
+        fileProcessorManager.GetFile(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+        mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success());
+
+        FileProfileDirectoryRecoveryService service = new(
+            fileProcessorManager.Instance(),
+            mediator.Instance(),
+            fileSystem);
+
+        Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
+    }
+
 }
