@@ -116,7 +116,8 @@ namespace FileProcessor.BusinessLogic.EventHandling
                                                                                 domainEvent.UserId,
                                                                                 domainEvent.FilePath,
                                                                                 domainEvent.FileProfileId,
-                                                                                domainEvent.FileUploadedDateTime);
+                                                                                domainEvent.FileUploadedDateTime,
+                                                                                domainEvent.FileProfileVersionId);
 
             return await this.Mediator.Send(command, cancellationToken);
         }

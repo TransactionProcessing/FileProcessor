@@ -31,6 +31,8 @@
 
         public Guid FileProfileId { get; set; }
 
+        public Guid FileProfileVersionId { get; set; }
+
         public String FileProfileName { get; set; }
 
         public Guid FileImportLogId { get; set; }

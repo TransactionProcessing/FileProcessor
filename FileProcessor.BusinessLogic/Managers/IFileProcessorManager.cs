@@ -20,6 +20,10 @@ namespace FileProcessor.BusinessLogic.Managers
 
         Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken);
 
+        Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
+                                                             Guid fileProfileVersionId,
+                                                             CancellationToken cancellationToken);
+
         Task<Result<Models.FileImportLogQueryResult>> GetFileImportLogs(Guid estateId, DateOnly startDate, DateOnly endDate, Guid? merchantId, Int32 pageNumber, Int32 pageSize, Boolean descending, CancellationToken cancellationToken);
 
         Task<Result<Models.FileImportLog>> GetFileImportLog(Guid fileImportLogId, Guid estateId, Guid? merchantId, CancellationToken cancellationToken);

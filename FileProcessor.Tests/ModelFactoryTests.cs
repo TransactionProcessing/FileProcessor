@@ -112,6 +112,7 @@ namespace FileProcessor.Tests
             fileDetails.FileId.ShouldBe(source.FileId);
             fileDetails.FileLocation.ShouldBe(source.FileLocation);
             fileDetails.FileProfileId.ShouldBe(source.FileProfileId);
+            fileDetails.FileProfileVersionId.ShouldBe(source.FileProfileVersionId);
             fileDetails.MerchantId.ShouldBe(source.MerchantId);
             fileDetails.UserId.ShouldBe(source.UserId);
             fileDetails.ProcessingCompleted.ShouldBe(source.ProcessingCompleted);
@@ -180,6 +181,7 @@ namespace FileProcessor.Tests
                 foundFile.OriginalFileName.ShouldBe(importLogFile.OriginalFileName);
                 foundFile.FilePath.ShouldBe(importLogFile.FilePath);
                 foundFile.FileProfileId.ShouldBe(importLogFile.FileProfileId);
+                foundFile.FileProfileVersionId.ShouldBe(importLogFile.FileProfileVersionId);
                 foundFile.FileUploadedDateTime.ShouldBe(importLogFile.UploadedDateTime);
                 foundFile.UserId.ShouldBe(importLogFile.UserId);
             }

@@ -13,6 +13,8 @@
 
         public Guid FileProfileId { get; set; }
 
+        public Guid FileProfileVersionId { get; set; }
+
         public DateTime FileUploadedDateTime { get; set; }
 
         public Guid MerchantId { get; set; }

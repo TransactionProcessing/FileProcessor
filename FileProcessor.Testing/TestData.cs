@@ -37,6 +37,8 @@ namespace FileProcessor.Testing
 
         public static Guid FileProfileId = Guid.Parse("D0D3A4E5-870E-42F6-AD0E-5E24252BC95E");
 
+        public static Guid FileProfileVersionId = Guid.Parse("A0D3A4E5-870E-42F6-AD0E-5E24252BC95E");
+
         public static String FileName = "testfile1.csv";
 
         public static Int32 LineNumber = 1;
@@ -288,6 +290,7 @@ namespace FileProcessor.Testing
                 EstateId = TestData.EstateId,
                 MerchantId = TestData.MerchantId,
                 FileProfileId = TestData.FileProfileId,
+                FileProfileVersionId = TestData.FileProfileVersionId,
                 FileId = TestData.FileId,
                 FileImportLogId = TestData.FileImportLogId,
                 FileLocation = TestData.FilePathWithName,
@@ -586,6 +589,7 @@ namespace FileProcessor.Testing
                                                           FileImportLogId = TestData.FileImportLogId,
                                                           FileLocation = TestData.FileLocation,
                                                           FileProfileId = TestData.FileProfileId,
+                                                          FileProfileVersionId = TestData.FileProfileVersionId,
                                                           MerchantId = TestData.MerchantId,
                                                           ProcessingCompleted = true,
                                                           UserId = TestData.UserId,
@@ -706,6 +710,7 @@ namespace FileProcessor.Testing
                     FileId = Guid.NewGuid(),
                     FilePath = "/home/txnproc/file1.csv",
                     FileProfileId = TestData.FileProfileId,
+                    FileProfileVersionId = TestData.FileProfileVersionId,
                     OriginalFileName = "Testfile1.csv",
                     UserId = TestData.UserId,
                     UploadedDateTime = TestData.FileUploadedDateTime
@@ -717,6 +722,7 @@ namespace FileProcessor.Testing
                     FileId = Guid.NewGuid(),
                     FilePath = "/home/txnproc/file2.csv",
                     FileProfileId = TestData.FileProfileId,
+                    FileProfileVersionId = TestData.FileProfileVersionId,
                     OriginalFileName = "Testfile2.csv",
                     UserId = TestData.UserId,
                     UploadedDateTime = TestData.FileUploadedDateTime
@@ -742,6 +748,7 @@ namespace FileProcessor.Testing
                     FileId = Guid.NewGuid(),
                     FilePath = "/home/txnproc/file3.csv",
                     FileProfileId = TestData.FileProfileId,
+                    FileProfileVersionId = TestData.FileProfileVersionId,
                     OriginalFileName = "Testfile3.csv",
                     UserId = TestData.UserId,
                     UploadedDateTime = TestData.FileUploadedDateTime
@@ -753,6 +760,7 @@ namespace FileProcessor.Testing
                     FileId = Guid.NewGuid(),
                     FilePath = "/home/txnproc/file2.csv",
                     FileProfileId = TestData.FileProfileId,
+                    FileProfileVersionId = TestData.FileProfileVersionId,
                     OriginalFileName = "Testfile2.csv",
                     UserId = TestData.UserId,
                     UploadedDateTime = TestData.FileUploadedDateTime

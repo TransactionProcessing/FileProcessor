@@ -82,7 +82,8 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
                 fileDetails.UserId,
                 filePath,
                 fileDetails.FileProfileId,
-                fileDetails.FileReceivedDateTime);
+                 fileDetails.FileReceivedDateTime,
+                 fileDetails.FileProfileVersionId);
         }
         else
         {
@@ -108,7 +109,8 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
                 importLogFile.UserId,
                 filePath,
                 importLogFile.FileProfileId,
-                importLogFile.UploadedDateTime == default ? importLog.FileImportLogDateTime : importLogFile.UploadedDateTime);
+                 importLogFile.UploadedDateTime == default ? importLog.FileImportLogDateTime : importLogFile.UploadedDateTime,
+                 importLogFile.FileProfileVersionId);
         }
 
         Result result = await this.Mediator.Send(command, cancellationToken);

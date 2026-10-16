@@ -64,6 +64,8 @@
         /// </value>
         public Guid FileProfileId { get; set; }
 
+        public Guid FileProfileVersionId { get; set; }
+
         public DateTime FileReceivedDateTime { get; set; }
 
         /// <summary>

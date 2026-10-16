@@ -27,7 +27,7 @@ namespace FileProcessor.FileImportLogAggregate
             return Result.Success();
         }
         
-        public static Result AddImportedFile(this FileImportLogAggregate aggregate, Guid fileId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime)
+        public static Result AddImportedFile(this FileImportLogAggregate aggregate, Guid fileId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime, Guid fileProfileVersionId = default)
         {
             if (aggregate.IsCreated == false)
             {
@@ -40,7 +40,7 @@ namespace FileProcessor.FileImportLogAggregate
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
-                new FileAddedToImportLogEvent(aggregate.AggregateId, fileId, aggregate.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath, fileUploadedDateTime);
+                new FileAddedToImportLogEvent(aggregate.AggregateId, fileId, aggregate.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath, fileUploadedDateTime, fileProfileVersionId);
 
             aggregate.ApplyAndAppend(fileAddedToImportLogEvent);
 
@@ -61,6 +61,7 @@ namespace FileProcessor.FileImportLogAggregate
                                     EstateId = domainEvent.EstateId,
                                     FileId = domainEvent.FileId,
                                     FileProfileId = domainEvent.FileProfileId,
+                                    FileProfileVersionId = domainEvent.FileProfileVersionId == Guid.Empty ? domainEvent.FileProfileId : domainEvent.FileProfileVersionId,
                                     MerchantId = domainEvent.MerchantId,
                                     FilePath = domainEvent.FilePath,
                                     OriginalFileName = domainEvent.OriginalFileName,

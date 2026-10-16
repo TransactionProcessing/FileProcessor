@@ -17,7 +17,8 @@ public record FileCommands {
                                              Guid UserId,
                                              String FilePath,
                                              Guid FileProfileId,
-                                             DateTime FileUploadedDateTime) : IRequest<Result>;
+                                             DateTime FileUploadedDateTime,
+                                             Guid FileProfileVersionId = default) : IRequest<Result>;
 
     public record UploadFileCommand(Guid FileId,
                                     Guid EstateId,

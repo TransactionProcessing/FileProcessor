@@ -38,6 +38,8 @@
         /// </value>
         public Guid FileProfileId { get; set; }
 
+        public Guid FileProfileVersionId { get; set; }
+
         /// <summary>
         /// Gets or sets the merchant identifier.
         /// </summary>

@@ -27,7 +27,8 @@
                                    Guid FileProfileId,
                                    String FileLocation,
                                    DateTime FileReceivedDateTime,
-                                   Guid OperatorId) : DomainEvent(FileId, Guid.NewGuid());
+                                   Guid OperatorId,
+                                   Guid FileProfileVersionId = default) : DomainEvent(FileId, Guid.NewGuid());
 
     public record FileRejectedEvent(Guid FileId,
                                     Guid EstateId,

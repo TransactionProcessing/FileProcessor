@@ -38,6 +38,12 @@ public class DummyFileProcessorManager : IFileProcessorManager {
         return Result.Success();
     }
 
+    public async Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
+                                                                       Guid fileProfileVersionId,
+                                                                       CancellationToken cancellationToken) {
+        return Result.Success();
+    }
+
     public async Task<Result<Models.FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
                                                                                   DateOnly startDate,
                                                                                   DateOnly endDate,

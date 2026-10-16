@@ -109,7 +109,10 @@ public class FileProcessorDomainServiceTests
     [Fact]
     public async Task UploadFile_DoesNotRequireListeningDirectoryOrMoveTemporaryFile()
     {
-        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom with
+                                                                                                      {
+                                                                                                          FileProfileVersionId = TestData.FileProfileVersionId
+                                                                                                      });
 
         FileImportLogAggregate importLogAggregate = TestData.GetEmptyFileImportLogAggregate();
         this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(importLogAggregate));
@@ -131,6 +134,7 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.File.Exists(TestData.FilePathWithName).ShouldBeTrue();
         importLogAggregate.GetFileImportLog().Files.Single().FilePath.ShouldBe(TestData.FilePathWithName);
         importLogAggregate.GetFileImportLog().Files.Single().OriginalFileName.ShouldBe("client-name.csv");
+        importLogAggregate.GetFileImportLog().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
     }
 
     [Fact]
