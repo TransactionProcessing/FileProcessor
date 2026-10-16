@@ -70,6 +70,11 @@ namespace FileProcessor.BusinessLogic.Managers
             return await this.FileProfileManager.GetAllFileProfiles(cancellationToken);
         }
 
+        public async Task<Result<List<FileProfileModel>>> GetAllFileProfileVersions(CancellationToken cancellationToken)
+        {
+            return await this.FileProfileManager.GetAllFileProfileVersions(cancellationToken);
+        }
+
         public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId,
                                                               CancellationToken cancellationToken)
         {

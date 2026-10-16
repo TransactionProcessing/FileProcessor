@@ -299,6 +299,15 @@ public static class FileProfileAggregateExtensions
                                .ToList();
     }
 
+    public static List<FileProfileModel> GetAllProfileVersions(this FileProfileAggregate aggregate)
+    {
+        return aggregate.FileProfiles.Values
+                                     .SelectMany(profile => profile.Versions.Select(version => version.ToModel(profile.FileProfileId)))
+                                     .OrderBy(version => version.FileProfileId)
+                                     .ThenBy(version => version.FileProfileVersion)
+                                     .ToList();
+    }
+
     public static FileProfileModel GetProfileVersion(this FileProfileAggregate aggregate,
                                                       Guid fileProfileId,
                                                       Guid fileProfileVersionId)

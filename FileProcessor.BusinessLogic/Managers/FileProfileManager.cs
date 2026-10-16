@@ -65,6 +65,15 @@ public class FileProfileManager : IFileProfileManager
         return Result.Success(versions);
     }
 
+    public async Task<Result<List<FileProfileModel>>> GetAllFileProfileVersions(CancellationToken cancellationToken)
+    {
+        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken);
+        if (aggregateResult.IsFailed)
+            return ResultHelpers.CreateFailure(aggregateResult);
+
+        return Result.Success(aggregateResult.Data.GetAllProfileVersions());
+    }
+
     public async Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
                                                                        Guid fileProfileVersionId,
                                                                        CancellationToken cancellationToken)

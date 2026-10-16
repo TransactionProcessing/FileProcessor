@@ -18,6 +18,8 @@ namespace FileProcessor.BusinessLogic.Managers
 
         Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken);
 
+        Task<Result<List<FileProfileModel>>> GetAllFileProfileVersions(CancellationToken cancellationToken);
+
         Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken);
 
         Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
