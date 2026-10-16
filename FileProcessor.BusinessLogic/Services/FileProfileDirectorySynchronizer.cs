@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -45,15 +46,19 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         this.FileSystem.Directory.CreateDirectory(temporaryFileLocation);
         this.Logger.LogInformation("Ensured temporary file location exists at [{TemporaryFileLocation}]", temporaryFileLocation);
 
-        Result<List<FileProfileModel>> fileProfilesResult = await this.FileProfileManager.GetAllFileProfiles(cancellationToken);
+        Result<List<FileProfileModel>> fileProfilesResult = await this.FileProfileManager.GetAllFileProfileVersions(cancellationToken);
         if (fileProfilesResult.IsFailed)
         {
             this.Logger.LogWarning("Error getting file profiles {Message}", fileProfilesResult.Message);
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
+        HashSet<string> synchronizedDirectories = new(StringComparer.OrdinalIgnoreCase);
         foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
         {
+            if (synchronizedDirectories.Add(fileProfile.ListeningDirectory) == false)
+                continue;
+
             this.EnsureDirectory(Path.Combine(fileProfile.ListeningDirectory, InProgressDirectoryName), "in progress");
             this.EnsureDirectory(fileProfile.ProcessedDirectory, "processed");
             this.EnsureDirectory(fileProfile.FailedDirectory, "failed");
