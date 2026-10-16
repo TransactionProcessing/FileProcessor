@@ -42,7 +42,7 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
-        HashSet<string> recoveredDirectories = new(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> recoveredDirectories = new(GetPathComparer());
         foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
         {
             string inProgressDirectory = Path.Combine(fileProfile.ListeningDirectory, InProgressDirectoryName);
@@ -63,6 +63,11 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         }
 
         return Result.Success();
+    }
+
+    private static StringComparer GetPathComparer()
+    {
+        return OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
     }
 
     private async Task RecoverFileAsync(FileProfileModel fileProfile, string filePath, CancellationToken cancellationToken)

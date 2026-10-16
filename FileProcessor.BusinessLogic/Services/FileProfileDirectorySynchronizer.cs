@@ -53,7 +53,7 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
-        HashSet<string> synchronizedDirectories = new(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> synchronizedDirectories = new(GetPathComparer());
         foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
         {
             if (synchronizedDirectories.Add(fileProfile.ListeningDirectory) == false)
@@ -65,6 +65,11 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         }
 
         return Result.Success();
+    }
+
+    private static StringComparer GetPathComparer()
+    {
+        return OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
     }
 
     private void EnsureDirectory(string directoryPath, string directoryName)

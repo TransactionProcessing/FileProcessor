@@ -242,4 +242,5 @@ public class FileProfileDirectoryRecoveryServiceTests
         result.IsSuccess.ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
     }
+
 }
