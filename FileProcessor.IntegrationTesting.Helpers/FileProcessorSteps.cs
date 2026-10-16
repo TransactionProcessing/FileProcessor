@@ -140,10 +140,10 @@ public class FileProcessorSteps
                                                                                                                estate.EstateDetails.EstateId,
                                                                                                                DateOnly.FromDateTime(queryStartDate),
                                                                                                                DateOnly.FromDateTime(queryEndDate),
+                                                                                                               null,
                                                                                                                1,
                                                                                                                50,
                                                                                                                false,
-                                                                                                               null,
                                                                                                                CancellationToken.None);
                             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
                             FileImportLogList importLogList = getFileImportLogsResult.Data;
@@ -170,10 +170,10 @@ public class FileProcessorSteps
                                                                                            estate.EstateDetails.EstateId,
                                                                                            DateOnly.FromDateTime(queryStartDate),
                                                                                            DateOnly.FromDateTime(queryStartDate),
+                                                                                           null,
                                                                                            1,
                                                                                            50,
                                                                                            false,
-                                                                                           null,
                                                                                            CancellationToken.None);
         importLogListResult.IsSuccess.ShouldBeTrue();
         var importLogList = importLogListResult.Data;
@@ -213,10 +213,10 @@ public class FileProcessorSteps
                                                                                          estate.EstateDetails.EstateId,
                                                                                          DateOnly.FromDateTime(expectedDate.AddDays(-1)),
                                                                                          DateOnly.FromDateTime(DateTime.Now),
+                                                                                         null,
                                                                                          1,
                                                                                          50,
                                                                                          false,
-                                                                                         null,
                                                                                          CancellationToken.None);
 
         getFileImportLogsResult.IsSuccess.ShouldBeTrue();
