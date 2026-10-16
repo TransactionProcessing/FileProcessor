@@ -78,5 +78,30 @@ namespace FileProcessor.BusinessLogic.Tests
                                 await eventHandler.Handle(fileAddedToImportLogEvent, CancellationToken.None);
                             });
         }
+
+        [Fact]
+        public async Task FileDomainEventHandler_FileAddedToImportLogEvent_PropagatesFileProfileVersionId()
+        {
+            IMediatorImposter mediator = new IMediatorImposter();
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
+            FileAddedToImportLogEvent domainEvent = new(TestData.FileImportLogId,
+                                                        TestData.FileId,
+                                                        TestData.EstateId,
+                                                        TestData.MerchantId,
+                                                        TestData.UserId,
+                                                        TestData.FileProfileId,
+                                                        TestData.OriginalFileName,
+                                                        TestData.FilePath,
+                                                        TestData.FileUploadedDateTime,
+                                                        TestData.FileProfileVersionId);
+
+            Result result = await eventHandler.Handle(domainEvent, CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            mediator.Send(Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
+                                                              command.FileProfileVersionId == TestData.FileProfileVersionId),
+                          Arg<CancellationToken>.Any()).Called(Count.Once());
+        }
     }
 }

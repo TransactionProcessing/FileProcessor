@@ -36,7 +36,7 @@ namespace FileProcessor.FileAggregate.Tests
         public void FileAggregate_CreateFile_FileIsCreated()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
-            FileAggregateExtensions.CreateFileRequest request = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            FileAggregateExtensions.CreateFileRequest request = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId, TestData.FileProfileVersionId);
             var result = fileAggregate.CreateFile(request);
             result.IsSuccess.ShouldBeTrue();
 
@@ -50,9 +50,28 @@ namespace FileProcessor.FileAggregate.Tests
             fileDetails.MerchantId.ShouldBe(TestData.MerchantId);
             fileDetails.UserId.ShouldBe(TestData.UserId);
             fileDetails.FileProfileId.ShouldBe(TestData.FileProfileId);
+            fileDetails.FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
             fileDetails.FileLocation.ShouldBe(TestData.FileLocation);
             fileDetails.FileLines.ShouldBeEmpty();
             fileDetails.ProcessingCompleted.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void FileAggregate_PlayLegacyFileCreatedEvent_PreservesEmptyFileProfileVersionId()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+
+            fileAggregate.PlayEvent(new FileCreatedEvent(TestData.FileId,
+                                                         TestData.FileImportLogId,
+                                                         TestData.EstateId,
+                                                         TestData.MerchantId,
+                                                         TestData.UserId,
+                                                         TestData.FileProfileId,
+                                                         TestData.FileLocation,
+                                                         TestData.FileUploadedDateTime,
+                                                         TestData.SafaricomOperatorId));
+
+            fileAggregate.GetFile().FileProfileVersionId.ShouldBe(Guid.Empty);
         }
 
         [Fact]

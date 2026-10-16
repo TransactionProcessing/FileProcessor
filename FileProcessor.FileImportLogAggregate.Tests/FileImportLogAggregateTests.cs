@@ -70,6 +70,25 @@ namespace FileProcessor.FileImportLogAggregate.Tests
         }
 
         [Fact]
+        public void FileImportLogAggregate_AddImportedFile_CapturesFileProfileVersionId()
+        {
+            FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
+            fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
+
+            Result result = fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(TestData.FileId,
+                                                                                                TestData.MerchantId,
+                                                                                                TestData.UserId,
+                                                                                                TestData.FileProfileId,
+                                                                                                TestData.OriginalFileName,
+                                                                                                TestData.FilePath,
+                                                                                                TestData.FileUploadedDateTime,
+                                                                                                TestData.FileProfileVersionId));
+
+            result.IsSuccess.ShouldBeTrue();
+            fileImportLogAggregate.GetFileImportLog().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
+        }
+
+        [Fact]
         public void FileImportLogAggregate_AddImportedFile_ImportLogNotCreated_ErrorThrown() {
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
 

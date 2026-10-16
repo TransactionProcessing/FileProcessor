@@ -60,6 +60,9 @@ public class FileProcessorDomainServiceTests
         Logger.Initialise(NullLogger.Instance);
 
         this.FileProcessorManager = new IFileProcessorManagerImposter();
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
+                                                        Arg<Guid>.Any(),
+                                                        Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
         this.FileImportLogAggregateRepository =
             new IAggregateRepositoryImposter<FileImportLogAggregate, DomainEvent>();
         this.FileAggregateRepository =
@@ -109,7 +112,10 @@ public class FileProcessorDomainServiceTests
     [Fact]
     public async Task UploadFile_DoesNotRequireListeningDirectoryOrMoveTemporaryFile()
     {
-        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom with
+                                                                                                      {
+                                                                                                          FileProfileVersionId = TestData.FileProfileVersionId
+                                                                                                      });
 
         FileImportLogAggregate importLogAggregate = TestData.GetEmptyFileImportLogAggregate();
         this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(importLogAggregate));
@@ -131,6 +137,7 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.File.Exists(TestData.FilePathWithName).ShouldBeTrue();
         importLogAggregate.GetFileImportLog().Files.Single().FilePath.ShouldBe(TestData.FilePathWithName);
         importLogAggregate.GetFileImportLog().Files.Single().OriginalFileName.ShouldBe("client-name.csv");
+        importLogAggregate.GetFileImportLog().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
     }
 
     [Fact]
@@ -815,6 +822,8 @@ public class FileProcessorDomainServiceTests
     {
         this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound());
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.NotFound());
         var result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(
                 TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);

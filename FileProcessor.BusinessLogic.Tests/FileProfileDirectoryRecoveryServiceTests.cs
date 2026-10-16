@@ -64,6 +64,7 @@ public class FileProfileDirectoryRecoveryServiceTests
                 command.FileId == TestData.FileId &&
                 Path.GetFileName(command.FilePath) == Path.GetFileName(inProgressFilePath) &&
                 command.FileProfileId == TestData.FileProfileId &&
+                command.FileProfileVersionId == TestData.FileProfileVersionId &&
                 command.EstateId == TestData.EstateId),
             Arg<CancellationToken>.Any()).Called(Count.Once());
     }
@@ -106,6 +107,7 @@ public class FileProfileDirectoryRecoveryServiceTests
                         EstateId = TestData.EstateId,
                         FileId = TestData.FileId,
                         FileProfileId = TestData.FileProfileId,
+                        FileProfileVersionId = TestData.FileProfileVersionId,
                         MerchantId = TestData.MerchantId,
                         UserId = TestData.UserId,
                         UploadedDateTime = TestData.FileUploadedDateTime
@@ -130,6 +132,7 @@ public class FileProfileDirectoryRecoveryServiceTests
                 command.FileId == TestData.FileId &&
                 command.FileImportLogId == TestData.FileImportLogId &&
                 command.FileProfileId == TestData.FileProfileId &&
+                command.FileProfileVersionId == TestData.FileProfileVersionId &&
                 command.EstateId == TestData.EstateId &&
                 command.MerchantId == TestData.MerchantId &&
                 command.UserId == TestData.UserId &&

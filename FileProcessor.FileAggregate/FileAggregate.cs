@@ -22,6 +22,7 @@ namespace FileProcessor.FileAggregate
             aggregate.EstateId = domainEvent.EstateId;
             aggregate.MerchantId = domainEvent.MerchantId;
             aggregate.FileProfileId = domainEvent.FileProfileId;
+            aggregate.FileProfileVersionId = domainEvent.FileProfileVersionId;
             aggregate.UserId = domainEvent.UserId;
             aggregate.FileLocation = domainEvent.FileLocation;
             aggregate.FileImportLogId = domainEvent.FileImportLogId;
@@ -43,6 +44,7 @@ namespace FileProcessor.FileAggregate
                 EstateId = aggregate.EstateId,
                 MerchantId = aggregate.MerchantId,
                 FileProfileId = aggregate.FileProfileId,
+                FileProfileVersionId = aggregate.FileProfileVersionId,
                 FileId = aggregate.AggregateId,
                 FileImportLogId = aggregate.FileImportLogId,
                 FileLocation = aggregate.FileLocation,
@@ -135,14 +137,14 @@ namespace FileProcessor.FileAggregate
             aggregate.IsCompleted = true;
         }
 
-        public record CreateFileRequest(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime, Guid operatorId);
+        public record CreateFileRequest(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime, Guid operatorId, Guid fileProfileVersionId = default);
 
         public static Result CreateFile(this FileAggregate aggregate, CreateFileRequest createFileRequest)
         {
             if (aggregate.IsCreated)
                 return Result.Success();
 
-            FileCreatedEvent fileCreatedEvent = new(aggregate.AggregateId, createFileRequest.fileImportLogId, createFileRequest.estateId, createFileRequest.merchantId, createFileRequest.userId, createFileRequest.fileProfileId, createFileRequest.fileLocation, createFileRequest.fileReceivedDateTime, createFileRequest.operatorId);
+            FileCreatedEvent fileCreatedEvent = new(aggregate.AggregateId, createFileRequest.fileImportLogId, createFileRequest.estateId, createFileRequest.merchantId, createFileRequest.userId, createFileRequest.fileProfileId, createFileRequest.fileLocation, createFileRequest.fileReceivedDateTime, createFileRequest.operatorId, createFileRequest.fileProfileVersionId);
 
             aggregate.ApplyAndAppend(fileCreatedEvent);
 
@@ -342,6 +344,8 @@ namespace FileProcessor.FileAggregate
         internal Guid MerchantId;
 
         internal Guid FileProfileId;
+
+        internal Guid FileProfileVersionId;
 
         internal Guid FileImportLogId;
 
