@@ -14,7 +14,9 @@ public class FileProfileRequestHandler : IRequestHandler<FileProfileCommands.Cre
                                          IRequestHandler<FileProfileCommands.UpdateFileProfileCommand, Result<FileProfileModel>>,
                                          IRequestHandler<FileProfileCommands.ArchiveFileProfileCommand, Result>,
                                          IRequestHandler<FileProfileQueries.GetFileProfilesQuery, Result<List<FileProfileModel>>>,
-                                         IRequestHandler<FileProfileQueries.GetFileProfileQuery, Result<FileProfileModel>>
+                                         IRequestHandler<FileProfileQueries.GetFileProfileQuery, Result<FileProfileModel>>,
+                                         IRequestHandler<FileProfileQueries.GetFileProfileVersionsQuery, Result<List<FileProfileModel>>>,
+                                         IRequestHandler<FileProfileQueries.GetFileProfileVersionQuery, Result<FileProfileModel>>
 {
     private readonly IFileProfileManager FileProfileManager;
 
@@ -46,5 +48,19 @@ public class FileProfileRequestHandler : IRequestHandler<FileProfileCommands.Cre
     public Task<Result<FileProfileModel>> Handle(FileProfileQueries.GetFileProfileQuery request, CancellationToken cancellationToken)
     {
         return this.FileProfileManager.GetFileProfile(request.FileProfileId, cancellationToken);
+    }
+
+    public Task<Result<List<FileProfileModel>>> Handle(FileProfileQueries.GetFileProfileVersionsQuery request,
+                                                       CancellationToken cancellationToken)
+    {
+        return this.FileProfileManager.GetFileProfileVersions(request.FileProfileId, cancellationToken);
+    }
+
+    public Task<Result<FileProfileModel>> Handle(FileProfileQueries.GetFileProfileVersionQuery request,
+                                                 CancellationToken cancellationToken)
+    {
+        return this.FileProfileManager.GetFileProfileVersion(request.FileProfileId,
+                                                             request.FileProfileVersionId,
+                                                             cancellationToken);
     }
 }
