@@ -267,7 +267,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                   CancellationToken cancellationToken) {
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
             Logger.LogWarning("In ProcessUploadedFile action");
-            Result<Guid> operatorIdResult = await GetOperatorIdForFileProfile(command.EstateId,
+            Result<Guid> operatorIdResult = await GetOperatorIdForFileProfile(command.FileId,
+                                                                              command.EstateId,
                                                                               command.FileProfileId,
                                                                               command.FileProfileVersionId,
                                                                               cancellationToken);
@@ -317,12 +318,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         file.MoveTo($"{fileProfileResult.Data.FailedDirectory}/{file.Name}", overwrite: true);
     }
 
-    private async Task<Result<Guid>> GetOperatorIdForFileProfile(Guid estateId,
+    private async Task<Result<Guid>> GetOperatorIdForFileProfile(Guid fileId,
+                                                                 Guid estateId,
                                                                  Guid fileProfileId,
                                                                  Guid fileProfileVersionId,
                                                                  CancellationToken cancellationToken){
 
-        Result<FileProfileModel> fileProfileResult = await this.GetFileProfileForProcessing(fileProfileId,
+        Result<FileProfileModel> fileProfileResult = await this.GetFileProfileForProcessing(fileId,
+                                                                                              fileProfileId,
                                                                                               fileProfileVersionId,
                                                                                               cancellationToken);
 
@@ -434,7 +437,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         processingContext.Stage = FileLineProcessingStage.FileProfileLookup;
-        Result<FileProfileModel> fileProfileResult = await this.GetFileProfileForProcessing(fileDetails.FileProfileId,
+        Result<FileProfileModel> fileProfileResult = await this.GetFileProfileForProcessing(command.FileId,
+                                                                                              fileDetails.FileProfileId,
                                                                                               fileDetails.FileProfileVersionId,
                                                                                               cancellationToken);
         if (fileProfileResult.IsFailed)
@@ -756,7 +760,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         FileProfileModel fileProfile = null;
 
         Result<FileProfileModel> fileProfileResult =
-            await this.GetFileProfileForProcessing(fileProfileId, fileProfileVersionId, cancellationToken);
+            await this.GetFileProfileForProcessing(fileId, fileProfileId, fileProfileVersionId, cancellationToken);
 
         if (fileProfileResult.IsFailed)
             return ResultHelpers.CreateFailure(fileProfileResult);
@@ -913,16 +917,24 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         return result;
     }
 
-    private async Task<Result<FileProfileModel>> GetFileProfileForProcessing(Guid fileProfileId,
+    private async Task<Result<FileProfileModel>> GetFileProfileForProcessing(Guid fileId,
+                                                                               Guid fileProfileId,
                                                                                Guid fileProfileVersionId,
                                                                                CancellationToken cancellationToken)
     {
         if (fileProfileVersionId == Guid.Empty)
             return await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
 
-        return await this.FileProcessorManager.GetFileProfileVersion(fileProfileId,
-                                                                      fileProfileVersionId,
-                                                                      cancellationToken);
+        Result<FileProfileModel> versionResult = await this.FileProcessorManager.GetFileProfileVersion(fileProfileId,
+                                                                                                         fileProfileVersionId,
+                                                                                                         cancellationToken);
+        if (versionResult.IsFailed == false)
+            return versionResult;
+
+        if (versionResult.Status == ResultStatus.NotFound)
+            return Result.NotFound($"File [{fileId}] references unavailable file profile version [{fileProfileVersionId}] for profile [{fileProfileId}]");
+
+        return ResultHelpers.CreateFailure(versionResult);
     }
 
     private static Int32 TransactionNumber = 0;
