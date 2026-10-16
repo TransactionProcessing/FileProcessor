@@ -43,7 +43,7 @@ public class FileProcessorSteps
         var fileId = uploadFileResult.Data;
         fileId.ShouldNotBe(Guid.Empty);
 
-        estateDetails.AddFileImportLogFile(new FileImportLogFile
+        estateDetails.AddUploadedFile(new FileImportLogFile
         {
             FileId = fileId,
             OriginalFileName = Path.GetFileName(filePath),
