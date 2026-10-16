@@ -26,4 +26,13 @@
                                    String FileLocation,
                                    DateTime FileReceivedDateTime,
                                    Guid OperatorId) : DomainEvent(FileId, Guid.NewGuid());
+
+    public record FileRejectedEvent(Guid FileId,
+                                    Guid EstateId,
+                                    Guid MerchantId,
+                                    String RejectionCode,
+                                    String RejectionReason,
+                                    Int32 ObservedDetailRecordCount,
+                                    Int32 MaximumDetailRecordCount,
+                                    DateTime RejectedDateTime) : DomainEvent(FileId, Guid.NewGuid());
 }

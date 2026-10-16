@@ -34,6 +34,11 @@ namespace FileProcessor.FileAggregate
             {
                 FileReceivedDateTime = aggregate.FileReceivedDateTime,
                 ProcessingCompleted = aggregate.IsCompleted,
+                IsRejected = aggregate.IsRejected,
+                RejectionCode = aggregate.RejectionCode,
+                RejectionReason = aggregate.RejectionReason,
+                ObservedDetailRecordCount = aggregate.ObservedDetailRecordCount,
+                MaximumDetailRecordCount = aggregate.MaximumDetailRecordCount,
                 FileLines = aggregate.FileLines,
                 EstateId = aggregate.EstateId,
                 MerchantId = aggregate.MerchantId,
@@ -129,11 +134,49 @@ namespace FileProcessor.FileAggregate
             return Result.Success();
         }
 
+        public static void PlayEvent(this FileAggregate aggregate, FileRejectedEvent domainEvent)
+        {
+            aggregate.IsRejected = true;
+            aggregate.RejectionCode = domainEvent.RejectionCode;
+            aggregate.RejectionReason = domainEvent.RejectionReason;
+            aggregate.ObservedDetailRecordCount = domainEvent.ObservedDetailRecordCount;
+            aggregate.MaximumDetailRecordCount = domainEvent.MaximumDetailRecordCount;
+            aggregate.RejectedDateTime = domainEvent.RejectedDateTime;
+        }
+
+        public static Result RejectFile(this FileAggregate aggregate,
+                                        Int32 observedDetailRecordCount,
+                                        Int32 maximumDetailRecordCount,
+                                        String rejectionCode,
+                                        String rejectionReason,
+                                        DateTime rejectedDateTime)
+        {
+            if (aggregate.IsCreated == false)
+                return Result.Invalid($"File Id {aggregate.AggregateId} has not been uploaded yet");
+
+            if (aggregate.IsRejected)
+                return Result.Success();
+
+            FileRejectedEvent fileRejectedEvent = new(aggregate.AggregateId,
+                                                       aggregate.EstateId,
+                                                       aggregate.MerchantId,
+                                                       rejectionCode,
+                                                       rejectionReason,
+                                                       observedDetailRecordCount,
+                                                       maximumDetailRecordCount,
+                                                       rejectedDateTime);
+            aggregate.ApplyAndAppend(fileRejectedEvent);
+            return Result.Success();
+        }
+
         public static Result AddFileLine(this FileAggregate aggregate, String fileLine)
         {
             if (aggregate.IsCreated == false) {
                 return Result.Invalid($"File Id {aggregate.AggregateId} has not been uploaded yet");
             }
+
+            if (aggregate.IsRejected)
+                return Result.Invalid($"File Id {aggregate.AggregateId} has been rejected");
 
             Boolean lineAlreadyExists = aggregate.FileLines.Any(f => f.LineData == fileLine);
 
@@ -289,6 +332,18 @@ namespace FileProcessor.FileAggregate
         internal String FileLocation;
 
         internal Boolean IsCompleted;
+
+        internal Boolean IsRejected;
+
+        internal String RejectionCode;
+
+        internal String RejectionReason;
+
+        internal Int32 ObservedDetailRecordCount;
+
+        internal Int32 MaximumDetailRecordCount;
+
+        internal DateTime RejectedDateTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAggregate" /> class.

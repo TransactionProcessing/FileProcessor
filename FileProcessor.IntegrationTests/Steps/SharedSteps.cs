@@ -1,6 +1,7 @@
 ﻿using SecurityService.DataTransferObjects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using TransactionProcessor.DataTransferObjects.Requests.Contract;
@@ -74,6 +75,39 @@ namespace FileProcessor.IntegrationTests.Steps
             this.TestingContext.UploadFile = this.GetFileProcessorSteps().WriteDileToDisk(fileName, fileData);
         }
 
+        [Given(@"I have a generated Safaricom Topup file named '(.*)' with (.*) detail rows")]
+        public void GivenIHaveAGeneratedSafaricomTopupFileNamedWithDetailRows(string fileName, int detailRows)
+        {
+            detailRows.ShouldBeGreaterThan(0);
+
+            string directory = "/home/runner/specflow";
+            Directory.CreateDirectory(directory);
+            string filePath = Path.Combine(directory, fileName);
+
+            using (StreamWriter writer = new StreamWriter(filePath, false))
+            {
+                writer.WriteLine("H,20210508,");
+                for (int row = 1; row <= detailRows; row++)
+                {
+                    int amount = 10 + ((row - 1) % 240);
+                    string customerAccountNumber = $"0777777{row:0000}";
+                    writer.WriteLine($"D,{customerAccountNumber},{amount}");
+                }
+
+                writer.Write($"T,{detailRows},");
+            }
+
+            long fileBytes = new FileInfo(filePath).Length;
+            this.TestingContext.UploadFile = filePath;
+            this.ScenarioContext["LargeFileProbe"] = new LargeFileProbe(detailRows,
+                                                                          fileBytes,
+                                                                          Process.GetCurrentProcess().WorkingSet64,
+                                                                          GC.GetTotalMemory(forceFullCollection: false),
+                                                                          Stopwatch.GetTimestamp());
+
+            this.TestingContext.Logger.LogInformation($"Large file generated: rows={detailRows}, bytes={fileBytes}");
+        }
+
         [Given(@"I upload this file for processing")]
         public async Task GivenIUploadThisFileForProcessing(DataTable table)
         {
@@ -82,6 +116,16 @@ namespace FileProcessor.IntegrationTests.Steps
             (EstateDetails1, UploadFileRequest) uploadFileRequest = table.Rows.ToUploadFileRequest(this.TestingContext.Estates, fileData);
 
             await this.GetFileProcessorSteps().GivenIUploadThisFileForProcessing(this.TestingContext.AccessToken, filePath, fileData, uploadFileRequest.Item1, uploadFileRequest.Item2);
+
+            if (this.ScenarioContext.TryGetValue("LargeFileProbe", out LargeFileProbe probe))
+            {
+                TimeSpan elapsed = Stopwatch.GetElapsedTime(probe.StartTimestamp);
+                long workingSetDelta = Process.GetCurrentProcess().WorkingSet64 - probe.StartingWorkingSet;
+                long managedMemoryDelta = GC.GetTotalMemory(forceFullCollection: false) - probe.StartingManagedMemory;
+                this.TestingContext.Logger.LogInformation($"Large file completed: rows={probe.DetailRows}, bytes={probe.FileBytes}, " +
+                                                          $"elapsed={elapsed}, workingSetDeltaBytes={workingSetDelta}, " +
+                                                          $"managedMemoryDeltaBytes={managedMemoryDelta}");
+            }
         }
 
         [Given(@"I upload this file for processing an error should be returned indicating the file is a duplicate")]
@@ -96,6 +140,15 @@ namespace FileProcessor.IntegrationTests.Steps
         [When(@"I get the import log for estate '([^']*)' the date on the import log is '([^']*)'")]
         public async Task WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(string estateName, string expectedDateString){
             await this.GetFileProcessorSteps().WhenIGetTheImportLogForEstateTheDateOnTheImportLogIs(this.TestingContext.AccessToken, estateName, expectedDateString, this.TestingContext.Estates);
+        }
+
+        [When(@"I get the file '([^']*)' for Estate '([^']*)' it is rejected for exceeding the detail row limit")]
+        public async Task WhenIGetTheFileForEstateItIsRejectedForExceedingTheDetailRowLimit(String fileName, String estateName)
+        {
+            await this.GetFileProcessorSteps().WhenIGetTheFileForEstateItIsRejectedForExceedingTheDetailRowLimit(this.TestingContext.AccessToken,
+                                                                                                                   fileName,
+                                                                                                                   estateName,
+                                                                                                                   this.TestingContext.Estates);
         }
 
         //[When(@"As merchant ""(.*)"" on Estate ""(.*)"" I get my transactions (.*) transaction should be returned")]
@@ -349,6 +402,12 @@ namespace FileProcessor.IntegrationTests.Steps
             }
         }
     }
+
+    internal sealed record LargeFileProbe(int DetailRows,
+                                          long FileBytes,
+                                          long StartingWorkingSet,
+                                          long StartingManagedMemory,
+                                          long StartTimestamp);
 
     [ExcludeFromCodeCoverage]
     public record Merchant(string Id, string Name, int numberOfEventsProcessed, decimal balance);

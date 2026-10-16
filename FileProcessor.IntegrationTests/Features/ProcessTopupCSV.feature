@@ -1,7 +1,7 @@
-﻿@base @shared @fileprofiles
+@base @shared @fileprofiles
 Feature: Process Topup CSV Files
 
-Background: 
+Background:
 	Given I create the following api scopes
 	| Name                 | DisplayName                       | Description                            |
 	| transactionProcessor | Transaction Processor REST  Scope | A scope for Transaction Processor REST |
@@ -17,8 +17,8 @@ Background:
 	| serviceClient | Service Client | Secret1 | transactionProcessor,fileProcessor | client_credentials |
 
 	Given I have a token to access the estate management and transaction processor resources
-	| ClientId      | 
-	| serviceClient | 
+	| ClientId      |
+	| serviceClient |
 
 	When I create the following file profiles
 	| Alias | FileProfileId | Name | ListeningDirectory | RequestType | OperatorName | LineTerminator | FileFormatHandler |
@@ -56,7 +56,7 @@ Background:
 	Given I create the following merchants
 	| MerchantName    | AddressLine1   | Town     | Region      |PostalCode | Country        | ContactName    | EmailAddress                 | EstateName    |
 	| Test Merchant 1 | Address Line 1 | TestTown | Test Region |TE57 1NG   | United Kingdom | Test Contact 1 | testcontact1@merchant1.co.uk | Test Estate 1 |
-																 
+
 	Given I have assigned the following  operator to the merchants
 	| OperatorName | MerchantName    | MerchantNumber | TerminalNumber | EstateName    |
 	| Safaricom    | Test Merchant 1 | 00000001       | 10000001       | Test Estate 1 |
@@ -71,7 +71,7 @@ Background:
 	| Test Estate 1 | Test Merchant 1 | Safaricom Contract  |
 	| Test Estate 1 | Test Merchant 1 | Hospital 1 Contract |
 
-	Given I make the following manual merchant deposits 
+	Given I make the following manual merchant deposits
 	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
 
@@ -134,7 +134,7 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
-	
+
 	#When As merchant "Test Merchant 1" on Estate "Test Estate 1" I get my transactions 2 transaction should be returned
 
 	Given I have a file named 'SafarcomTopup2.txt' with the following contents
@@ -146,7 +146,7 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	And I upload this file for processing an error should be returned indicating the file is a duplicate
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
-	
+
 # Wrong Format??
 Scenario: Process Safaricom Topup File with Upload Date Time
 	Given I have a file named 'SafarcomTopup.txt' with the following contents
@@ -170,3 +170,28 @@ Scenario: Process Safaricom Topup File with Upload Date Time
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 | 01/09/2021     |
 
 	When I get the import log for estate 'Test Estate 1' the date on the import log is '01/09/2021'
+@largefile @getfileimportdetails
+Scenario: Upload a generated Safaricom Topup file with 1000 detail rows
+	Given I make the following manual merchant deposits
+	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
+	| Deposit1  | 600000.00 | Today    | Test Merchant 1 | Test Estate 1 |
+	Given I have a generated Safaricom Topup file named 'LargeSafarcomTopup.txt' with 1000 detail rows
+	And I upload this file for processing
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
+	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+
+	When I get the file 'LargeSafarcomTopup.txt' for Estate 'Test Estate 1' the following file information is returned
+	| ProcessingCompleted | NumberOfLines | TotaLines | SuccessfulLines | IgnoredLines | FailedLines | NotProcessedLines |
+	| True                | 1002          | 1002       | 1000            | 2            | 0            | 0                 |
+
+@largefile @getfileimportdetails
+Scenario: Reject a generated Safaricom Topup file with more than 1000 detail rows
+	Given I make the following manual merchant deposits
+	| Reference | Amount  | DateTime | MerchantName    | EstateName    |
+	| Deposit1  | 600000.00 | Today    | Test Merchant 1 | Test Estate 1 |
+	Given I have a generated Safaricom Topup file named 'OversizedSafarcomTopup.txt' with 1001 detail rows
+	And I upload this file for processing
+	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
+	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
+
+	When I get the file 'OversizedSafarcomTopup.txt' for Estate 'Test Estate 1' it is rejected for exceeding the detail row limit
