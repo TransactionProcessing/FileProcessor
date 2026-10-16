@@ -191,7 +191,44 @@ namespace FileProcessor.Client {
                                                                DateTime endDateTime,
                                                                Guid? merchantId,
                                                                CancellationToken cancellationToken) {
-            return await this.GetFileImportLogs(accessToken, estateId, DateOnly.FromDateTime(startDateTime), DateOnly.FromDateTime(endDateTime), merchantId, 1, 50, false, cancellationToken);
+            DateOnly startDate = DateOnly.FromDateTime(startDateTime);
+            DateOnly endDate = DateOnly.FromDateTime(endDateTime);
+            const Int32 pageSize = 50;
+            Int32 pageNumber = 1;
+            List<FileImportLog> fileImportLogs = new();
+            Int32 totalCount = 0;
+
+            while (true) {
+                Result<FileImportLogList> pageResult = await this.GetFileImportLogs(accessToken,
+                                                                                     estateId,
+                                                                                     startDate,
+                                                                                     endDate,
+                                                                                     merchantId,
+                                                                                     pageNumber,
+                                                                                     pageSize,
+                                                                                     false,
+                                                                                     cancellationToken);
+
+                if (pageResult.IsFailed)
+                    return ResultHelpers.CreateFailure(pageResult);
+
+                FileImportLogList page = pageResult.Data;
+                fileImportLogs.AddRange(page.FileImportLogs);
+                totalCount = page.TotalCount;
+
+                if (!page.HasMore)
+                    break;
+
+                pageNumber++;
+            }
+
+            return Result.Success(new FileImportLogList {
+                FileImportLogs = fileImportLogs,
+                PageNumber = 1,
+                PageSize = fileImportLogs.Count,
+                TotalCount = totalCount,
+                HasMore = false
+            });
         }
 
         public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
