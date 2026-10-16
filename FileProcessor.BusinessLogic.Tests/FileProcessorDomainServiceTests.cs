@@ -830,6 +830,26 @@ public class FileProcessorDomainServiceTests
         result.IsFailed.ShouldBeTrue();
         result.Status.ShouldBe(ResultStatus.NotFound);
     }
+
+    [Fact]
+    public async Task ProcessTransactionForFileLine_WhenRecordedProfileVersionIsMissing_ReturnsActionableFailure()
+    {
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
+                                                        Arg<Guid>.Any(),
+                                                        Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound());
+
+        Result result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(
+            TestData.ProcessTransactionForFileLineCommand,
+            CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Message.ShouldContain(TestData.FileId.ToString());
+        result.Message.ShouldContain(TestData.FileProfileId.ToString());
+        result.Message.ShouldContain(TestData.FileProfileVersionId.ToString());
+    }
     
     [Fact]
     public async Task FileRequestHandler_ProcessTransactionForFileLineRequest_FileLineIgnored_RequestIsHandled()
