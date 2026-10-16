@@ -159,6 +159,12 @@ namespace FileProcessor.BusinessLogic.Managers
             }
 
             List<FileImportLog> model = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
+            if (enrichResult.IsFailed)
+            {
+                return ResultHelpers.CreateFailure<FileImportLogQueryResult>(enrichResult);
+            }
+
             return Result.Success(new FileImportLogQueryResult
             {
                 FileImportLogs = model,
@@ -206,6 +212,12 @@ namespace FileProcessor.BusinessLogic.Managers
             }
 
             var x = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
+            Result enrichResult = await this.EnrichFileProfileVersionIds(x, cancellationToken);
+            if (enrichResult.IsFailed)
+            {
+                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+            }
+
             return Result.Success(x);
         }
 
@@ -226,7 +238,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 return Result.NotFound($"No import log file found for File Id [{fileId}]");
             }
 
-            return Result.Success(new FileImportLog
+            FileImportLog model = new FileImportLog
             {
                 EstateId = estateId,
                 FileImportLogId = importLogFile.importLog.FileImportLogId,
@@ -245,7 +257,15 @@ namespace FileProcessor.BusinessLogic.Managers
                         UserId = importLogFile.fileImportLogFile.UserId
                     }
                 }
-            });
+            };
+
+            Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
+            if (enrichResult.IsFailed)
+            {
+                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+            }
+
+            return Result.Success(model);
         }
 
         public async Task<Result<FileDetails>> GetFile(Guid fileId,
@@ -298,5 +318,36 @@ namespace FileProcessor.BusinessLogic.Managers
         }
 
         #endregion
+
+        // Temporary compatibility path until the import-log read model stores the profile version directly.
+        private async Task<Result> EnrichFileProfileVersionIds(FileImportLog importLog,
+                                                                CancellationToken cancellationToken)
+        {
+            return await this.EnrichFileProfileVersionIds(new List<FileImportLog> { importLog }, cancellationToken);
+        }
+
+        private async Task<Result> EnrichFileProfileVersionIds(List<FileImportLog> importLogs,
+                                                                CancellationToken cancellationToken)
+        {
+            foreach (FileImportLog importLog in importLogs)
+            {
+                foreach (ImportLogFile importLogFile in importLog.Files)
+                {
+                    Result<FileAggregate> fileAggregateResult = await this.FileAggregateRepository.GetLatestVersion(importLogFile.FileId,
+                                                                                                                          cancellationToken);
+                    if (fileAggregateResult == null || fileAggregateResult.IsFailed || fileAggregateResult.Data == null || fileAggregateResult.Data.IsCreated == false)
+                    {
+                        continue;
+                    }
+
+                    FileDetails fileDetails = fileAggregateResult.Data.GetFile();
+                    importLogFile.FileProfileVersionId = fileDetails.FileProfileVersionId == Guid.Empty
+                        ? fileDetails.FileProfileId
+                        : fileDetails.FileProfileVersionId;
+                }
+            }
+
+            return Result.Success();
+        }
     }
 }
