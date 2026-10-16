@@ -274,13 +274,31 @@ public class FileProcessorDomainServiceTests
 
         Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
 
-        result.IsFailed.ShouldBeTrue();
-        result.Message.ShouldContain("maximum");
+        result.IsSuccess.ShouldBeTrue();
         createdAggregate.GetFile().IsRejected.ShouldBeTrue();
         createdAggregate.GetFile().ObservedDetailRecordCount.ShouldBe(1001);
         createdAggregate.GetFile().MaximumDetailRecordCount.ShouldBe(1000);
         createdAggregate.GetFile().FileLines.ShouldBeEmpty();
         this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("not-a-number")]
+    public void ResolveMaximumDetailRecordCount_WhenConfiguredValueIsInvalid_Throws(String configuredValue)
+    {
+        IConfigurationRoot invalidConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<String, String>
+            {
+                ["AppSettings:MaximumDetailRecordCount"] = configuredValue
+            })
+            .Build();
+        ConfigurationReader.Initialise(invalidConfiguration);
+
+        Should.Throw<InvalidOperationException>(() => FileProcessorDomainService.ResolveMaximumDetailRecordCount());
+
+        ConfigurationReader.Initialise(new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build());
     }
 
     [Fact]

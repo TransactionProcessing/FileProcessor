@@ -86,9 +86,19 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         this.SecurityServiceClient = securityServiceClient;
         this.FileFormatHandlerResolver = fileFormatHandlerResolver;
         this.FileSystem = fileSystem;
-        this.MaximumDetailRecordCount = Int32.TryParse(ConfigurationReader.GetValue("AppSettings", "MaximumDetailRecordCount"), out Int32 configuredMaximumDetailRecordCount) && configuredMaximumDetailRecordCount > 0
-                                           ? configuredMaximumDetailRecordCount
-                                           : DefaultMaximumDetailRecordCount;
+        this.MaximumDetailRecordCount = ResolveMaximumDetailRecordCount();
+    }
+
+    public static Int32 ResolveMaximumDetailRecordCount()
+    {
+        String configuredMaximumDetailRecordCount = ConfigurationReader.GetValue("AppSettings", "MaximumDetailRecordCount");
+        if (String.IsNullOrWhiteSpace(configuredMaximumDetailRecordCount))
+            return DefaultMaximumDetailRecordCount;
+
+        if (Int32.TryParse(configuredMaximumDetailRecordCount, out Int32 maximumDetailRecordCount) == false || maximumDetailRecordCount <= 0)
+            throw new InvalidOperationException("AppSettings:MaximumDetailRecordCount must be a positive integer when configured");
+
+        return maximumDetailRecordCount;
     }
 
     private async Task<Result> ApplyFileUpdates(Func<FileAggregate, Task<Result>> action,
@@ -819,7 +829,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             {
                 Logger.LogWarning($"About to move rejected file {inProgressFile.Name} to [{fileProfile.FailedDirectory}]");
                 inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
-                return Result.Invalid($"File rejected: {MaximumDetailRecordsExceededCode}");
+                return Result.Success();
             }
 
             Logger.LogInformation($"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");

@@ -22,6 +22,7 @@ public class MiscRegistry : ServiceRegistry
     /// </summary>
     public MiscRegistry()
     {
+        _ = FileProcessorDomainService.ResolveMaximumDetailRecordCount();
         this.AddSingleton<IModelFactory, ModelFactory>();
         this.AddSingleton<IFileProcessorDomainService, FileProcessorDomainService>();
         this.AddSingleton<IFileProfileDirectorySynchronizer, FileProfileDirectorySynchronizer>();

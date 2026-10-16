@@ -57,12 +57,12 @@ public class FileProcessorSteps
                             FileDetails? fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
 
-                            if (!fileDetails.ProcessingCompleted)
+                            if (!fileDetails.ProcessingCompleted && !fileDetails.IsRejected)
                             {
                                 Console.WriteLine(this.FormatFileDetails(fileDetails));
                             }
 
-                            fileDetails.ProcessingCompleted.ShouldBeTrue();
+                            (fileDetails.ProcessingCompleted || fileDetails.IsRejected).ShouldBeTrue();
                         }, TimeSpan.FromMinutes(15),
                         TimeSpan.FromSeconds(30));
 
