@@ -315,6 +315,30 @@ public class FileProcessorDomainServiceTests
         this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task ProcessUploadedFile_WhenReplayed_DoesNotAppendPersistedLines()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+
+        FileAggregate createdAggregate = TestData.GetCreatedFileAggregate();
+        createdAggregate.AddFileLine("D,1,1,1");
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(createdAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.TransactionProcessorClient.GetOperators(Arg<String>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.OperatorList);
+
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("D,1,1,1"));
+        this.FileSystem.AddDirectory(TestData.FileProfileSafaricom.ProcessedDirectory);
+        this.FileSystem.AddDirectory(TestData.FileProfileSafaricom.FailedDirectory);
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        createdAggregate.GetFile().FileLines.Count.ShouldBe(1);
+    }
+
     [Theory]
     [InlineData("0")]
     [InlineData("-1")]

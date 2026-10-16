@@ -848,8 +848,16 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                     return Result.Success();
                 }
 
+                HashSet<String> previouslyPersistedLines = fileAggregate.GetFile().FileLines
+                    .Select(fileLine => fileLine.LineData)
+                    .ToHashSet(StringComparer.Ordinal);
+
                 foreach (String fileLine in fileLines) {
-                    Result stateResult = fileAggregate.AddFileLine(fileLine.Trim());
+                    String trimmedFileLine = fileLine.Trim();
+                    if (previouslyPersistedLines.Contains(trimmedFileLine))
+                        continue;
+
+                    Result stateResult = fileAggregate.AddFileLine(trimmedFileLine);
                     if (stateResult.IsFailed)
                         return stateResult;
                 }

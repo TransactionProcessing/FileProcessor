@@ -86,7 +86,7 @@ internal static class FileFormatValidation
                 errors.Add(new RowValidationError(detailLine.number, "Record", "InvalidDetail", parseError));
         }
 
-        if (validateTrailerDetailCount && lines[^1].Value.StartsWith("T,", StringComparison.Ordinal))
+        if (validateTrailerDetailCount && lines[^1].Value.StartsWith("T", StringComparison.Ordinal))
         {
             String[] trailerFields = lines[^1].Value.Split(',');
             if (trailerFields.Length > 1 && Int32.TryParse(trailerFields[1].Trim(), out Int32 expectedCount))

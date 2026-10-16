@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -60,5 +61,18 @@ public class FileFormatValidationTests
         FileValidationResult result = handler.ValidateFile(new StringReader("H,20210508,\nD,Issuer,07777777775,10\nD,Issuer,testrecipient1@recipient.com,20\nT,1,"), "\n");
 
         result.IsValid.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("T")]
+    [InlineData("Trailer")]
+    public void Safaricom_TrailerWithoutDetailCount_IsRejected(String trailer)
+    {
+        SafaricomFileFormatHandler handler = new();
+
+        FileValidationResult result = handler.ValidateFile(new StringReader($"H,20210508,\nD,07777770001,10\n{trailer}"), "\n");
+
+        result.IsValid.ShouldBeFalse();
+        result.Errors.ShouldContain(error => error.Code == "InvalidTrailer");
     }
 }
