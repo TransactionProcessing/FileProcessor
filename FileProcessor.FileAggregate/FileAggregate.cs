@@ -22,7 +22,7 @@ namespace FileProcessor.FileAggregate
             aggregate.EstateId = domainEvent.EstateId;
             aggregate.MerchantId = domainEvent.MerchantId;
             aggregate.FileProfileId = domainEvent.FileProfileId;
-            aggregate.FileProfileVersionId = domainEvent.FileProfileVersionId == Guid.Empty ? domainEvent.FileProfileId : domainEvent.FileProfileVersionId;
+            aggregate.FileProfileVersionId = domainEvent.FileProfileVersionId;
             aggregate.UserId = domainEvent.UserId;
             aggregate.FileLocation = domainEvent.FileLocation;
             aggregate.FileImportLogId = domainEvent.FileImportLogId;

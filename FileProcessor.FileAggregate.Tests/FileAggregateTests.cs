@@ -57,6 +57,24 @@ namespace FileProcessor.FileAggregate.Tests
         }
 
         [Fact]
+        public void FileAggregate_PlayLegacyFileCreatedEvent_PreservesEmptyFileProfileVersionId()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+
+            fileAggregate.PlayEvent(new FileCreatedEvent(TestData.FileId,
+                                                         TestData.FileImportLogId,
+                                                         TestData.EstateId,
+                                                         TestData.MerchantId,
+                                                         TestData.UserId,
+                                                         TestData.FileProfileId,
+                                                         TestData.FileLocation,
+                                                         TestData.FileUploadedDateTime,
+                                                         TestData.SafaricomOperatorId));
+
+            fileAggregate.GetFile().FileProfileVersionId.ShouldBe(Guid.Empty);
+        }
+
+        [Fact]
         public void FileAggregate_CreateFile_FileAlreadyCreated_NoErrorThrown()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
