@@ -313,7 +313,9 @@ namespace FileProcessor.Client {
                     ? $"Request failed with status code {(Int32)response.StatusCode}"
                     : responseContent;
 
-                return Result.Failure(message);
+                return response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? Result.NotFound(message)
+                    : Result.Failure(message);
             }
 
             if (String.IsNullOrWhiteSpace(responseContent))
