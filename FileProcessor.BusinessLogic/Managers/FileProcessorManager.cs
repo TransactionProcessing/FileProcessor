@@ -83,16 +83,39 @@ namespace FileProcessor.BusinessLogic.Managers
         }
 
 
-        public async Task<Result<List<FileImportLog>>> GetFileImportLogs(Guid estateId,
-                                                                 DateTime startDateTime,
-                                                                 DateTime endDateTime,
+        public async Task<Result<FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
+                                                                 DateOnly startDate,
+                                                                 DateOnly endDate,
                                                                  Guid? merchantId,
+                                                                 Int32 pageNumber,
+                                                                 Int32 pageSize,
+                                                                 Boolean descending,
                                                                  CancellationToken cancellationToken)
         {
+            if (pageNumber < 1 || pageSize < 1 || pageSize > 200)
+                return Result.Invalid("Page number must be at least 1 and page size must be between 1 and 200");
+
+            if (endDate < startDate)
+                return Result.Invalid("End date must be on or after start date");
+
+            DateTime startDateTime = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            DateTime endDateTime = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
             EstateManagementContext context = await this.GetContext(estateId);
 
+            IQueryable<TransactionProcessor.Database.Entities.FileImportLog> importLogs = context.FileImportLogs
+                .Where(f => f.EstateId == estateId && f.ImportLogDateTime >= startDateTime && f.ImportLogDateTime < endDateTime);
+
+            if (descending)
+                importLogs = importLogs.OrderByDescending(f => f.ImportLogDateTime).ThenByDescending(f => f.FileImportLogId);
+            else
+                importLogs = importLogs.OrderBy(f => f.ImportLogDateTime).ThenBy(f => f.FileImportLogId);
+
+            Int32 totalCount = await importLogs.CountAsync(cancellationToken);
             List<TransactionProcessor.Database.Entities.FileImportLog> importLogQuery =
-                await context.FileImportLogs.Where(f => f.ImportLogDateTime >= startDateTime).ToListAsync(cancellationToken);
+                await importLogs.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+
+            Guid[] importLogIds = importLogQuery.Select(f => f.FileImportLogId).ToArray();
 
             var importLogFileQuery = await context.FileImportLogFiles
                                                   .Join(context.Files,
@@ -109,7 +132,7 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                                     file,
                                                                                     merchant
                                                                                 })
-                                                  .Where(fi => importLogQuery.Select(f => f.FileImportLogId).Contains(fi.file.fileImportLogFile.FileImportLogId))
+                                                  .Where(fi => importLogIds.Contains(fi.file.fileImportLogFile.FileImportLogId))
                                                   .ToListAsync(cancellationToken);
 
             if (merchantId.HasValue){
@@ -122,7 +145,26 @@ namespace FileProcessor.BusinessLogic.Managers
             }
 
             List<FileImportLog> model = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
-            return Result.Success(model);
+            return Result.Success(new FileImportLogQueryResult
+            {
+                FileImportLogs = model,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            });
+        }
+
+        public async Task<Result<List<FileImportLog>>> GetFileImportLogs(Guid estateId,
+                                                                           DateTime startDateTime,
+                                                                           DateTime endDateTime,
+                                                                           Guid? merchantId,
+                                                                           CancellationToken cancellationToken)
+        {
+            Result<FileImportLogQueryResult> result = await this.GetFileImportLogs(estateId, DateOnly.FromDateTime(startDateTime), DateOnly.FromDateTime(endDateTime), merchantId, 1, 50, false, cancellationToken);
+            if (result.IsFailed)
+                return ResultHelpers.CreateFailure(result);
+
+            return Result.Success(result.Data.FileImportLogs);
         }
 
         public async Task<Result<FileImportLog>> GetFileImportLog(Guid fileImportLogId, 
@@ -140,6 +182,7 @@ namespace FileProcessor.BusinessLogic.Managers
             var query = from fileImportLogFile in context.FileImportLogFiles
                 join file in context.Files on fileImportLogFile.FileId equals file.FileId
                 join merchant in context.Merchants on file.MerchantId equals merchant.MerchantId
+                where fileImportLogFile.FileImportLogId == fileImportLogId
                 select new { fileImportLogFile, file, merchant };
 
 
@@ -151,6 +194,9 @@ namespace FileProcessor.BusinessLogic.Managers
 
             // Enumerate at the end
             var importLogFileQuery = await query.ToListAsync(cancellationToken);
+
+            if (importLogQuery == null || importLogQuery.EstateId != estateId)
+                return Result.NotFound($"No import log found for Id [{fileImportLogId}]");
 
             List<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> entityData = new List<(FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)>();
             foreach (var file in importLogFileQuery)

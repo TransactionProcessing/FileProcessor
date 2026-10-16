@@ -152,6 +152,49 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         [Fact]
+        public async Task FileProcessingManager_GetFileImportLogs_DateOnlyRangeIsInclusiveAndPaged()
+        {
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            await this.Context.SaveChangesAsync();
+
+            Result<FileImportLogQueryResult> result = await this.Manager.GetFileImportLogs(
+                TestData.EstateId,
+                DateOnly.FromDateTime(TestData.ImportLogStartDate),
+                DateOnly.FromDateTime(TestData.ImportLogEndDate),
+                null,
+                1,
+                1,
+                false,
+                CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            result.Data.FileImportLogs.ShouldHaveSingleItem();
+            result.Data.FileImportLogs.Single().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
+            result.Data.TotalCount.ShouldBe(2);
+            result.Data.HasMore.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFileImportLog_FilesAreScopedToRequestedImportLog()
+        {
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            this.Context.Files.AddRange(TestData.Files1);
+            await this.Context.SaveChangesAsync();
+
+            Result<FileImportLog> result = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            result.Data.Files.ShouldNotBeEmpty();
+            result.Data.Files.ShouldAllBe(file => TestData.FileImportLog1Files.Any(expected => expected.FileId == file.FileId));
+        }
+
+        [Fact]
         public async Task FileProcessingManager_GetFileImportLogForFile_ReturnsEntryWithoutFileReadModelRow()
         {
             this.Context.FileImportLogs.Add(TestData.FileImportLog1);

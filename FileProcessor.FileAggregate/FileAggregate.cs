@@ -100,6 +100,8 @@ namespace FileProcessor.FileAggregate
             FileLine fileLine = aggregate.FileLines.Single(f => f.LineNumber == domainEvent.LineNumber);
             fileLine.TransactionId = domainEvent.TransactionId;
             fileLine.ProcessingResult = ProcessingResult.Failed;
+            fileLine.ResponseCode = domainEvent.ResponseCode;
+            fileLine.FailureReason = domainEvent.ResponseMessage;
             fileLine.DispatchAttemptCount++;
         }
 

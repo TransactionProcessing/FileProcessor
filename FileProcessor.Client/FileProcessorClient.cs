@@ -191,28 +191,46 @@ namespace FileProcessor.Client {
                                                                DateTime endDateTime,
                                                                Guid? merchantId,
                                                                CancellationToken cancellationToken) {
-            String requestUri =
-                this.BuildRequestUrl(
-                    $"/api/fileImportLogs?estateId={estateId}&startDateTime={startDateTime.Date:yyyy-MM-dd}&endDateTime={endDateTime.Date:yyyy-MM-dd}");
+            return await this.GetFileImportLogs(accessToken, estateId, DateOnly.FromDateTime(startDateTime), DateOnly.FromDateTime(endDateTime), merchantId, 1, 50, false, cancellationToken);
+        }
 
-            if (merchantId.HasValue) {
+        public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
+                                                               Guid estateId,
+                                                               DateOnly startDate,
+                                                               DateOnly endDate,
+                                                               Guid? merchantId,
+                                                               Int32 pageNumber,
+                                                               Int32 pageSize,
+                                                               Boolean descending,
+                                                               CancellationToken cancellationToken) {
+            String requestUri = this.BuildRequestUrl(
+                $"/api/fileImportLogs?estateId={estateId}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}&pageNumber={pageNumber}&pageSize={pageSize}&descending={descending}");
+
+            if (merchantId.HasValue)
                 requestUri += $"&merchantId={merchantId}";
-            }
 
-            try {
-                Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
+            Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
+            return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
+        }
 
-                if (result.IsFailed)
-                    return ResultHelpers.CreateFailure(result);
-
-                return result;
-            }
-            catch (Exception ex) {
-                // An exception has occurred, add some additional information to the message
-                Exception exception = new Exception("Error getting list of file import logs.", ex);
-
-                throw exception;
-            }
+        public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
+                                                               Guid estateId,
+                                                               DateTime startDateTime,
+                                                               DateTime endDateTime,
+                                                               Guid? merchantId,
+                                                               Int32 pageNumber,
+                                                               Int32 pageSize,
+                                                               Boolean descending,
+                                                               CancellationToken cancellationToken) {
+            return await this.GetFileImportLogs(accessToken,
+                                                estateId,
+                                                DateOnly.FromDateTime(startDateTime),
+                                                DateOnly.FromDateTime(endDateTime),
+                                                merchantId,
+                                                pageNumber,
+                                                pageSize,
+                                                descending,
+                                                cancellationToken);
         }
 
         /// <summary>

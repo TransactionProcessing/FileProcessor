@@ -16,13 +16,18 @@ public static class FileImportLogHandlers
 {
     public static async Task<IResult> GetImportLogsAsync(IMediator mediator,
                                                          [FromQuery] Guid estateId,
-                                                         [FromQuery] DateTime startDateTime,
-                                                         [FromQuery] DateTime endDateTime,
+                                                         [FromQuery] DateOnly startDate,
+                                                         [FromQuery] DateOnly endDate,
                                                          [FromQuery] Guid? merchantId,
+                                                         [FromQuery] Int32 pageNumber,
+                                                         [FromQuery] Int32 pageSize,
+                                                         [FromQuery] Boolean descending,
                                                          CancellationToken cancellationToken)
     {
-        FileQueries.GetImportLogsQuery query = new(estateId, startDateTime, endDateTime, merchantId);
-        Result<List<Models.FileImportLog>> result = await mediator.Send(query, cancellationToken);
+        pageNumber = pageNumber == 0 ? 1 : pageNumber;
+        pageSize = pageSize == 0 ? 50 : pageSize;
+        FileQueries.GetImportLogsQuery query = new(estateId, startDate, endDate, merchantId, pageNumber, pageSize, descending);
+        Result<Models.FileImportLogQueryResult> result = await mediator.Send(query, cancellationToken);
 
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }

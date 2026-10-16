@@ -868,7 +868,7 @@ namespace FileProcessor.Testing
         public static FileQueries.GetImportLogsQuery GetImportLogsQuery => new FileQueries.GetImportLogsQuery(EstateId, LogQueryStartDate, LogQueryEndDate, MerchantId);
         public static FileQueries.GetImportLogQuery GetImportLogQuery => new FileQueries.GetImportLogQuery(FileImportLogId, EstateId, MerchantId);
 
-        public static DateTime LogQueryStartDate = new DateTime(2024, 12, 12);
-        public static DateTime LogQueryEndDate = new DateTime(2024, 12, 12);
+        public static DateOnly LogQueryStartDate = new DateOnly(2024, 12, 12);
+        public static DateOnly LogQueryEndDate = new DateOnly(2024, 12, 12);
     }
 }

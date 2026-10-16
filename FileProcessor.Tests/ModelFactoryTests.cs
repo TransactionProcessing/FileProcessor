@@ -75,6 +75,35 @@ namespace FileProcessor.Tests
             this.VerifyFileDetails(fileDetails, result);
         }
 
+        [Fact]
+        public void ModelFactory_ConvertFrom_FileDetails_ExposesLineDiagnostics()
+        {
+            FileDetails fileDetails = TestData.FileDetailsModel;
+            FileLine line = fileDetails.FileLines.First();
+            line.EventId = Guid.NewGuid();
+            line.TransactionId = Guid.NewGuid();
+            line.DispatchAttemptCount = 2;
+            line.FailureReason = "operator rejected transaction";
+            line.ResponseCode = "E42";
+            line.FailedDispatchAttempts.Add(new FileProcessor.Models.TransactionDispatchAttempt
+            {
+                TransactionNumber = 7,
+                FailureType = "timeout",
+                AttemptedAt = new DateTime(2026, 10, 16, 12, 30, 0, DateTimeKind.Utc)
+            });
+
+            DataTransferObjects.Responses.FileDetails result = ModelFactory.ConvertFrom(fileDetails);
+            DataTransferObjects.Responses.FileLine responseLine = result.FileLines.Single(l => l.LineNumber == line.LineNumber);
+
+            responseLine.EventId.ShouldBe(line.EventId);
+            responseLine.TransactionId.ShouldBe(line.TransactionId);
+            responseLine.DispatchAttemptCount.ShouldBe(2);
+            responseLine.FailureReason.ShouldBe("operator rejected transaction");
+            responseLine.ResponseCode.ShouldBe("E42");
+            responseLine.FailedDispatchAttempts.ShouldHaveSingleItem();
+            responseLine.FailedDispatchAttempts.Single().AttemptedAt.ShouldBe(line.FailedDispatchAttempts.Single().AttemptedAt);
+        }
+
         private void VerifyFileDetails(FileDetails source,
                                        DataTransferObjects.Responses.FileDetails fileDetails)
         {
