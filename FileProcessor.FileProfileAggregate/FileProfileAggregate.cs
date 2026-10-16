@@ -342,6 +342,13 @@ public static class FileProfileAggregateExtensions
             return requiredFieldsResult;
         }
 
+        Result supportedConfigurationResult = ValidateSupportedConfiguration(request.RequestType,
+                                                                             request.FileFormatHandler);
+        if (supportedConfigurationResult.IsFailed)
+        {
+            return supportedConfigurationResult;
+        }
+
         return aggregate.ValidateCreateUniqueness(request);
     }
 
@@ -358,6 +365,13 @@ public static class FileProfileAggregateExtensions
         if (proposedValuesResult.IsFailed)
         {
             return proposedValuesResult;
+        }
+
+        Result supportedConfigurationResult = ValidateSupportedConfiguration(request.RequestType,
+                                                                             request.FileFormatHandler);
+        if (supportedConfigurationResult.IsFailed)
+        {
+            return supportedConfigurationResult;
         }
 
         return aggregate.ValidateUpdateUniqueness(fileProfileId, currentProfile, request);
@@ -383,6 +397,28 @@ public static class FileProfileAggregateExtensions
         AddIfInvalid(request.OperatorName, "No operator name provided", errors);
         AddLineTerminatorIfInvalid(request.LineTerminator, "No line terminator provided", errors);
         AddIfInvalid(request.FileFormatHandler, "No file format handler provided", errors);
+
+        return errors.Count == 0
+            ? Result.Success()
+            : Result.Invalid(errors);
+    }
+
+    private static Result ValidateSupportedConfiguration(string requestType, string fileFormatHandler)
+    {
+        var errors = new List<string>();
+
+        string normalizedRequestType = requestType?.Trim();
+        string normalizedFileFormatHandler = fileFormatHandler?.Trim();
+
+        if (normalizedRequestType != null && FileProfileConfiguration.IsSupportedRequestType(normalizedRequestType) == false)
+        {
+            errors.Add($"Unsupported request type [{requestType}]");
+        }
+
+        if (normalizedFileFormatHandler != null && FileProfileConfiguration.IsSupportedFileFormatHandler(normalizedFileFormatHandler) == false)
+        {
+            errors.Add($"Unsupported file format handler [{fileFormatHandler}]");
+        }
 
         return errors.Count == 0
             ? Result.Success()

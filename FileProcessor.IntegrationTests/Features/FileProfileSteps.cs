@@ -63,10 +63,14 @@ public class FileProfileSteps
                     FileProfileId = Guid.NewGuid(),
                     Name = sourceProfile.Name,
                     ListeningDirectory = $"/tmp/{Guid.NewGuid():N}",
-                    RequestType = $"{sourceProfile.RequestType}-duplicate",
+                    RequestType = sourceProfile.RequestType.Equals("SafaricomTopupRequest", StringComparison.Ordinal)
+                        ? "VoucherRequest"
+                        : "SafaricomTopupRequest",
                     OperatorName = sourceProfile.OperatorName,
                     LineTerminator = ParseLineTerminator(sourceProfile.LineTerminator),
-                    FileFormatHandler = sourceProfile.FileFormatHandler
+                    FileFormatHandler = sourceProfile.FileFormatHandler.Equals("SafaricomFileFormatHandler", StringComparison.Ordinal)
+                        ? "VoucherFileFormatHandler"
+                        : "SafaricomFileFormatHandler"
                 }
                 : new CreateFileProfileRequest
                 {
@@ -81,6 +85,32 @@ public class FileProfileSteps
 
             Result<FileProfile> duplicateResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
             duplicateResult.IsFailed.ShouldBeTrue(duplicateResult.Message);
+
+            if (duplicateType.Equals("Name", StringComparison.OrdinalIgnoreCase))
+            {
+                duplicateResult.Message.ShouldContain("A file profile with name");
+            }
+            else
+            {
+                duplicateResult.Message.ShouldContain("A file profile with request type");
+            }
+        }
+    }
+
+    [When(@"I try to create the following invalid file profiles")]
+    public async Task WhenITryToCreateTheFollowingInvalidFileProfiles(DataTable table)
+    {
+        foreach (DataTableRow row in table.Rows)
+        {
+            CreateFileProfileRequest request = this.BuildCreateRequest(row);
+            Result<FileProfile> result = await this.FileProcessorSteps.CreateFileProfile(
+                this.TestingContext.AccessToken,
+                request,
+                CancellationToken.None);
+
+            result.IsFailed.ShouldBeTrue(result.Message);
+            result.Message.ShouldContain("Unsupported request type");
+            result.Message.ShouldContain("Unsupported file format handler");
         }
     }
 

@@ -89,7 +89,7 @@ public class FileProfileManagerTests
         });
         aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
         {
-            FileFormatHandler = "UpdatedHandler"
+            FileFormatHandler = TestData.VoucherFileFormatHandler
         });
         aggregate.ArchiveProfile(TestData.FileProfileId);
         return aggregate;
