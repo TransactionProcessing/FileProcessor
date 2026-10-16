@@ -75,14 +75,14 @@ namespace FileProcessor.FileImportLogAggregate.Tests
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
             fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
 
-            Result result = fileImportLogAggregate.AddImportedFile(TestData.FileId,
-                                                                    TestData.MerchantId,
-                                                                    TestData.UserId,
-                                                                    TestData.FileProfileId,
-                                                                    TestData.OriginalFileName,
-                                                                    TestData.FilePath,
-                                                                    TestData.FileUploadedDateTime,
-                                                                    TestData.FileProfileVersionId);
+            Result result = fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(TestData.FileId,
+                                                                                                TestData.MerchantId,
+                                                                                                TestData.UserId,
+                                                                                                TestData.FileProfileId,
+                                                                                                TestData.OriginalFileName,
+                                                                                                TestData.FilePath,
+                                                                                                TestData.FileUploadedDateTime,
+                                                                                                TestData.FileProfileVersionId));
 
             result.IsSuccess.ShouldBeTrue();
             fileImportLogAggregate.GetFileImportLog().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);

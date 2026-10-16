@@ -60,6 +60,9 @@ public class FileProcessorDomainServiceTests
         Logger.Initialise(NullLogger.Instance);
 
         this.FileProcessorManager = new IFileProcessorManagerImposter();
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
+                                                        Arg<Guid>.Any(),
+                                                        Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
         this.FileImportLogAggregateRepository =
             new IAggregateRepositoryImposter<FileImportLogAggregate, DomainEvent>();
         this.FileAggregateRepository =
@@ -819,6 +822,8 @@ public class FileProcessorDomainServiceTests
     {
         this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound());
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.NotFound());
         var result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(
                 TestData.ProcessTransactionForFileLineCommand, CancellationToken.None);

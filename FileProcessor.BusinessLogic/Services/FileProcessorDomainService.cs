@@ -217,7 +217,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             }
             
             // Update Import log aggregate
-            Result stateResult= fileImportLogAggregate.AddImportedFile(command.FileId, command.MerchantId, command.UserId, command.FileProfileId, originalName, command.FilePath, command.FileUploadedDateTime, fileProfileVersionId);
+            Result stateResult= fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(command.FileId,
+                                                                                                  command.MerchantId,
+                                                                                                  command.UserId,
+                                                                                                  command.FileProfileId,
+                                                                                                  originalName,
+                                                                                                  command.FilePath,
+                                                                                                  command.FileUploadedDateTime,
+                                                                                                  fileProfileVersionId));
             if (stateResult.IsFailed)
                 return stateResult;
             
@@ -910,7 +917,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                Guid fileProfileVersionId,
                                                                                CancellationToken cancellationToken)
     {
-        if (fileProfileVersionId == Guid.Empty || fileProfileVersionId == fileProfileId)
+        if (fileProfileVersionId == Guid.Empty)
             return await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
 
         return await this.FileProcessorManager.GetFileProfileVersion(fileProfileId,

@@ -27,20 +27,47 @@ namespace FileProcessor.FileImportLogAggregate
             return Result.Success();
         }
         
-        public static Result AddImportedFile(this FileImportLogAggregate aggregate, Guid fileId, Guid merchantId, Guid userId, Guid fileProfileId, String originalFileName, String filePath, DateTime fileUploadedDateTime, Guid fileProfileVersionId = default)
+        public static Result AddImportedFile(this FileImportLogAggregate aggregate,
+                                             Guid fileId,
+                                             Guid merchantId,
+                                             Guid userId,
+                                             Guid fileProfileId,
+                                             String originalFileName,
+                                             String filePath,
+                                             DateTime fileUploadedDateTime)
+        {
+            return aggregate.AddImportedFile(new AddImportedFileRequest(fileId,
+                                                                         merchantId,
+                                                                         userId,
+                                                                         fileProfileId,
+                                                                         originalFileName,
+                                                                         filePath,
+                                                                         fileUploadedDateTime));
+        }
+
+        public static Result AddImportedFile(this FileImportLogAggregate aggregate, AddImportedFileRequest request)
         {
             if (aggregate.IsCreated == false)
             {
                 return Result.Invalid("Import log has not been created");
             }
 
-            if (aggregate.Files.Any(f => f.FileId == fileId))
+            if (aggregate.Files.Any(f => f.FileId == request.FileId))
             {
-                return Result.Invalid($"Duplicate file {originalFileName} detected File Id [{fileId}]");
+                return Result.Invalid($"Duplicate file {request.OriginalFileName} detected File Id [{request.FileId}]");
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
-                new FileAddedToImportLogEvent(aggregate.AggregateId, fileId, aggregate.EstateId, merchantId, userId, fileProfileId, originalFileName, filePath, fileUploadedDateTime, fileProfileVersionId);
+                new FileAddedToImportLogEvent(aggregate.AggregateId,
+                                              request.FileId,
+                                              aggregate.EstateId,
+                                              request.MerchantId,
+                                              request.UserId,
+                                              request.FileProfileId,
+                                              request.OriginalFileName,
+                                              request.FilePath,
+                                              request.FileUploadedDateTime,
+                                              request.FileProfileVersionId);
 
             aggregate.ApplyAndAppend(fileAddedToImportLogEvent);
 
@@ -80,6 +107,15 @@ namespace FileProcessor.FileImportLogAggregate
                    };
         }
     }
+
+    public record AddImportedFileRequest(Guid FileId,
+                                         Guid MerchantId,
+                                         Guid UserId,
+                                         Guid FileProfileId,
+                                         String OriginalFileName,
+                                         String FilePath,
+                                         DateTime FileUploadedDateTime,
+                                         Guid FileProfileVersionId = default);
 
 
     public record FileImportLogAggregate : Aggregate
