@@ -10,7 +10,20 @@ public record FileProfileCreatedEvent(Guid FileProfileCollectionId,
                                      String RequestType,
                                      String OperatorName,
                                      String LineTerminator,
-                                     String FileFormatHandler) : DomainEvent(FileProfileCollectionId, Guid.NewGuid());
+                                      String FileFormatHandler,
+                                      Guid FileProfileVersionId = default,
+                                      Int32 FileProfileVersion = 1) : DomainEvent(FileProfileCollectionId, Guid.NewGuid());
+
+public record FileProfileVersionCreatedEvent(Guid FileProfileCollectionId,
+                                             Guid FileProfileId,
+                                             Guid FileProfileVersionId,
+                                             Int32 FileProfileVersion,
+                                             String Name,
+                                             String ListeningDirectory,
+                                             String RequestType,
+                                             String OperatorName,
+                                             String LineTerminator,
+                                             String FileFormatHandler) : DomainEvent(FileProfileCollectionId, Guid.NewGuid());
 
 public record FileProfileNameUpdatedEvent(Guid FileProfileCollectionId, Guid FileProfileId, String Name) : DomainEvent(FileProfileCollectionId, Guid.NewGuid());
 

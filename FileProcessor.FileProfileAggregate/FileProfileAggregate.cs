@@ -30,8 +30,50 @@ public static class FileProfileAggregateExtensions
             OperatorName = domainEvent.OperatorName,
             LineTerminator = domainEvent.LineTerminator,
             FileFormatHandler = domainEvent.FileFormatHandler,
-            IsArchived = false
+            IsArchived = false,
+            CurrentVersionId = domainEvent.FileProfileVersionId == Guid.Empty ? domainEvent.FileProfileId : domainEvent.FileProfileVersionId,
+            CurrentVersion = domainEvent.FileProfileVersion,
+            Versions = new List<FileProfileVersionState>
+            {
+                new()
+                {
+                    FileProfileVersionId = domainEvent.FileProfileVersionId == Guid.Empty ? domainEvent.FileProfileId : domainEvent.FileProfileVersionId,
+                    FileProfileVersion = domainEvent.FileProfileVersion,
+                    Name = domainEvent.Name,
+                    ListeningDirectory = domainEvent.ListeningDirectory,
+                    RequestType = domainEvent.RequestType,
+                    OperatorName = domainEvent.OperatorName,
+                    LineTerminator = domainEvent.LineTerminator,
+                    FileFormatHandler = domainEvent.FileFormatHandler
+                }
+            }
         };
+    }
+
+    public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileVersionCreatedEvent domainEvent)
+    {
+        FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
+        FileProfileVersionState version = new()
+        {
+            FileProfileVersionId = domainEvent.FileProfileVersionId,
+            FileProfileVersion = domainEvent.FileProfileVersion,
+            Name = domainEvent.Name,
+            ListeningDirectory = domainEvent.ListeningDirectory,
+            RequestType = domainEvent.RequestType,
+            OperatorName = domainEvent.OperatorName,
+            LineTerminator = domainEvent.LineTerminator,
+            FileFormatHandler = domainEvent.FileFormatHandler
+        };
+
+        fileProfile.Versions.Add(version);
+        fileProfile.CurrentVersionId = version.FileProfileVersionId;
+        fileProfile.CurrentVersion = version.FileProfileVersion;
+        fileProfile.Name = version.Name;
+        fileProfile.ListeningDirectory = version.ListeningDirectory;
+        fileProfile.RequestType = version.RequestType;
+        fileProfile.OperatorName = version.OperatorName;
+        fileProfile.LineTerminator = version.LineTerminator;
+        fileProfile.FileFormatHandler = version.FileFormatHandler;
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileNameUpdatedEvent domainEvent)
@@ -105,7 +147,9 @@ public static class FileProfileAggregateExtensions
                                                               request.RequestType.Trim(),
                                                               request.OperatorName.Trim(),
                                                               lineTerminatorResult.Data,
-                                                              request.FileFormatHandler.Trim());
+                                                              request.FileFormatHandler.Trim(),
+                                                              Guid.NewGuid(),
+                                                              1);
 
         aggregate.ApplyAndAppend(fileProfileCreatedEvent);
         return Result.Success();
@@ -124,36 +168,43 @@ public static class FileProfileAggregateExtensions
             return validationResult;
         }
         
-        if (IsDomainEventRequired(profile.Name, request.Name)) {
-            aggregate.ApplyAndAppend(new FileProfileNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.Name));
-        }
-
-        if (IsDomainEventRequired(profile.ListeningDirectory, request.ListeningDirectory)) {
-            aggregate.ApplyAndAppend(new FileProfileListeningDirectoryUpdatedEvent(aggregate.AggregateId, fileProfileId, request.ListeningDirectory));
-        }
-
-        if (IsDomainEventRequired(profile.RequestType, request.RequestType)) {
-            aggregate.ApplyAndAppend(new FileProfileRequestTypeUpdatedEvent(aggregate.AggregateId, fileProfileId, request.RequestType));
-        }
-
-        if (IsDomainEventRequired(profile.OperatorName, request.OperatorName)) {
-            aggregate.ApplyAndAppend(new FileProfileOperatorNameUpdatedEvent(aggregate.AggregateId, fileProfileId, request.OperatorName));
-        }
-
+        String lineTerminator = profile.LineTerminator;
         if (request.LineTerminator.HasValue) {
             Result<String> lineTerminatorResult = request.LineTerminator.Value.ToLineTerminator();
             if (lineTerminatorResult.IsFailed) {
                 return ResultHelpers.CreateFailure(lineTerminatorResult);
             }
 
-            if (IsDomainEventRequired(profile.LineTerminator, lineTerminatorResult.Data)) {
-                aggregate.ApplyAndAppend(new FileProfileLineTerminatorUpdatedEvent(aggregate.AggregateId, fileProfileId, lineTerminatorResult.Data));
-            }
+            lineTerminator = lineTerminatorResult.Data;
         }
 
-        if (IsDomainEventRequired(profile.FileFormatHandler, request.FileFormatHandler)) {
-            aggregate.ApplyAndAppend(new FileProfileFileFormatHandlerUpdatedEvent(aggregate.AggregateId, fileProfileId, request.FileFormatHandler));
+        String name = request.Name == null ? profile.Name : request.Name.Trim();
+        String listeningDirectory = request.ListeningDirectory == null ? profile.ListeningDirectory : request.ListeningDirectory.Trim();
+        String requestType = request.RequestType == null ? profile.RequestType : request.RequestType.Trim();
+        String operatorName = request.OperatorName == null ? profile.OperatorName : request.OperatorName.Trim();
+        String fileFormatHandler = request.FileFormatHandler == null ? profile.FileFormatHandler : request.FileFormatHandler.Trim();
+
+        if (IsDomainEventRequired(profile.Name, name) == false &&
+            IsDomainEventRequired(profile.ListeningDirectory, listeningDirectory) == false &&
+            IsDomainEventRequired(profile.RequestType, requestType) == false &&
+            IsDomainEventRequired(profile.OperatorName, operatorName) == false &&
+            IsDomainEventRequired(profile.LineTerminator, lineTerminator) == false &&
+            IsDomainEventRequired(profile.FileFormatHandler, fileFormatHandler) == false)
+        {
+            return Result.Success();
         }
+
+        Int32 nextVersion = profile.Versions.Count == 0 ? 1 : profile.Versions.Max(version => version.FileProfileVersion) + 1;
+        aggregate.ApplyAndAppend(new FileProfileVersionCreatedEvent(aggregate.AggregateId,
+                                                                     fileProfileId,
+                                                                     Guid.NewGuid(),
+                                                                     nextVersion,
+                                                                     name,
+                                                                     listeningDirectory,
+                                                                     requestType,
+                                                                     operatorName,
+                                                                     lineTerminator,
+                                                                     fileFormatHandler));
 
         return Result.Success();
     }
@@ -230,6 +281,27 @@ public static class FileProfileAggregateExtensions
         }
 
         return profile.ToModel();
+    }
+
+    public static List<FileProfileModel> GetProfileVersions(this FileProfileAggregate aggregate, Guid fileProfileId)
+    {
+        if (aggregate.FileProfiles.TryGetValue(fileProfileId, out FileProfileState profile) == false)
+            return new List<FileProfileModel>();
+
+        return profile.Versions.OrderBy(version => version.FileProfileVersion)
+                               .Select(version => version.ToModel(fileProfileId))
+                               .ToList();
+    }
+
+    public static FileProfileModel GetProfileVersion(this FileProfileAggregate aggregate,
+                                                      Guid fileProfileId,
+                                                      Guid fileProfileVersionId)
+    {
+        if (aggregate.FileProfiles.TryGetValue(fileProfileId, out FileProfileState profile) == false)
+            return null;
+
+        FileProfileVersionState version = profile.Versions.SingleOrDefault(candidate => candidate.FileProfileVersionId == fileProfileVersionId);
+        return version?.ToModel(fileProfileId);
     }
 
     private static Result ValidateCreateRequest(this FileProfileAggregate aggregate, CreateFileProfileRequest request)
@@ -439,7 +511,22 @@ public static class FileProfileAggregateExtensions
                                     fileProfile.RequestType,
                                     fileProfile.OperatorName,
                                     fileProfile.LineTerminator,
-                                    fileProfile.FileFormatHandler);
+                                    fileProfile.FileFormatHandler,
+                                    fileProfile.CurrentVersionId,
+                                    fileProfile.CurrentVersion);
+    }
+
+    private static FileProfileModel ToModel(this FileProfileVersionState version, Guid fileProfileId)
+    {
+        return new FileProfileModel(fileProfileId,
+                                    version.Name,
+                                    version.ListeningDirectory,
+                                    version.RequestType,
+                                    version.OperatorName,
+                                    version.LineTerminator,
+                                    version.FileFormatHandler,
+                                    version.FileProfileVersionId,
+                                    version.FileProfileVersion);
     }
 }
 
@@ -509,4 +596,29 @@ internal sealed class FileProfileState
     public string FileFormatHandler { get; set; }
 
     public bool IsArchived { get; set; }
+
+    public Guid CurrentVersionId { get; set; }
+
+    public int CurrentVersion { get; set; }
+
+    public List<FileProfileVersionState> Versions { get; set; } = new();
+}
+
+internal sealed class FileProfileVersionState
+{
+    public Guid FileProfileVersionId { get; set; }
+
+    public int FileProfileVersion { get; set; }
+
+    public string Name { get; set; }
+
+    public string ListeningDirectory { get; set; }
+
+    public string RequestType { get; set; }
+
+    public string OperatorName { get; set; }
+
+    public string LineTerminator { get; set; }
+
+    public string FileFormatHandler { get; set; }
 }

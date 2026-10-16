@@ -172,6 +172,66 @@ public class FileProfileAggregateTests
     }
 
     [Fact]
+    public void FileProfileAggregate_Create_CreatesInitialImmutableVersion()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+
+        Result createResult = aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            LineTerminatorType.LineFeed,
+            TestData.SafaricomFileFormatHandler));
+
+        FileProcessor.Models.FileProfile profile = aggregate.GetProfile(TestData.FileProfileId);
+        List<FileProcessor.Models.FileProfile> versions = aggregate.GetProfileVersions(TestData.FileProfileId);
+
+        createResult.IsSuccess.ShouldBeTrue();
+        profile.FileProfileVersionId.ShouldNotBe(Guid.Empty);
+        profile.FileProfileVersion.ShouldBe(1);
+        versions.Count.ShouldBe(1);
+        versions[0].FileProfileVersionId.ShouldBe(profile.FileProfileVersionId);
+    }
+
+    [Fact]
+    public void FileProfileAggregate_Update_CreatesNewVersionAndPreservesPreviousVersion()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+        aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            LineTerminatorType.LineFeed,
+            TestData.SafaricomFileFormatHandler));
+
+        FileProcessor.Models.FileProfile originalProfile = aggregate.GetProfile(TestData.FileProfileId);
+
+        Result updateResult = aggregate.UpdateProfile(TestData.FileProfileId, new UpdateFileProfileRequest
+        {
+            FileFormatHandler = "UpdatedHandler"
+        });
+
+        FileProcessor.Models.FileProfile updatedProfile = aggregate.GetProfile(TestData.FileProfileId);
+        FileProcessor.Models.FileProfile historicalProfile = aggregate.GetProfileVersion(
+            TestData.FileProfileId,
+            originalProfile.FileProfileVersionId);
+        List<FileProcessor.Models.FileProfile> versions = aggregate.GetProfileVersions(TestData.FileProfileId);
+
+        updateResult.IsSuccess.ShouldBeTrue();
+        updatedProfile.FileProfileVersionId.ShouldNotBe(originalProfile.FileProfileVersionId);
+        updatedProfile.FileProfileVersion.ShouldBe(2);
+        updatedProfile.FileFormatHandler.ShouldBe("UpdatedHandler");
+        historicalProfile.FileProfileVersionId.ShouldBe(originalProfile.FileProfileVersionId);
+        historicalProfile.FileProfileVersion.ShouldBe(1);
+        historicalProfile.FileFormatHandler.ShouldBe(TestData.SafaricomFileFormatHandler);
+        versions.Count.ShouldBe(2);
+    }
+
+    [Fact]
     public void FileProfileAggregate_Create_WithDuplicateName_IsRejected()
     {
         FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
