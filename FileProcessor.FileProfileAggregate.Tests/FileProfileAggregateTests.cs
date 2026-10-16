@@ -232,6 +232,35 @@ public class FileProfileAggregateTests
     }
 
     [Fact]
+    public void FileProfileAggregate_ReplayingLegacyUpdateEvents_UpdatesInitialVersionSnapshot()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+        Guid versionId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
+        aggregate.PlayEvent(new FileProcessor.FileProfile.DomainEvents.FileProfileCreatedEvent(
+            FileProfileAggregateRoot.FileProfileCollectionId,
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            TestData.SafaricomRequestType,
+            TestData.SafaricomOperatorIdentifier,
+            "\n",
+            TestData.SafaricomFileFormatHandler,
+            versionId,
+            1));
+        aggregate.PlayEvent(new FileProcessor.FileProfile.DomainEvents.FileProfileFileFormatHandlerUpdatedEvent(
+            FileProfileAggregateRoot.FileProfileCollectionId,
+            TestData.FileProfileId,
+            "LegacyUpdatedHandler"));
+
+        FileProcessor.Models.FileProfile profile = aggregate.GetProfile(TestData.FileProfileId);
+        FileProcessor.Models.FileProfile version = aggregate.GetProfileVersion(TestData.FileProfileId, versionId);
+
+        profile.FileFormatHandler.ShouldBe("LegacyUpdatedHandler");
+        version.FileFormatHandler.ShouldBe("LegacyUpdatedHandler");
+    }
+
+    [Fact]
     public void FileProfileAggregate_Create_WithDuplicateName_IsRejected()
     {
         FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();

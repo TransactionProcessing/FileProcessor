@@ -80,36 +80,42 @@ public static class FileProfileAggregateExtensions
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.Name = domainEvent.Name;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileListeningDirectoryUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.ListeningDirectory = domainEvent.ListeningDirectory;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileRequestTypeUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.RequestType = domainEvent.RequestType;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileOperatorNameUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.OperatorName = domainEvent.OperatorName;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileLineTerminatorUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.LineTerminator = domainEvent.LineTerminator;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileFileFormatHandlerUpdatedEvent domainEvent)
     {
         FileProfileState fileProfile = aggregate.GetRequiredProfileState(domainEvent.FileProfileId);
         fileProfile.FileFormatHandler = domainEvent.FileFormatHandler;
+        fileProfile.UpdateCurrentVersionSnapshot();
     }
 
     public static void PlayEvent(this FileProfileAggregate aggregate, FileProfileArchivedEvent domainEvent)
@@ -527,6 +533,17 @@ public static class FileProfileAggregateExtensions
                                     version.FileFormatHandler,
                                     version.FileProfileVersionId,
                                     version.FileProfileVersion);
+    }
+
+    private static void UpdateCurrentVersionSnapshot(this FileProfileState fileProfile)
+    {
+        FileProfileVersionState currentVersion = fileProfile.Versions.Single(version => version.FileProfileVersionId == fileProfile.CurrentVersionId);
+        currentVersion.Name = fileProfile.Name;
+        currentVersion.ListeningDirectory = fileProfile.ListeningDirectory;
+        currentVersion.RequestType = fileProfile.RequestType;
+        currentVersion.OperatorName = fileProfile.OperatorName;
+        currentVersion.LineTerminator = fileProfile.LineTerminator;
+        currentVersion.FileFormatHandler = fileProfile.FileFormatHandler;
     }
 }
 
