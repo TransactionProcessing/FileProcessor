@@ -14,6 +14,10 @@ public interface IFileProfileManager
 
     Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken);
 
+    Task<Result<List<FileProfileModel>>> GetFileProfileVersions(Guid fileProfileId, CancellationToken cancellationToken);
+
+    Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId, Guid fileProfileVersionId, CancellationToken cancellationToken);
+
     Task<Result<FileProfileModel>> CreateFileProfile(CreateFileProfileRequest request, CancellationToken cancellationToken);
 
     Task<Result<FileProfileModel>> UpdateFileProfile(Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken);

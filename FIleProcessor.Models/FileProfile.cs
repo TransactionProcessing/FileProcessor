@@ -16,6 +16,10 @@
         /// </value>
         public Guid FileProfileId { get; init; }
 
+        public Guid FileProfileVersionId { get; init; }
+
+        public Int32 FileProfileVersion { get; init; }
+
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
@@ -85,9 +89,19 @@
         /// <param name="requestType">Type of the request.</param>
         /// <param name="operatorName">Name of the operator.</param>
         /// <param name="lineTerminator">The line terminator.</param>
-        public FileProfile(Guid fileProfileId, String name, String listeningDirectory, String requestType, String operatorName, String lineTerminator, String fileFormatHandler)
+        public FileProfile(Guid fileProfileId,
+                           String name,
+                           String listeningDirectory,
+                           String requestType,
+                           String operatorName,
+                           String lineTerminator,
+                           String fileFormatHandler,
+                           Guid fileProfileVersionId = default,
+                           Int32 fileProfileVersion = 0)
         {
             this.FileProfileId = fileProfileId;
+            this.FileProfileVersionId = fileProfileVersionId;
+            this.FileProfileVersion = fileProfileVersion;
             this.Name = name;
             this.ListeningDirectory = listeningDirectory;
             this.ProcessedDirectory = $"{listeningDirectory}/processed";

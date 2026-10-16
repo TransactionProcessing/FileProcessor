@@ -52,6 +52,34 @@ public class FileProfileManager : IFileProfileManager
         return Result.Success(fileProfile);
     }
 
+    public async Task<Result<List<FileProfileModel>>> GetFileProfileVersions(Guid fileProfileId, CancellationToken cancellationToken)
+    {
+        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken);
+        if (aggregateResult.IsFailed)
+            return ResultHelpers.CreateFailure(aggregateResult);
+
+        List<FileProfileModel> versions = aggregateResult.Data.GetProfileVersions(fileProfileId);
+        if (versions.Count == 0)
+            return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
+
+        return Result.Success(versions);
+    }
+
+    public async Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
+                                                                       Guid fileProfileVersionId,
+                                                                       CancellationToken cancellationToken)
+    {
+        Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken);
+        if (aggregateResult.IsFailed)
+            return ResultHelpers.CreateFailure(aggregateResult);
+
+        FileProfileModel version = aggregateResult.Data.GetProfileVersion(fileProfileId, fileProfileVersionId);
+        if (version == null)
+            return Result.NotFound($"No file profile version found for File Profile Id {fileProfileId} and Version Id {fileProfileVersionId}");
+
+        return Result.Success(version);
+    }
+
     public async Task<Result<FileProfileModel>> CreateFileProfile(CreateFileProfileRequest request, CancellationToken cancellationToken)
     {
         Result<FileProfileAggregateRoot> aggregateResult = await this.LoadAggregate(cancellationToken);
