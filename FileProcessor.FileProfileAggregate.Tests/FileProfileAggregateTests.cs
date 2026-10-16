@@ -70,10 +70,10 @@ public class FileProfileAggregateTests
             Guid.Parse("33333333-3333-3333-3333-333333333333"),
             "Voucher Profile",
             "/home/txnproc/bulkfiles/duplicate-name",
-            "GammaRequest",
+            TestData.SafaricomRequestType,
             "Gamma Operator",
             LineTerminatorType.LineFeed,
-            "GammaHandler"));
+            TestData.SafaricomFileFormatHandler));
 
         Result duplicateRequestTypeCreate = aggregate.CreateProfile(this.CreateProfile(
             Guid.Parse("44444444-4444-4444-4444-444444444444"),
@@ -82,7 +82,7 @@ public class FileProfileAggregateTests
             TestData.VoucherRequestType,
             "Gamma Operator",
             LineTerminatorType.LineFeed,
-            "GammaHandler"));
+            TestData.VoucherFileFormatHandler));
 
         List<FileProcessor.Models.FileProfile> fileProfiles = aggregate.GetAllProfiles();
         FileProcessor.Models.FileProfile updatedProfile = aggregate.GetProfile(TestData.FileProfileId);
@@ -359,10 +359,10 @@ public class FileProfileAggregateTests
             TestData.SafaricomFileProfileId,
             TestData.SafaricomProfileName,
             "/tmp/other",
-            "DifferentRequest",
+            TestData.VoucherRequestType,
             "Other",
             LineTerminatorType.LineFeed,
-            "OtherHandler"));
+            TestData.VoucherFileFormatHandler));
 
         firstCreate.IsSuccess.ShouldBeTrue();
         duplicateCreate.IsFailed.ShouldBeTrue();
@@ -427,7 +427,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomRequestType,
             "Other",
             LineTerminatorType.LineFeed,
-            "OtherHandler"));
+            TestData.SafaricomFileFormatHandler));
 
         firstCreate.IsSuccess.ShouldBeTrue();
         duplicateCreate.IsFailed.ShouldBeTrue();
@@ -452,6 +452,25 @@ public class FileProfileAggregateTests
         result.Status.ShouldBe(ResultStatus.Invalid);
         result.Errors.ShouldContain(error => error.Contains("Unsupported request type"));
         result.Errors.ShouldContain(error => error.Contains("Unsupported file format handler"));
+    }
+
+    [Fact]
+    public void FileProfileAggregate_Create_WithWhitespaceAroundProcessingConfiguration_IsAccepted()
+    {
+        FileProfileAggregateRoot aggregate = FileProfileAggregateRoot.Create();
+
+        Result result = aggregate.CreateProfile(this.CreateProfile(
+            TestData.FileProfileId,
+            TestData.SafaricomProfileName,
+            TestData.SafaricomListeningDirectory,
+            $" {TestData.SafaricomRequestType} ",
+            TestData.SafaricomOperatorIdentifier,
+            LineTerminatorType.LineFeed,
+            $" {TestData.SafaricomFileFormatHandler} "));
+
+        result.IsSuccess.ShouldBeTrue();
+        aggregate.GetProfile(TestData.FileProfileId).RequestType.ShouldBe(TestData.SafaricomRequestType);
+        aggregate.GetProfile(TestData.FileProfileId).FileFormatHandler.ShouldBe(TestData.SafaricomFileFormatHandler);
     }
 
     [Fact]

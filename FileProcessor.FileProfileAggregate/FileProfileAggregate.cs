@@ -407,12 +407,15 @@ public static class FileProfileAggregateExtensions
     {
         var errors = new List<string>();
 
-        if (requestType != null && FileProfileConfiguration.IsSupportedRequestType(requestType) == false)
+        string normalizedRequestType = requestType?.Trim();
+        string normalizedFileFormatHandler = fileFormatHandler?.Trim();
+
+        if (normalizedRequestType != null && FileProfileConfiguration.IsSupportedRequestType(normalizedRequestType) == false)
         {
             errors.Add($"Unsupported request type [{requestType}]");
         }
 
-        if (fileFormatHandler != null && FileProfileConfiguration.IsSupportedFileFormatHandler(fileFormatHandler) == false)
+        if (normalizedFileFormatHandler != null && FileProfileConfiguration.IsSupportedFileFormatHandler(normalizedFileFormatHandler) == false)
         {
             errors.Add($"Unsupported file format handler [{fileFormatHandler}]");
         }
