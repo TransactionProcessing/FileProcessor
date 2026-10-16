@@ -16,20 +16,28 @@ namespace FileProcessor.IntegrationTesting.Helpers
         {
             this.EstateDetails = estateDetails;
             this.FileImportLogFiles = new List<FileImportLogFile>();
+            this.UploadedFiles = new List<FileImportLogFile>();
         }
 
         public EstateDetails EstateDetails { get; private set; }
 
         private List<FileImportLogFile> FileImportLogFiles;
 
+        private List<FileImportLogFile> UploadedFiles;
+
         public void AddFileImportLogFile(FileImportLogFile fileImportLogFile)
         {
             this.FileImportLogFiles.Add(fileImportLogFile);
         }
 
+        public void AddUploadedFile(FileImportLogFile fileImportLogFile)
+        {
+            this.UploadedFiles.Add(fileImportLogFile);
+        }
+
         public Guid GetFileId(String originalFileName)
         {
-            return this.FileImportLogFiles.Single(o => o.OriginalFileName == originalFileName).FileId;
+            return this.UploadedFiles.Single(o => o.OriginalFileName == originalFileName).FileId;
         }
     }
 

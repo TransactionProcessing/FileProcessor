@@ -53,6 +53,9 @@ public interface IFileProcessorDomainService
 
 public class FileProcessorDomainService : IFileProcessorDomainService
 {
+    private const Int32 DefaultMaximumDetailRecordCount = 1000;
+    private const String MaximumDetailRecordsExceededCode = "MaximumDetailRecordsExceeded";
+
     private readonly IFileProcessorManager FileProcessorManager;
 
     private readonly IAggregateRepository<FileImportLogAggregate, DomainEvent> FileImportLogAggregateRepository;
@@ -66,6 +69,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     private readonly Func<String, IFileFormatHandler> FileFormatHandlerResolver;
         
     private readonly IFileSystem FileSystem;
+
+    private readonly Int32 MaximumDetailRecordCount;
 
     public FileProcessorDomainService(IFileProcessorManager fileProcessorManager,
                                       IAggregateRepository<FileImportLogAggregate, DomainEvent> fileImportLogAggregateRepository,
@@ -81,6 +86,19 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         this.SecurityServiceClient = securityServiceClient;
         this.FileFormatHandlerResolver = fileFormatHandlerResolver;
         this.FileSystem = fileSystem;
+        this.MaximumDetailRecordCount = ResolveMaximumDetailRecordCount();
+    }
+
+    public static Int32 ResolveMaximumDetailRecordCount()
+    {
+        String configuredMaximumDetailRecordCount = ConfigurationReader.GetValue("AppSettings", "MaximumDetailRecordCount");
+        if (String.IsNullOrWhiteSpace(configuredMaximumDetailRecordCount))
+            return DefaultMaximumDetailRecordCount;
+
+        if (Int32.TryParse(configuredMaximumDetailRecordCount, out Int32 maximumDetailRecordCount) == false || maximumDetailRecordCount <= 0)
+            throw new InvalidOperationException("AppSettings:MaximumDetailRecordCount must be a positive integer when configured");
+
+        return maximumDetailRecordCount;
     }
 
     private async Task<Result> ApplyFileUpdates(Func<FileAggregate, Task<Result>> action,
@@ -754,7 +772,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             inProgressFile = fileInfo;
         }
 
+        Boolean fileWasRejected = false;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
+
+            if (fileAggregate.GetFile().IsRejected)
+            {
+                fileWasRejected = true;
+                return Result.Success();
+            }
 
             String fileContent = null;
             //Open file for Read\Write
@@ -769,6 +794,26 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             if (String.IsNullOrEmpty(fileContent) == false) {
                 String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
 
+                Int32 detailRecordCount = fileLines.Count(fileLine =>
+                {
+                    String trimmedLine = fileLine.Trim();
+                    return String.IsNullOrEmpty(trimmedLine) == false && this.FileLineCanBeIgnored(trimmedLine, fileProfile.FileFormatHandler) == false;
+                });
+
+                if (detailRecordCount > this.MaximumDetailRecordCount)
+                {
+                    Result rejectionResult = fileAggregate.RejectFile(detailRecordCount,
+                                                                       this.MaximumDetailRecordCount,
+                                                                       MaximumDetailRecordsExceededCode,
+                                                                       $"File contains {detailRecordCount} detail records; the maximum permitted is {this.MaximumDetailRecordCount}",
+                                                                       DateTime.UtcNow);
+                    if (rejectionResult.IsFailed)
+                        return rejectionResult;
+
+                    fileWasRejected = true;
+                    return Result.Success();
+                }
+
                 foreach (String fileLine in fileLines) {
                     Result stateResult = fileAggregate.AddFileLine(fileLine.Trim());
                     if (stateResult.IsFailed)
@@ -780,6 +825,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }, fileId, cancellationToken);
 
         if (result.IsSuccess) {
+            if (fileWasRejected)
+            {
+                Logger.LogWarning($"About to move rejected file {inProgressFile.Name} to [{fileProfile.FailedDirectory}]");
+                inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
+                return Result.Success();
+            }
+
             Logger.LogInformation($"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
 
             // Move file now

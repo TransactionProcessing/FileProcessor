@@ -254,6 +254,54 @@ public class FileProcessorDomainServiceTests
     }
 
     [Fact]
+    public async Task ProcessUploadedFile_WhenFileExceedsMaximumDetailRecords_RejectsWithoutAddingLines()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns((String line) => String.IsNullOrWhiteSpace(line) || line.StartsWith("H") || line.StartsWith("T"));
+        FileAggregate createdAggregate = TestData.GetCreatedFileAggregate();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()))
+            .Then().ReturnsAsync(Result.Success(createdAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.TransactionProcessorClient.GetOperators(Arg<String>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.OperatorList);
+
+        StringBuilder content = new("H,20210508,\n");
+        for (Int32 row = 1; row <= 1001; row++)
+            content.Append($"D,0777777{row:0000},{10 + ((row - 1) % 240)}\n");
+        content.Append("T,1001,");
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData(content.ToString()));
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        createdAggregate.GetFile().IsRejected.ShouldBeTrue();
+        createdAggregate.GetFile().ObservedDetailRecordCount.ShouldBe(1001);
+        createdAggregate.GetFile().MaximumDetailRecordCount.ShouldBe(1000);
+        createdAggregate.GetFile().FileLines.ShouldBeEmpty();
+        this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("not-a-number")]
+    public void ResolveMaximumDetailRecordCount_WhenConfiguredValueIsInvalid_Throws(String configuredValue)
+    {
+        IConfigurationRoot invalidConfiguration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<String, String>
+            {
+                ["AppSettings:MaximumDetailRecordCount"] = configuredValue
+            })
+            .Build();
+        ConfigurationReader.Initialise(invalidConfiguration);
+
+        Should.Throw<InvalidOperationException>(() => FileProcessorDomainService.ResolveMaximumDetailRecordCount());
+
+        ConfigurationReader.Initialise(new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build());
+    }
+
+    [Fact]
     public async Task ProcessUploadedFile_WhenOperatorLookupFails_MovesAcceptedFileToFailedDirectory()
     {
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);

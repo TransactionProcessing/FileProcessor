@@ -67,6 +67,57 @@ namespace FileProcessor.FileAggregate.Tests
         }
 
         [Fact]
+        public void FileAggregate_RejectFile_PreservesFileLevelRejectionDetails()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
+
+            Result result = fileAggregate.RejectFile(1001,
+                                                      1000,
+                                                      "MaximumDetailRecordsExceeded",
+                                                      "File contains more than the maximum permitted detail records",
+                                                      TestData.FileUploadedDateTime);
+
+            result.IsSuccess.ShouldBeTrue();
+            FileDetails fileDetails = fileAggregate.GetFile();
+            fileDetails.IsRejected.ShouldBeTrue();
+            fileDetails.RejectionCode.ShouldBe("MaximumDetailRecordsExceeded");
+            fileDetails.RejectionReason.ShouldBe("File contains more than the maximum permitted detail records");
+            fileDetails.ObservedDetailRecordCount.ShouldBe(1001);
+            fileDetails.MaximumDetailRecordCount.ShouldBe(1000);
+            fileDetails.FileLines.ShouldBeEmpty();
+        }
+
+        [Fact]
+        public void FileAggregate_RejectFile_WhenAlreadyRejected_DoesNotAppendAnotherRejection()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
+
+            fileAggregate.RejectFile(1001, 1000, "MaximumDetailRecordsExceeded", "too many", TestData.FileUploadedDateTime);
+            Result result = fileAggregate.RejectFile(1002, 1000, "MaximumDetailRecordsExceeded", "too many", TestData.FileUploadedDateTime.AddMinutes(1));
+
+            result.IsSuccess.ShouldBeTrue();
+            fileAggregate.GetFile().ObservedDetailRecordCount.ShouldBe(1001);
+        }
+
+        [Fact]
+        public void FileAggregate_AddFileLine_WhenRejected_DoesNotAddLine()
+        {
+            FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
+            FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
+            fileAggregate.CreateFile(createFileRequest);
+            fileAggregate.RejectFile(1001, 1000, "MaximumDetailRecordsExceeded", "too many", TestData.FileUploadedDateTime);
+
+            Result result = fileAggregate.AddFileLine(TestData.FileLine);
+
+            result.IsFailed.ShouldBeTrue();
+            fileAggregate.GetFile().FileLines.ShouldBeEmpty();
+        }
+
+        [Fact]
         public void FileAggregate_AddFileLine_FileLineAdded()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);

@@ -344,6 +344,7 @@ namespace FileProcessor.Testing
                 ["AppSettings:ClientSecret"] = "clientSecret",
                 ["AppSettings:TemporaryFileLocation"] = "C:\\Temp",
                 ["AppSettings:FileProfilePollingWindowInSeconds"] = "30",
+                ["AppSettings:MaximumDetailRecordCount"] = "1000",
                 ["ConnectionStrings:HealthCheck"] = "HeathCheckConnString",
                 ["ConnectionStrings:TransactionProcessorReadModel"] = "EstateReportingReadModel",
                 ["SecurityConfiguration:Authority"] = "https://127.0.0.1",

@@ -43,6 +43,12 @@ public class FileProcessorSteps
         var fileId = uploadFileResult.Data;
         fileId.ShouldNotBe(Guid.Empty);
 
+        estateDetails.AddUploadedFile(new FileImportLogFile
+        {
+            FileId = fileId,
+            OriginalFileName = Path.GetFileName(filePath),
+        });
+
         await Retry.For(async () =>
                         {
                             Result<FileDetails>? getFileResult =
@@ -51,13 +57,13 @@ public class FileProcessorSteps
                             FileDetails? fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
 
-                            if (!fileDetails.ProcessingCompleted)
+                            if (!fileDetails.ProcessingCompleted && !fileDetails.IsRejected)
                             {
                                 Console.WriteLine(this.FormatFileDetails(fileDetails));
                             }
 
-                            fileDetails.ProcessingCompleted.ShouldBeTrue();
-                        }, TimeSpan.FromMinutes(5),
+                            (fileDetails.ProcessingCompleted || fileDetails.IsRejected).ShouldBeTrue();
+                        }, TimeSpan.FromMinutes(15),
                         TimeSpan.FromSeconds(30));
 
         return fileId;
@@ -256,5 +262,29 @@ public class FileProcessorSteps
                         },
                         TimeSpan.FromMinutes(4),
                         TimeSpan.FromSeconds(30));
+    }
+
+    public async Task WhenIGetTheFileForEstateItIsRejectedForExceedingTheDetailRowLimit(String accessToken,
+                                                                                           String fileName,
+                                                                                           String estateName,
+                                                                                           List<EstateDetails1> estateDetailsList)
+    {
+        EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
+        estate.ShouldNotBeNull();
+
+        Guid fileId = estate.GetFileId(fileName);
+
+        await Retry.For(async () =>
+                        {
+                            var getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
+                            getFileResult.IsSuccess.ShouldBeTrue();
+                            var fileDetails = getFileResult.Data;
+                            fileDetails.ShouldNotBeNull();
+                            fileDetails.IsRejected.ShouldBeTrue();
+                            fileDetails.RejectionCode.ShouldBe("MaximumDetailRecordsExceeded");
+                            fileDetails.ObservedDetailRecordCount.ShouldBe(1001);
+                            fileDetails.MaximumDetailRecordCount.ShouldBe(1000);
+                            fileDetails.FileLines.ShouldBeEmpty();
+                        }, TimeSpan.FromMinutes(4), TimeSpan.FromSeconds(30));
     }
 }
