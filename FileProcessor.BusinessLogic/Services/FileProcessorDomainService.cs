@@ -287,7 +287,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }, command.FileId, cancellationToken, false );
 
         if (result.IsFailed) {
-            await MoveAcceptedFileToFailedDirectory(command.FileProfileId, command.FilePath, cancellationToken);
+            await MoveAcceptedFileToFailedDirectory(command.FileId,
+                                                    command.FileProfileId,
+                                                    command.FileProfileVersionId,
+                                                    command.FilePath,
+                                                    cancellationToken);
             return result;
         }
         
@@ -300,11 +304,16 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         return processResult;
     }
 
-    private async Task MoveAcceptedFileToFailedDirectory(Guid fileProfileId,
+    private async Task MoveAcceptedFileToFailedDirectory(Guid fileId,
+                                                          Guid fileProfileId,
+                                                          Guid fileProfileVersionId,
                                                           String filePath,
                                                           CancellationToken cancellationToken)
     {
-        Result<FileProfileModel> fileProfileResult = await this.FileProcessorManager.GetFileProfile(fileProfileId, cancellationToken);
+        Result<FileProfileModel> fileProfileResult = await this.GetFileProfileForProcessing(fileId,
+                                                                                              fileProfileId,
+                                                                                              fileProfileVersionId,
+                                                                                              cancellationToken);
         if (fileProfileResult.IsFailed || fileProfileResult.Data == null)
             return;
 
