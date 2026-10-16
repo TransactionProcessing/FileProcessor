@@ -35,16 +35,22 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
 
     public async Task<Result> RecoverInProgressFilesAsync(CancellationToken cancellationToken)
     {
-        Result<List<FileProfileModel>> fileProfilesResult = await this.FileProcessorManager.GetAllFileProfiles(cancellationToken);
+        Result<List<FileProfileModel>> fileProfilesResult = await this.FileProcessorManager.GetAllFileProfileVersions(cancellationToken);
         if (fileProfilesResult.IsFailed)
         {
             Shared.Logger.Logger.LogWarning($"Unable to load file profiles for in-progress recovery: {fileProfilesResult.Message}");
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
+        HashSet<string> recoveredDirectories = new(StringComparer.OrdinalIgnoreCase);
         foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
         {
             string inProgressDirectory = Path.Combine(fileProfile.ListeningDirectory, InProgressDirectoryName);
+            if (recoveredDirectories.Add(inProgressDirectory) == false)
+            {
+                continue;
+            }
+
             if (this.FileSystem.Directory.Exists(inProgressDirectory) == false)
             {
                 continue;
