@@ -228,6 +228,22 @@ public class FileProcessorDomainServiceTests
     }
 
     [Fact]
+    public async Task FileRequestHandler_UploadFileRequest_ArchivedProfileIsRejected()
+    {
+        this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetEmptyFileImportLogAggregate()));
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound($"No file profile found for File Profile Id {TestData.FileProfileId}"));
+
+        Result<Guid> result = await this.FileProcessorDomainService.UploadFile(TestData.UploadFileCommand, CancellationToken.None);
+
+        result.IsFailed.ShouldBeTrue();
+        result.Status.ShouldBe(ResultStatus.NotFound);
+        this.FileImportLogAggregateRepository.SaveChanges(Arg<FileImportLogAggregate>.Any(), Arg<CancellationToken>.Any())
+            .Called(Count.Never());
+    }
+
+    [Fact]
     public async Task FileRequestHandler_UploadFileRequest_FileNotFound_RequestIsHandled()
     {
         this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
@@ -702,6 +718,43 @@ public class FileProcessorDomainServiceTests
         this.SecurityServiceClient.GetToken(Arg<String>.Any(),
                                            Arg<String>.Any(),
                                            Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
+        this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns(TestData.TransactionMetadata);
+
+        Result result = await this.FileProcessorDomainService.ProcessTransactionForFileLine(
+            TestData.ProcessTransactionForFileLineCommand,
+            CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessTransactionForFileLine_UsesRecordedVersionWhenParentProfileIsArchived()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound());
+        this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
+                                                        TestData.FileProfileVersionId,
+                                                        Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.FileProfileSafaricom with
+            {
+                FileProfileId = TestData.FileProfileId,
+                FileProfileVersionId = TestData.FileProfileVersionId
+            });
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success());
+        this.TransactionProcessorClient.PerformTransaction(Arg<String>.Any(), Arg<SaleTransactionRequest>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.ClientSaleTransactionResponse);
+        this.TransactionProcessorClient.GetMerchant(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(TestData.GetMerchantResponseWithOperator);
+        this.TransactionProcessorClient.GetMerchantContracts(Arg<String>.Any(), Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetMerchantContractsResponse()
+                                                .Where(contract => contract.OperatorName == TestData.SafaricomOperatorIdentifier)
+                                                .ToList()));
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any())
             .ReturnsAsync(Result.Success(TestData.TokenResponse()));
         this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns(false);
         this.FileFormatHandler.ParseFileLine(Arg<String>.Any()).Returns(TestData.TransactionMetadata);
