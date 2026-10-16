@@ -791,13 +791,14 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 }
             }
 
-            if (String.IsNullOrEmpty(fileContent) == false) {
+            {
                 String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
 
+                IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfile.FileFormatHandler);
                 Int32 detailRecordCount = fileLines.Count(fileLine =>
                 {
                     String trimmedLine = fileLine.Trim();
-                    return String.IsNullOrEmpty(trimmedLine) == false && this.FileLineCanBeIgnored(trimmedLine, fileProfile.FileFormatHandler) == false;
+                    return String.IsNullOrEmpty(trimmedLine) == false && fileFormatHandler.FileLineCanBeIgnored(trimmedLine) == false;
                 });
 
                 if (detailRecordCount > this.MaximumDetailRecordCount)
@@ -806,6 +807,39 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                        this.MaximumDetailRecordCount,
                                                                        MaximumDetailRecordsExceededCode,
                                                                        $"File contains {detailRecordCount} detail records; the maximum permitted is {this.MaximumDetailRecordCount}",
+                                                                       DateTime.UtcNow);
+                    if (rejectionResult.IsFailed)
+                        return rejectionResult;
+
+                    fileWasRejected = true;
+                    return Result.Success();
+                }
+
+                FileValidationResult validationResult;
+                using (StringReader validationReader = new(fileContent))
+                    validationResult = fileFormatHandler.ValidateFile(validationReader, fileProfile.LineTerminator);
+
+                if (validationResult == null)
+                {
+                    Result unavailableResult = fileAggregate.RejectFile(detailRecordCount,
+                                                                         this.MaximumDetailRecordCount,
+                                                                         "ValidationUnavailable",
+                                                                         "File validation did not return a result",
+                                                                         DateTime.UtcNow);
+                    if (unavailableResult.IsFailed)
+                        return unavailableResult;
+
+                    fileWasRejected = true;
+                    return Result.Success();
+                }
+
+                if (validationResult.IsValid == false)
+                {
+                    String rejectionReason = String.Join("; ", validationResult.Errors.Select(FormatValidationError));
+                    Result rejectionResult = fileAggregate.RejectFile(detailRecordCount,
+                                                                       this.MaximumDetailRecordCount,
+                                                                       validationResult.Errors.First().Code,
+                                                                       rejectionReason,
                                                                        DateTime.UtcNow);
                     if (rejectionResult.IsFailed)
                         return rejectionResult;
@@ -857,6 +891,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfileFileFormatHandler);
 
         return fileFormatHandler.FileLineCanBeIgnored(domainEventFileLine);
+    }
+
+    private static String FormatValidationError(FileValidationError error)
+    {
+        return error switch
+        {
+            RowValidationError rowError => $"Line {rowError.LineNumber} Field {rowError.Field}: {rowError.Code} - {rowError.Reason}",
+            _ => $"{error.Code} - {error.Reason}"
+        };
     }
 
     private Dictionary<String, String> ParseFileLine(String domainEventFileLine,

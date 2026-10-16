@@ -67,6 +67,8 @@ public class FileProcessorDomainServiceTests
         this.TransactionProcessorClient = new ITransactionProcessorClientImposter();
         this.SecurityServiceClient = new ISecurityServiceClientImposter();
         this.FileFormatHandler = new IFileFormatHandlerImposter();
+        this.FileFormatHandler.ValidateFile(Arg<TextReader>.Any(), Arg<String>.Any()).Returns(
+            new FileValidationResult(Guid.Empty, true, Array.Empty<FileValidationError>()));
         this.FileSystem = new MockFileSystem();
         this.DiagnosticLogger = new CapturingLogger<FileProcessorDomainService>();
 
@@ -278,6 +280,37 @@ public class FileProcessorDomainServiceTests
         createdAggregate.GetFile().IsRejected.ShouldBeTrue();
         createdAggregate.GetFile().ObservedDetailRecordCount.ShouldBe(1001);
         createdAggregate.GetFile().MaximumDetailRecordCount.ShouldBe(1000);
+        createdAggregate.GetFile().FileLines.ShouldBeEmpty();
+        this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ProcessUploadedFile_WhenFileValidationFails_RejectsBeforeAddingLines()
+    {
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);
+        this.FileFormatHandler.FileLineCanBeIgnored(Arg<String>.Any()).Returns((String line) => line.StartsWith("H") || line.StartsWith("T"));
+        this.FileFormatHandler.ValidateFile(Arg<TextReader>.Any(), Arg<String>.Any()).Returns(
+            new FileValidationResult(Guid.Empty,
+                                      false,
+                                      new[] { new FileLevelValidationError("InvalidFile", "The file is invalid") }));
+
+        FileAggregate createdAggregate = TestData.GetCreatedFileAggregate();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()))
+            .Then().ReturnsAsync(Result.Success(createdAggregate));
+        this.FileAggregateRepository.SaveChanges(Arg<FileAggregate>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        this.SecurityServiceClient.GetToken(Arg<String>.Any(), Arg<String>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.TokenResponse()));
+        this.TransactionProcessorClient.GetOperators(Arg<String>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(TestData.OperatorList);
+
+        this.FileSystem.AddFile(TestData.FilePathWithName, new MockFileData("H,20210508,\nD,invalid\nT,1,"));
+        this.FileSystem.AddDirectory(TestData.FileProfileSafaricom.ProcessedDirectory);
+        this.FileSystem.AddDirectory(TestData.FileProfileSafaricom.FailedDirectory);
+
+        Result result = await this.FileProcessorDomainService.ProcessUploadedFile(TestData.ProcessUploadedFileCommand, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        createdAggregate.GetFile().IsRejected.ShouldBeTrue();
+        createdAggregate.GetFile().RejectionCode.ShouldBe("InvalidFile");
         createdAggregate.GetFile().FileLines.ShouldBeEmpty();
         this.FileSystem.File.Exists($"{TestData.FileProfileSafaricom.FailedDirectory}/{Path.GetFileName(TestData.FilePathWithName)}").ShouldBeTrue();
     }
