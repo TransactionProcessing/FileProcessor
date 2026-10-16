@@ -77,6 +77,23 @@ namespace FileProcessor.Client {
             return await this.SendRequest<FileProfile>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
         }
 
+        public async Task<Result<List<FileProfile>>> GetFileProfileVersions(String accessToken,
+                                                                             Guid fileProfileId,
+                                                                             CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}/versions");
+            return await this.SendRequest<List<FileProfile>>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+        }
+
+        public async Task<Result<FileProfile>> GetFileProfileVersion(String accessToken,
+                                                                      Guid fileProfileId,
+                                                                      Guid fileProfileVersionId,
+                                                                      CancellationToken cancellationToken)
+        {
+            String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}/versions/{fileProfileVersionId}");
+            return await this.SendRequest<FileProfile>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+        }
+
         public async Task<Result<FileProfile>> CreateFileProfile(String accessToken,
                                                                  CreateFileProfileRequest request,
                                                                  CancellationToken cancellationToken)
@@ -296,7 +313,9 @@ namespace FileProcessor.Client {
                     ? $"Request failed with status code {(Int32)response.StatusCode}"
                     : responseContent;
 
-                return Result.Failure(message);
+                return response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? Result.NotFound(message)
+                    : Result.Failure(message);
             }
 
             if (String.IsNullOrWhiteSpace(responseContent))

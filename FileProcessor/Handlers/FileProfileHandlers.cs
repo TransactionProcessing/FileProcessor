@@ -33,6 +33,27 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, x => x);
     }
 
+    public static async Task<IResult> GetFileProfileVersions(IMediator mediator,
+                                                              [FromRoute] Guid fileProfileId,
+                                                              CancellationToken cancellationToken)
+    {
+        FileProfileQueries.GetFileProfileVersionsQuery query = new(fileProfileId);
+        Result<List<FileProfileModel>> result = await mediator.Send(query, cancellationToken);
+
+        return ResponseFactory.FromResult(result, x => x);
+    }
+
+    public static async Task<IResult> GetFileProfileVersion(IMediator mediator,
+                                                            [FromRoute] Guid fileProfileId,
+                                                            [FromRoute] Guid fileProfileVersionId,
+                                                            CancellationToken cancellationToken)
+    {
+        FileProfileQueries.GetFileProfileVersionQuery query = new(fileProfileId, fileProfileVersionId);
+        Result<FileProfileModel> result = await mediator.Send(query, cancellationToken);
+
+        return ResponseFactory.FromResult(result, x => x);
+    }
+
     public static async Task<IResult> CreateFileProfile(IMediator mediator,
                                                         [FromBody] CreateFileProfileRequest request,
                                                         CancellationToken cancellationToken)

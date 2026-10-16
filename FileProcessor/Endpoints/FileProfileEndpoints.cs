@@ -22,6 +22,12 @@ public static class FileProfileEndpoints
         group.MapGet("/{fileProfileId:guid}", FileProfileHandlers.GetFileProfile)
             .WithName("GetFileProfile");
 
+        group.MapGet("/{fileProfileId:guid}/versions", FileProfileHandlers.GetFileProfileVersions)
+            .WithName("GetFileProfileVersions");
+
+        group.MapGet("/{fileProfileId:guid}/versions/{fileProfileVersionId:guid}", FileProfileHandlers.GetFileProfileVersion)
+            .WithName("GetFileProfileVersion");
+
         group.MapPost("/", FileProfileHandlers.CreateFileProfile)
             .WithName("CreateFileProfile");
 

@@ -14,4 +14,9 @@ public record FileProfileQueries
     public record GetFileProfilesQuery : IRequest<Result<List<FileProfileModel>>>;
 
     public record GetFileProfileQuery(Guid FileProfileId) : IRequest<Result<FileProfileModel>>;
+
+    public record GetFileProfileVersionsQuery(Guid FileProfileId) : IRequest<Result<List<FileProfileModel>>>;
+
+    public record GetFileProfileVersionQuery(Guid FileProfileId,
+                                             Guid FileProfileVersionId) : IRequest<Result<FileProfileModel>>;
 }

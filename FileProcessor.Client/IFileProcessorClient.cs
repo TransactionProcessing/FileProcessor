@@ -26,6 +26,15 @@ namespace FileProcessor.Client
                                                  Guid fileProfileId,
                                                  CancellationToken cancellationToken);
 
+        Task<Result<List<FileProfile>>> GetFileProfileVersions(String accessToken,
+                                                               Guid fileProfileId,
+                                                               CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> GetFileProfileVersion(String accessToken,
+                                                        Guid fileProfileId,
+                                                        Guid fileProfileVersionId,
+                                                        CancellationToken cancellationToken);
+
         Task<Result<FileProfile>> CreateFileProfile(String accessToken,
                                                     DataTransferObjects.Requests.CreateFileProfileRequest request,
                                                     CancellationToken cancellationToken);
