@@ -25,7 +25,7 @@ namespace FileProcessor.IntegrationTests.Features
     [global::NUnit.Framework.CategoryAttribute("fileprofiles")]
     public partial class FileProfileFeature
     {
-        
+
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
@@ -166,9 +166,9 @@ namespace FileProcessor.IntegrationTests.Features
         
         private static global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages InitializeCucumberMessages()
         {
-            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/FileProfile.feature.ndjson", 4);
+            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/FileProfile.feature.ndjson", 5);
         }
-        
+
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Create, update and list file profiles")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
@@ -208,19 +208,19 @@ await this.FeatureBackgroundAsync();
                             "11111111-1111-1111-1111-111111111111",
                             "Profile A",
                             "/home/txnproc/bulkfiles/profile-a",
-                            "ProfileARequest",
+                            "SafaricomTopupRequest",
                             "Operator A",
                             "1",
-                            "ProfileAHandler"});
+                            "SafaricomFileFormatHandler"});
                 table5.AddRow(new string[] {
                             "Profile B",
                             "22222222-2222-2222-2222-222222222222",
                             "Profile B",
                             "/home/txnproc/bulkfiles/profile-b",
-                            "ProfileBRequest",
+                            "VoucherRequest",
                             "Operator B",
                             "2",
-                            "ProfileBHandler"});
+                            "VoucherFileFormatHandler"});
 #line 23
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table5, "When ");
 #line hidden
@@ -236,10 +236,10 @@ await this.FeatureBackgroundAsync();
                             "Profile A",
                             "Profile A Updated",
                             "/home/txnproc/bulkfiles/profile-a-updated",
-                            "ProfileARequestUpdated",
+                            "SafaricomTopupRequest",
                             "Operator A Updated",
                             "2",
-                            "ProfileAHandlerUpdated"});
+                            "SafaricomFileFormatHandler"});
 #line 27
  await testRunner.AndAsync("I update the following file profiles", ((string)(null)), table6, "And ");
 #line hidden
@@ -258,25 +258,25 @@ await this.FeatureBackgroundAsync();
                             "Profile A",
                             "Profile A Updated",
                             "/home/txnproc/bulkfiles/profile-a-updated",
-                            "ProfileARequestUpdated",
+                            "SafaricomTopupRequest",
                             "Operator A Updated",
                             "2",
-                            "ProfileAHandlerUpdated"});
+                            "SafaricomFileFormatHandler"});
                 table7.AddRow(new string[] {
                             "Profile B",
                             "Profile B",
                             "/home/txnproc/bulkfiles/profile-b",
-                            "ProfileBRequest",
+                            "VoucherRequest",
                             "Operator B",
                             "2",
-                            "ProfileBHandler"});
+                            "VoucherFileFormatHandler"});
 #line 31
  await testRunner.AndAsync("the file profiles should have the following values", ((string)(null)), table7, "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
-        
+
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Reject duplicate file profile name and request type")]
         public async global::System.Threading.Tasks.Task RejectDuplicateFileProfileNameAndRequestType()
@@ -314,19 +314,19 @@ await this.FeatureBackgroundAsync();
                             "33333333-3333-3333-3333-333333333333",
                             "Profile A",
                             "/home/txnproc/bulkfiles/profile-a",
-                            "ProfileARequest",
+                            "SafaricomTopupRequest",
                             "Operator A",
                             "1",
-                            "ProfileAHandler"});
+                            "SafaricomFileFormatHandler"});
                 table8.AddRow(new string[] {
                             "Profile B",
                             "44444444-4444-4444-4444-444444444444",
                             "Profile B",
                             "/home/txnproc/bulkfiles/profile-b",
-                            "ProfileBRequest",
+                            "VoucherRequest",
                             "Operator B",
                             "2",
-                            "ProfileBHandler"});
+                            "VoucherFileFormatHandler"});
 #line 37
  await testRunner.WhenAsync("I create the following file profiles", ((string)(null)), table8, "When ");
 #line hidden
@@ -344,6 +344,54 @@ await this.FeatureBackgroundAsync();
 #line hidden
 #line 45
  await testRunner.AndAsync("the file profiles list should contain 2 items", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+
+        [global::NUnit.Framework.TestAttribute()]
+        [global::NUnit.Framework.DescriptionAttribute("Reject unsupported processing configuration")]
+        public async global::System.Threading.Tasks.Task RejectUnsupportedProcessingConfiguration()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
+            string pickleIndex = "2";
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reject unsupported processing configuration", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            string[] tagsOfRule = ((string[])(null));
+            global::Reqnroll.RuleInfo ruleInfo = null;
+#line 47
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                await testRunner.SkipScenarioAsync();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 4
+await this.FeatureBackgroundAsync();
+#line hidden
+                global::Reqnroll.Table table10 = new global::Reqnroll.Table(new string[] {
+                            "Alias",
+                            "FileProfileId",
+                            "Name",
+                            "ListeningDirectory",
+                            "RequestType",
+                            "OperatorName",
+                            "LineTerminator",
+                            "FileFormatHandler"});
+                table10.AddRow(new string[] {
+                            "Invalid Profile",
+                            "55555555-5555-5555-5555-555555555555",
+                            "Invalid Profile",
+                            "/home/txnproc/bulkfiles/invalid",
+                            "UnsupportedRequestType",
+                            "Operator",
+                            "1",
+                            "UnsupportedFileFormatHandler"});
+#line 48
+ await testRunner.WhenAsync("I try to create the following invalid file profiles", ((string)(null)), table10, "When ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

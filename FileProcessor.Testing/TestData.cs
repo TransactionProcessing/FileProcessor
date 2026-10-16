@@ -3,6 +3,7 @@ using SecurityService.DataTransferObjects;
 using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
+using FileProcessor.FileProfileAggregate;
 
 namespace FileProcessor.Testing
 {
@@ -156,7 +157,7 @@ namespace FileProcessor.Testing
 
         public static String SafaricomListeningDirectory = "/home/txnproc/bulkfiles/safaricom";
 
-        public static String SafaricomRequestType = "SafaricomTopupRequest";
+        public static String SafaricomRequestType = FileProfileConfiguration.SafaricomTopupRequestType;
 
         public static String SafaricomLineTerminator = "\n";
         
@@ -569,13 +570,13 @@ namespace FileProcessor.Testing
 
         public static String VoucherListeningDirectory = "/home/txnproc/bulkfiles/voucher";
 
-        public static String VoucherRequestType = "VoucherRequest";
+        public static String VoucherRequestType = FileProfileConfiguration.VoucherRequestType;
 
         public static String VoucherLineTerminator = "\n";
 
-        public static String SafaricomFileFormatHandler = "SafaricomFileFormatHandler";
+        public static String SafaricomFileFormatHandler = FileProfileConfiguration.SafaricomFileFormatHandler;
 
-        public static String VoucherFileFormatHandler = "VoucherFileFormatHandler";
+        public static String VoucherFileFormatHandler = FileProfileConfiguration.VoucherFileFormatHandler;
 
         public static DateTime ImportLogStartDate = new DateTime(2021,7,1);
         public static DateTime ImportLogEndDate = new DateTime(2021,7,2);

@@ -84,6 +84,23 @@ public class FileProfileSteps
         }
     }
 
+    [When(@"I try to create the following invalid file profiles")]
+    public async Task WhenITryToCreateTheFollowingInvalidFileProfiles(DataTable table)
+    {
+        foreach (DataTableRow row in table.Rows)
+        {
+            CreateFileProfileRequest request = this.BuildCreateRequest(row);
+            Result<FileProfile> result = await this.FileProcessorSteps.CreateFileProfile(
+                this.TestingContext.AccessToken,
+                request,
+                CancellationToken.None);
+
+            result.IsFailed.ShouldBeTrue(result.Message);
+            result.Message.ShouldContain("Unsupported request type");
+            result.Message.ShouldContain("Unsupported file format handler");
+        }
+    }
+
     [Then(@"the file profiles list should contain (.*) items")]
     [When(@"the file profiles list should contain (.*) items")]
     public async Task ThenTheFileProfilesListShouldContainItems(int expectedCount)

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using BusinessLogic.FileFormatHandlers;
+using FileProcessor.FileProfileAggregate;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,9 +21,9 @@ public class FileRegistry : ServiceRegistry
         this.AddSingleton<IFileSystem, FileSystem>();
         this.AddSingleton<Func<String, IFileFormatHandler>>(container => fileFormatHandlerName =>
                                                                          {
-                                                                             if (fileFormatHandlerName == "SafaricomFileFormatHandler")
+                                                                             if (fileFormatHandlerName == FileProfileConfiguration.SafaricomFileFormatHandler)
                                                                                  return new SafaricomFileFormatHandler();
-                                                                             if (fileFormatHandlerName == "VoucherFileFormatHandler")
+                                                                             if (fileFormatHandlerName == FileProfileConfiguration.VoucherFileFormatHandler)
                                                                                  return new VoucherFileFormatHandler();
 
                                                                              return null;
