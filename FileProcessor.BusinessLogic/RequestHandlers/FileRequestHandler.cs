@@ -16,7 +16,7 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
                                       IRequestHandler<FileCommands.ProcessUploadedFileCommand, Result>,
                                       IRequestHandler<FileCommands.UploadFileCommand, Result>,
                                       IRequestHandler<FileQueries.GetFileQuery, Result<FileDetails>>,
-                                      IRequestHandler<FileQueries.GetImportLogsQuery, Result<List<Models.FileImportLog>>>,
+                                      IRequestHandler<FileQueries.GetImportLogsQuery, Result<Models.FileImportLogQueryResult>>,
                                       IRequestHandler<FileQueries.GetImportLogQuery, Result<Models.FileImportLog>>,
                                       IRequestHandler<FileCommands.ReplayFileLineCommand, Result>
     {
@@ -48,9 +48,9 @@ namespace FileProcessor.BusinessLogic.RequestHandlers
             return await this.Manager.GetFile(query.FileId, query.EstateId, cancellationToken);
         }
 
-        public async Task<Result<List<Models.FileImportLog>>> Handle(FileQueries.GetImportLogsQuery query,
+        public async Task<Result<Models.FileImportLogQueryResult>> Handle(FileQueries.GetImportLogsQuery query,
                                                                      CancellationToken cancellationToken) {
-            return await this.Manager.GetFileImportLogs(query.EstateId, query.StartDateTime, query.EndDateTime, query.MerchantId, cancellationToken);
+            return await this.Manager.GetFileImportLogs(query.EstateId, query.StartDate, query.EndDate, query.MerchantId, query.PageNumber, query.PageSize, query.Descending, cancellationToken);
         }
 
         public async Task<Result<Models.FileImportLog>> Handle(FileQueries.GetImportLogQuery query,

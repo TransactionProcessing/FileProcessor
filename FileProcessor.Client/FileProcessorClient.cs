@@ -180,39 +180,28 @@ namespace FileProcessor.Client {
         /// </summary>
         /// <param name="accessToken">The access token.</param>
         /// <param name="estateId">The estate identifier.</param>
-        /// <param name="startDateTime">The start date time.</param>
-        /// <param name="endDateTime">The end date time.</param>
+        /// <param name="startDate">The first calendar date.</param>
+        /// <param name="endDate">The last calendar date.</param>
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
                                                                Guid estateId,
-                                                               DateTime startDateTime,
-                                                               DateTime endDateTime,
+                                                               DateOnly startDate,
+                                                               DateOnly endDate,
                                                                Guid? merchantId,
+                                                               Int32 pageNumber,
+                                                               Int32 pageSize,
+                                                               Boolean descending,
                                                                CancellationToken cancellationToken) {
-            String requestUri =
-                this.BuildRequestUrl(
-                    $"/api/fileImportLogs?estateId={estateId}&startDateTime={startDateTime.Date:yyyy-MM-dd}&endDateTime={endDateTime.Date:yyyy-MM-dd}");
+            String requestUri = this.BuildRequestUrl(
+                $"/api/fileImportLogs?estateId={estateId}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}&pageNumber={pageNumber}&pageSize={pageSize}&descending={descending}");
 
-            if (merchantId.HasValue) {
+            if (merchantId.HasValue)
                 requestUri += $"&merchantId={merchantId}";
-            }
 
-            try {
-                Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
-
-                if (result.IsFailed)
-                    return ResultHelpers.CreateFailure(result);
-
-                return result;
-            }
-            catch (Exception ex) {
-                // An exception has occurred, add some additional information to the message
-                Exception exception = new Exception("Error getting list of file import logs.", ex);
-
-                throw exception;
-            }
+            Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
+            return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
         }
 
         /// <summary>

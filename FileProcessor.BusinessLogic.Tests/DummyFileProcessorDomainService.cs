@@ -38,11 +38,14 @@ public class DummyFileProcessorManager : IFileProcessorManager {
         return Result.Success();
     }
 
-    public async Task<Result<List<Models.FileImportLog>>> GetFileImportLogs(Guid estateId,
-                                                                            DateTime startDateTime,
-                                                                            DateTime endDateTime,
-                                                                            Guid? merchantId,
-                                                                            CancellationToken cancellationToken) {
+    public async Task<Result<Models.FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
+                                                                                  DateOnly startDate,
+                                                                                  DateOnly endDate,
+                                                                                  Guid? merchantId,
+                                                                                  Int32 pageNumber,
+                                                                                  Int32 pageSize,
+                                                                                  Boolean descending,
+                                                                                  CancellationToken cancellationToken) {
         return Result.Success();
     }
 

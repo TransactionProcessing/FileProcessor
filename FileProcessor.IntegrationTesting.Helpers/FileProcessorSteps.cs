@@ -138,9 +138,12 @@ public class FileProcessorSteps
         await Retry.For(async () => {
                             var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                                                estate.EstateDetails.EstateId,
-                                                                                                               queryStartDate,
-                                                                                                               queryEndDate,
+                                                                                                               DateOnly.FromDateTime(queryStartDate),
+                                                                                                               DateOnly.FromDateTime(queryEndDate),
                                                                                                                null,
+                                                                                                               1,
+                                                                                                               50,
+                                                                                                               false,
                                                                                                                CancellationToken.None);
                             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
                             FileImportLogList importLogList = getFileImportLogsResult.Data;
@@ -165,9 +168,12 @@ public class FileProcessorSteps
         DateTime queryStartDate = ReqnrollTableHelper.GetDateForDateString(startDate, DateTime.Now);
         var importLogListResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                            estate.EstateDetails.EstateId,
-                                                                                           queryStartDate,
-                                                                                           queryStartDate,
+                                                                                           DateOnly.FromDateTime(queryStartDate),
+                                                                                           DateOnly.FromDateTime(queryStartDate),
                                                                                            null,
+                                                                                           1,
+                                                                                           50,
+                                                                                           false,
                                                                                            CancellationToken.None);
         importLogListResult.IsSuccess.ShouldBeTrue();
         var importLogList = importLogListResult.Data;
@@ -205,9 +211,12 @@ public class FileProcessorSteps
 
         var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                          estate.EstateDetails.EstateId,
-                                                                                         expectedDate.AddDays(-1),
-                                                                                         DateTime.Now,
+                                                                                         DateOnly.FromDateTime(expectedDate.AddDays(-1)),
+                                                                                         DateOnly.FromDateTime(DateTime.Now),
                                                                                          null,
+                                                                                         1,
+                                                                                         50,
+                                                                                         false,
                                                                                          CancellationToken.None);
 
         getFileImportLogsResult.IsSuccess.ShouldBeTrue();

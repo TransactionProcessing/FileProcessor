@@ -17,6 +17,10 @@
 
         public String RejectedReason { get; set; }
 
+        public String FailureReason { get; set; }
+
+        public String ResponseCode { get; set; }
+
         public Int32 DispatchAttemptCount { get; set; }
 
         public List<TransactionDispatchAttempt> FailedDispatchAttempts { get; set; } = new();

@@ -100,9 +100,9 @@ namespace FileProcessor.BusinessLogic.Tests
             this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             await this.Context.SaveChangesAsync();
 
-            Result<List<FileImportLog>> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, null, CancellationToken.None);
+            Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate), DateOnly.FromDateTime(TestData.ImportLogEndDate), null, 1, 50, false, CancellationToken.None);
             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
-            List<FileImportLog> importLogs = getFileImportLogsResult.Data;
+            List<FileImportLog> importLogs = getFileImportLogsResult.Data.FileImportLogs;
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
         }
 
@@ -116,9 +116,9 @@ namespace FileProcessor.BusinessLogic.Tests
             this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             await this.Context.SaveChangesAsync();
 
-            Result<List<FileImportLog>> importLogs = await this.Manager.GetFileImportLogs(TestData.EstateId, TestData.ImportLogStartDate, TestData.ImportLogEndDate, TestData.MerchantId, CancellationToken.None);
+            Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate), DateOnly.FromDateTime(TestData.ImportLogEndDate), TestData.MerchantId, 1, 50, false, CancellationToken.None);
 
-            this.VerifyImportLogs(TestData.FileImportLogs,importLogs, TestData.MerchantId);
+            this.VerifyImportLogs(TestData.FileImportLogs, importLogsResult.Data.FileImportLogs, TestData.MerchantId);
         }
 
         [Fact]
@@ -149,6 +149,49 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLog> importLog = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(),importLog, TestData.MerchantId);
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFileImportLogs_DateOnlyRangeIsInclusiveAndPaged()
+        {
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            await this.Context.SaveChangesAsync();
+
+            Result<FileImportLogQueryResult> result = await this.Manager.GetFileImportLogs(
+                TestData.EstateId,
+                DateOnly.FromDateTime(TestData.ImportLogStartDate),
+                DateOnly.FromDateTime(TestData.ImportLogEndDate),
+                null,
+                1,
+                1,
+                false,
+                CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            result.Data.FileImportLogs.ShouldHaveSingleItem();
+            result.Data.FileImportLogs.Single().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
+            result.Data.TotalCount.ShouldBe(2);
+            result.Data.HasMore.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task FileProcessingManager_GetFileImportLog_FilesAreScopedToRequestedImportLog()
+        {
+            this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
+            this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
+            this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
+            this.Context.Files.AddRange(TestData.Files1);
+            await this.Context.SaveChangesAsync();
+
+            Result<FileImportLog> result = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            result.Data.Files.ShouldNotBeEmpty();
+            result.Data.Files.ShouldAllBe(file => TestData.FileImportLog1Files.Any(expected => expected.FileId == file.FileId));
         }
 
         [Fact]

@@ -72,16 +72,19 @@ namespace FileProcessor.Client
         /// </summary>
         /// <param name="accessToken">The access token.</param>
         /// <param name="estateId">The estate identifier.</param>
-        /// <param name="startDateTime">The start date time.</param>
-        /// <param name="endDateTime">The end date time.</param>
+        /// <param name="startDate">The first calendar date.</param>
+        /// <param name="endDate">The last calendar date.</param>
         /// <param name="merchantId">The merchant identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
                                                   Guid estateId,
-                                                  DateTime startDateTime,
-                                                  DateTime endDateTime,
+                                                  DateOnly startDate,
+                                                  DateOnly endDate,
                                                   Guid? merchantId,
+                                                  Int32 pageNumber,
+                                                  Int32 pageSize,
+                                                  Boolean descending,
                                                   CancellationToken cancellationToken);
 
         /// <summary>

@@ -30,6 +30,16 @@ namespace FileProcessor.Common
             return result;
         }
 
+        public static FileImportLogList ConvertFrom(Models.FileImportLogQueryResult queryResult)
+        {
+            FileImportLogList result = ConvertFrom(queryResult.FileImportLogs);
+            result.PageNumber = queryResult.PageNumber;
+            result.PageSize = queryResult.PageSize;
+            result.TotalCount = queryResult.TotalCount;
+            result.HasMore = queryResult.HasMore;
+            return result;
+        }
+
         /// <summary>
         /// Converts from.
         /// </summary>
@@ -88,7 +98,17 @@ namespace FileProcessor.Common
                                                       LineNumber = fileDetailsFileLine.LineNumber,
                                                       ProcessingResult = TranslateProcessingResult(fileDetailsFileLine.ProcessingResult),
                                                       TransactionId = fileDetailsFileLine.TransactionId,
-                                                      RejectionReason = fileDetailsFileLine.RejectedReason
+                                                      EventId = fileDetailsFileLine.EventId,
+                                                      RejectionReason = fileDetailsFileLine.RejectedReason,
+                                                      FailureReason = fileDetailsFileLine.FailureReason,
+                                                      ResponseCode = fileDetailsFileLine.ResponseCode,
+                                                      DispatchAttemptCount = fileDetailsFileLine.DispatchAttemptCount,
+                                                      FailedDispatchAttempts = fileDetailsFileLine.FailedDispatchAttempts?.Select(attempt => new DataTransferObjects.Responses.TransactionDispatchAttempt
+                                                      {
+                                                          TransactionNumber = attempt.TransactionNumber,
+                                                          FailureType = attempt.FailureType,
+                                                          AttemptedAt = attempt.AttemptedAt
+                                                      }).ToList() ?? new List<DataTransferObjects.Responses.TransactionDispatchAttempt>()
                                                   });
             }
 
