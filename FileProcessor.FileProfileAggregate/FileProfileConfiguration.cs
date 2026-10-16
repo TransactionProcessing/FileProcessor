@@ -4,10 +4,10 @@ namespace FileProcessor.FileProfileAggregate;
 
 public static class FileProfileConfiguration
 {
-    public const string SafaricomTopupRequestType = "SafaricomTopupRequest";
-    public const string VoucherRequestType = "VoucherRequest";
-    public const string SafaricomFileFormatHandler = "SafaricomFileFormatHandler";
-    public const string VoucherFileFormatHandler = "VoucherFileFormatHandler";
+    public static string SafaricomTopupRequestType => "SafaricomTopupRequest";
+    public static string VoucherRequestType => "VoucherRequest";
+    public static string SafaricomFileFormatHandler => "SafaricomFileFormatHandler";
+    public static string VoucherFileFormatHandler => "VoucherFileFormatHandler";
 
     public static bool IsSupportedRequestType(string requestType)
     {
