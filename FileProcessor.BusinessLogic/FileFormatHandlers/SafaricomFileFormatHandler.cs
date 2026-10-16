@@ -10,6 +10,28 @@
     /// <seealso cref="IFileFormatHandler" />
     public class SafaricomFileFormatHandler : IFileFormatHandler
     {
+        public FileValidationResult ValidateFile(TextReader fileReader, String lineTerminator)
+        {
+            return FileFormatValidation.Validate(FileFormatValidation.ReadLines(fileReader, lineTerminator),
+                                                 this.FileLineCanBeIgnored,
+                                                 _ => 3,
+                                                 line => TryParseDetail(line),
+                                                 true);
+        }
+
+        private String TryParseDetail(String line)
+        {
+            try
+            {
+                this.ParseFileLine(line);
+                return null;
+            }
+            catch (InvalidDataException exception)
+            {
+                return exception.Message;
+            }
+        }
+
         /// <summary>
         /// Parses the file line.
         /// </summary>

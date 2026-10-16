@@ -93,6 +93,14 @@ namespace FileProcessor.BusinessLogic.EventHandling
             return Task.FromResult(Result.Success());
         }
 
+        private Task<Result> HandleSpecificDomainEvent(DuplicateFileLineAddedEvent domainEvent,
+                                                        CancellationToken cancellationToken)
+        {
+            _ = domainEvent;
+            _ = cancellationToken;
+            return Task.FromResult(Result.Success());
+        }
+
         /// <summary>
         /// Handles the specific domain event.
         /// </summary>

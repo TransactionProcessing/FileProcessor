@@ -6,6 +6,28 @@
 
     public class VoucherFileFormatHandler : IFileFormatHandler
     {
+        public FileValidationResult ValidateFile(TextReader fileReader, String lineTerminator)
+        {
+            return FileFormatValidation.Validate(FileFormatValidation.ReadLines(fileReader, lineTerminator),
+                                                 this.FileLineCanBeIgnored,
+                                                 _ => 4,
+                                                 line => TryParseDetail(line),
+                                                 false);
+        }
+
+        private String TryParseDetail(String line)
+        {
+            try
+            {
+                this.ParseFileLine(line);
+                return null;
+            }
+            catch (InvalidDataException exception)
+            {
+                return exception.Message;
+            }
+        }
+
         public Dictionary<String, String> ParseFileLine(String fileLine)
         {
             // Format is 

@@ -4,6 +4,8 @@
     using Shared.DomainDrivenDesign.EventSourcing;
 
     public record FileLineAddedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String FileLine) : DomainEvent(FileId, Guid.NewGuid());
+
+    public record DuplicateFileLineAddedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String FileLine) : DomainEvent(FileId, Guid.NewGuid());
     
     public record FileProcessingCompletedEvent(Guid FileId, Guid EstateId, Guid MerchantId, DateTime ProcessingCompletedDateTime) : DomainEvent(FileId, Guid.NewGuid());
 

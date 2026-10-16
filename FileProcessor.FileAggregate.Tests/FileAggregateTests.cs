@@ -152,7 +152,7 @@ namespace FileProcessor.FileAggregate.Tests
         }
 
         [Fact]
-        public void FileAggregate_AddFileLine_AddDuplicateLine_FileLineIsNotAddedAdded()
+        public void FileAggregate_AddFileLine_AddDuplicateLine_PreservesBothLines()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
@@ -164,8 +164,9 @@ namespace FileProcessor.FileAggregate.Tests
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
             fileDetails.FileLines.ShouldNotBeEmpty();
-            fileDetails.FileLines.ShouldHaveSingleItem();
-            fileDetails.FileLines.Count.ShouldBe(1);
+            fileDetails.FileLines.Count.ShouldBe(2);
+            fileDetails.FileLines[0].LineNumber.ShouldBe(1);
+            fileDetails.FileLines[1].LineNumber.ShouldBe(2);
         }
 
         [Fact]

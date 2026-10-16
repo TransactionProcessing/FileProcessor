@@ -70,6 +70,19 @@ namespace FileProcessor.FileAggregate
                                     });
         }
 
+        public static void PlayEvent(this FileAggregate aggregate, DuplicateFileLineAddedEvent domainEvent)
+        {
+            aggregate.FileLines.Add(new FileLine
+                                    {
+                                        LineData = domainEvent.FileLine,
+                                        LineNumber = domainEvent.LineNumber,
+                                        ProcessingResult = ProcessingResult.Ignored,
+                                        RejectedReason = "Duplicate detail row",
+                                        FailedDispatchAttempts = new List<TransactionDispatchAttempt>(),
+                                        EventId = domainEvent.EventId
+                                    });
+        }
+
         public static void PlayEvent(this FileAggregate aggregate, FileLineProcessingIgnoredEvent domainEvent)
         {
             // find the line 
@@ -180,13 +193,18 @@ namespace FileProcessor.FileAggregate
             if (aggregate.IsRejected)
                 return Result.Invalid($"File Id {aggregate.AggregateId} has been rejected");
 
-            Boolean lineAlreadyExists = aggregate.FileLines.Any(f => f.LineData == fileLine);
-
-            // We already have this line so just return
-            if (lineAlreadyExists)
-                return Result.Success();
-
             Int32 lineNumber = aggregate.FileLines.Count + 1;
+
+            if (aggregate.FileLines.Any(f => f.LineData == fileLine))
+            {
+                DuplicateFileLineAddedEvent duplicateFileLineAddedEvent = new(aggregate.AggregateId,
+                                                                               aggregate.EstateId,
+                                                                               aggregate.MerchantId,
+                                                                               lineNumber,
+                                                                               fileLine);
+                aggregate.ApplyAndAppend(duplicateFileLineAddedEvent);
+                return Result.Success();
+            }
 
             FileLineAddedEvent fileLineAddedEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, fileLine);
             aggregate.ApplyAndAppend(fileLineAddedEvent);
