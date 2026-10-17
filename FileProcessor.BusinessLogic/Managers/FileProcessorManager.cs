@@ -96,7 +96,6 @@ namespace FileProcessor.BusinessLogic.Managers
             return resolvedContext.Context;
         }
 
-
         public async Task<Result<FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
                                                                  DateOnly startDate,
                                                                  DateOnly endDate,

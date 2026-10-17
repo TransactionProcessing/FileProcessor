@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using FileProcessor.BusinessLogic.Requests;
@@ -25,10 +24,25 @@ public static class FileHandlers
                                                       [FromForm] IFormCollection formCollection,
                                                       CancellationToken cancellationToken)
     {
-        IFormFile file = formCollection.Files.First();
+        if (formCollection?.Files == null || formCollection.Files.Count != 1)
+            return Results.BadRequest("Exactly one file must be supplied.");
+
+        IFormFile file = formCollection.Files[0];
+        if (file.Length <= 0)
+            return Results.BadRequest("The uploaded file must not be empty.");
+
+        if (file.Length > UploadFileSettings.GetMaximumFileSizeBytes())
+            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+
+        String fileName = SanitizeFileName(file.FileName);
+        if (String.IsNullOrWhiteSpace(fileName))
+            return Results.BadRequest("The uploaded file must have a valid filename.");
+
+        String fileExtension = Path.GetExtension(fileName);
+        if (UploadFileSettings.GetAllowedFileExtensions().Contains(fileExtension, StringComparer.OrdinalIgnoreCase) == false)
+            return Results.BadRequest($"Files with extension [{fileExtension}] are not supported.");
 
         string temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
-        string fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
         string temporaryFileName = Guid.NewGuid().ToString("N");
         string fullPath = Path.Combine(temporaryFileLocation, temporaryFileName);
         bool uploadAccepted = false;
@@ -63,6 +77,9 @@ public static class FileHandlers
             Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
             Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
 
+            if (result.IsSuccess)
+                return Results.Accepted(value: request.FileId);
+
             return ResponseFactory.FromResult(result, r => r);
         }
         finally
@@ -80,6 +97,26 @@ public static class FileHandlers
                 }
             }
         }
+    }
+
+    private static String SanitizeFileName(String fileName)
+    {
+        if (String.IsNullOrWhiteSpace(fileName))
+            return String.Empty;
+
+        String name = Path.GetFileName(fileName.Replace('\\', '/'));
+        Char[] invalidCharacters = Path.GetInvalidFileNameChars()
+            .Concat(new[] { '<', '>', ':', '"', '|', '?', '*' })
+            .ToArray();
+        String sanitizedName = new(name.Where(character => Char.IsControl(character) == false && invalidCharacters.Contains(character) == false).ToArray());
+        sanitizedName = sanitizedName.Trim().TrimEnd('.');
+
+        if (sanitizedName.Length <= 255)
+            return sanitizedName;
+
+        String extension = Path.GetExtension(sanitizedName);
+        Int32 nameLength = Math.Max(1, 255 - extension.Length);
+        return sanitizedName[..nameLength] + extension;
     }
 
     public static async Task<IResult> GetFile(IMediator mediator,
