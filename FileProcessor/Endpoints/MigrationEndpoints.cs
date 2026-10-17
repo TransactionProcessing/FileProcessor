@@ -3,6 +3,7 @@ using FileProcessor.Handlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Shared.Authorisation;
 
 namespace FileProcessor.Endpoints;
 
@@ -14,6 +15,7 @@ public static class MigrationEndpoints
     {
         app.MapPost(Route, MigrationHandlers.MigrateProfileVersions)
             .RequireAuthorization()
+            .RequireAuthorization(AuthorizationExtensions.PolicyNames.ClientCredentialsOnlyPolicy)
             .WithTags("Migrations")
             .WithName("MigrateProfileVersions");
     }
