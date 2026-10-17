@@ -60,10 +60,6 @@ public class FileProcessorDomainServiceTests
         Logger.Initialise(NullLogger.Instance);
 
         this.FileProcessorManager = new IFileProcessorManagerImposter();
-        this.FileProcessorManager.ValidateUploadReferences(Arg<Guid>.Any(),
-                                                           Arg<Guid>.Any(),
-                                                           Arg<Guid>.Any(),
-                                                           Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
         this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
                                                         Arg<Guid>.Any(),
                                                         Arg<CancellationToken>.Any()).ReturnsAsync(TestData.FileProfileSafaricom);

@@ -228,13 +228,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return duplicateResult;
             }
 
-            Result referencesResult = await this.FileProcessorManager.ValidateUploadReferences(command.EstateId,
-                                                                                               command.MerchantId,
-                                                                                               command.UserId,
-                                                                                               cancellationToken);
-            if (referencesResult.IsFailed)
-                return ResultHelpers.CreateFailure(referencesResult);
-
             Result<FileProfileModel> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
             if (getFileProfileResult.IsFailed)
                 return ResultHelpers.CreateFailure(getFileProfileResult);

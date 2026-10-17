@@ -29,13 +29,6 @@ public class DummyFileProcessorDomainService : IFileProcessorDomainService {
 }
 
 public class DummyFileProcessorManager : IFileProcessorManager {
-    public Task<Result> ValidateUploadReferences(Guid estateId,
-                                                 Guid merchantId,
-                                                 Guid userId,
-                                                 CancellationToken cancellationToken) {
-        return Task.FromResult(Result.Success());
-    }
-
     public async Task<Result<List<FileProfileModel>>> GetAllFileProfiles(CancellationToken cancellationToken) {
         return Result.Success();
     }

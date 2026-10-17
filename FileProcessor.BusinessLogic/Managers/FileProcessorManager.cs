@@ -96,29 +96,6 @@ namespace FileProcessor.BusinessLogic.Managers
             return resolvedContext.Context;
         }
 
-        public async Task<Result> ValidateUploadReferences(Guid estateId,
-                                                            Guid merchantId,
-                                                            Guid userId,
-                                                            CancellationToken cancellationToken)
-        {
-            if (estateId == Guid.Empty || merchantId == Guid.Empty || userId == Guid.Empty)
-                return Result.Invalid("Estate, merchant, and user identifiers are required for file upload");
-
-            EstateManagementContext context = await this.GetContext(estateId);
-            Merchant merchant = await context.Merchants
-                .SingleOrDefaultAsync(m => m.MerchantId == merchantId, cancellationToken);
-            if (merchant == null || merchant.EstateId != estateId)
-                return Result.NotFound($"Merchant [{merchantId}] was not found for estate [{estateId}]");
-
-            EstateSecurityUser user = await context.EstateSecurityUsers
-                .SingleOrDefaultAsync(u => u.SecurityUserId == userId, cancellationToken);
-            if (user == null)
-                return Result.NotFound($"User [{userId}] was not found for estate [{estateId}]");
-
-            return Result.Success();
-        }
-
-
         public async Task<Result<FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
                                                                  DateOnly startDate,
                                                                  DateOnly endDate,
