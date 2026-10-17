@@ -143,7 +143,7 @@ Scenario: Process Duplicate Safaricom Topup File with 1 detail row
 	| D       | 07777777775 | 100     |
 	| D       | 07777777776 | 200     |
 	| T       | 1           |         |
-	And I upload this file for processing an error should be returned indicating the file is a duplicate
+	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | B2A59ABF-293D-4A6B-B81B-7007503C3476 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |
 

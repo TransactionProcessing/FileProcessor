@@ -138,7 +138,7 @@ public class FileHandlersTests
             IMediatorImposter mediator = new();
             mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
 
-            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(), CreateFormCollection("invoice.csv:payload"), CancellationToken.None);
+            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(), CreateFormCollection("invoice:payload.csv"), CancellationToken.None);
 
             string storedFileName = Path.GetFileName(Directory.GetFiles(temporaryDirectory).Single());
             storedFileName.ShouldNotContain(":");

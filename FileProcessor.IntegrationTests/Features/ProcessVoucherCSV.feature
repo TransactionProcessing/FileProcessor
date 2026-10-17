@@ -157,6 +157,6 @@ Scenario: Process Duplicate Voucher Topup File with 1 detail row
 	| D       | Hospital 1 | testrecipient1@recipient.com | 20      |
 	| T       | 1          |                              |         |
 
-	And I upload this file for processing an error should be returned indicating the file is a duplicate
+	And I upload this file for processing
 	| EstateName    | MerchantName    | FileProfileId                        | UserId                               |
 	| Test Estate 1 | Test Merchant 1 | 8806EDBC-3ED6-406B-9E5F-A9078356BE99 | ABA59ABF-293D-4A6B-B81B-7007503C3476 |

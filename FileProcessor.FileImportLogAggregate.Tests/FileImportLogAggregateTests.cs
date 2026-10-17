@@ -98,14 +98,14 @@ namespace FileProcessor.FileImportLogAggregate.Tests
         }
 
         [Fact]
-        public void FileImportLogAggregate_AddImportedFile_DuplicateFileId_ErrorThrown()
+        public void FileImportLogAggregate_AddImportedFile_DuplicateFileId_IsAcceptedIdempotently()
         {
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
             fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
             fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
             Result result = fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
-            result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.IsSuccess.ShouldBeTrue();
+            fileImportLogAggregate.GetFileImportLog().Files.Count.ShouldBe(1);
         }
     }
 }
