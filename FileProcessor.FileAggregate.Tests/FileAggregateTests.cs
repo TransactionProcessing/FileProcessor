@@ -14,6 +14,44 @@ namespace FileProcessor.FileAggregate.Tests
     public class FileAggregateTests
     {
         [Fact]
+        public void FileAggregate_AssignProfileVersion_WhenFileHasNoVersion_AssignsVersion()
+        {
+            FileAggregate aggregate = FileAggregate.Create(TestData.FileId);
+            aggregate.CreateFile(new FileAggregateExtensions.CreateFileRequest(TestData.FileImportLogId,
+                                                                                TestData.EstateId,
+                                                                                TestData.MerchantId,
+                                                                                TestData.UserId,
+                                                                                TestData.FileProfileId,
+                                                                                TestData.FileLocation,
+                                                                                TestData.FileUploadedDateTime,
+                                                                                TestData.SafaricomOperatorId));
+
+            Result result = aggregate.AssignFileProfileVersion(TestData.FileProfileVersionId);
+
+            result.IsSuccess.ShouldBeTrue();
+            aggregate.GetFile().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
+        }
+
+        [Fact]
+        public void FileAggregate_ReplayAssignedProfileVersionEvent_RestoresVersion()
+        {
+            FileAggregate aggregate = FileAggregate.Create(TestData.FileId);
+            aggregate.PlayEvent(new FileCreatedEvent(TestData.FileId,
+                                                      TestData.FileImportLogId,
+                                                      TestData.EstateId,
+                                                      TestData.MerchantId,
+                                                      TestData.UserId,
+                                                      TestData.FileProfileId,
+                                                      TestData.FileLocation,
+                                                      TestData.FileUploadedDateTime,
+                                                      TestData.SafaricomOperatorId));
+
+            aggregate.PlayEvent(new FileProfileVersionAssignedEvent(TestData.FileId, TestData.FileProfileVersionId));
+
+            aggregate.GetFile().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
+        }
+
+        [Fact]
         public void FileAggregate_CanBeCreated_IsCreated()
         {
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
