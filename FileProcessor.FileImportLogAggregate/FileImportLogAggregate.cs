@@ -52,9 +52,18 @@ namespace FileProcessor.FileImportLogAggregate
                 return Result.Invalid("Import log has not been created");
             }
 
-            if (aggregate.Files.Any(f => f.FileId == request.FileId))
+            ImportLogFile existingFile = aggregate.Files.SingleOrDefault(f => f.FileId == request.FileId);
+            if (existingFile != null)
             {
-                return Result.Invalid($"Duplicate file {request.OriginalFileName} detected File Id [{request.FileId}]");
+                if (existingFile.EstateId == aggregate.EstateId &&
+                    existingFile.MerchantId == request.MerchantId &&
+                    existingFile.UserId == request.UserId &&
+                    existingFile.FileProfileId == request.FileProfileId)
+                {
+                    return Result.Success();
+                }
+
+                return Result.Invalid($"File Id [{request.FileId}] is already registered with different upload details");
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
@@ -72,6 +81,11 @@ namespace FileProcessor.FileImportLogAggregate
             aggregate.ApplyAndAppend(fileAddedToImportLogEvent);
 
             return Result.Success();
+        }
+
+        public static Boolean ContainsFile(this FileImportLogAggregate aggregate, Guid fileId)
+        {
+            return aggregate.Files.Any(file => file.FileId == fileId);
         }
 
         public static void PlayEvent(this FileImportLogAggregate aggregate, ImportLogCreatedEvent domainEvent)
@@ -92,7 +106,8 @@ namespace FileProcessor.FileImportLogAggregate
                                     MerchantId = domainEvent.MerchantId,
                                     FilePath = domainEvent.FilePath,
                                     OriginalFileName = domainEvent.OriginalFileName,
-                                    UserId = domainEvent.UserId
+                                    UserId = domainEvent.UserId,
+                                    UploadedDateTime = domainEvent.FileUploadedDateTime
                                 });
         }
 

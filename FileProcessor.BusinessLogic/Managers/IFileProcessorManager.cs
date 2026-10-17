@@ -34,6 +34,8 @@ namespace FileProcessor.BusinessLogic.Managers
 
         Task<Result<FileDetails>> GetFile(Guid fileId, Guid estateId, CancellationToken cancellationToken);
 
+        Task<Result> ValidateUploadReferences(Guid estateId, Guid merchantId, Guid userId, CancellationToken cancellationToken);
+
         #endregion
     }
 }

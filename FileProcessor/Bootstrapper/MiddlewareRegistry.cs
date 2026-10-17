@@ -4,6 +4,7 @@ using Microsoft.OpenApi;
 
 namespace FileProcessor.Bootstrapper
 {
+    using FileProcessor.Common;
     using Lamar;
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.DependencyInjection;
@@ -113,10 +114,9 @@ namespace FileProcessor.Bootstrapper
             
             this.Configure<FormOptions>(options =>
             {
-                // Allow very large values (adjust to what you need)
-                options.ValueLengthLimit = int.MaxValue;                  // form value length
-                options.MultipartBodyLengthLimit = long.MaxValue;         // multipart body length
-                options.MemoryBufferThreshold = int.MaxValue;             // buffer threshold
+                options.ValueLengthLimit = 16 * 1024;
+                options.MultipartBodyLengthLimit = UploadFileSettings.GetMaximumMultipartRequestSizeBytes();
+                options.MemoryBufferThreshold = 64 * 1024;
             });
 
             this.AddHealthMonitoringRegistration(Startup.Configuration);
