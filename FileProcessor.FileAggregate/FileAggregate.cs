@@ -29,6 +29,11 @@ namespace FileProcessor.FileAggregate
             aggregate.FileReceivedDateTime = domainEvent.FileReceivedDateTime;
         }
 
+        public static void PlayEvent(this FileAggregate aggregate, FileProfileVersionAssignedEvent domainEvent)
+        {
+            aggregate.FileProfileVersionId = domainEvent.FileProfileVersionId;
+        }
+
         public static FileDetails GetFile(this FileAggregate aggregate)
         {
             return new FileDetails
@@ -148,6 +153,24 @@ namespace FileProcessor.FileAggregate
 
             aggregate.ApplyAndAppend(fileCreatedEvent);
 
+            return Result.Success();
+        }
+
+        public static Result AssignFileProfileVersion(this FileAggregate aggregate, Guid fileProfileVersionId)
+        {
+            if (aggregate.IsCreated == false)
+                return Result.NotFound($"File Id {aggregate.AggregateId} has not been uploaded yet");
+
+            if (fileProfileVersionId == Guid.Empty)
+                return Result.Invalid("File profile version Id cannot be empty");
+
+            if (aggregate.FileProfileVersionId == fileProfileVersionId)
+                return Result.Success();
+
+            if (aggregate.FileProfileVersionId != Guid.Empty)
+                return Result.Invalid($"File Id {aggregate.AggregateId} already has a different file profile version");
+
+            aggregate.ApplyAndAppend(new FileProfileVersionAssignedEvent(aggregate.AggregateId, fileProfileVersionId));
             return Result.Success();
         }
 

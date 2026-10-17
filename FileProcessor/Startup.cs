@@ -128,6 +128,7 @@ namespace FileProcessor
                 endpoints.MapFileEndpoints();
                 endpoints.MapFileImportLogEndpoints();
                 endpoints.MapFileProfileEndpoints();
+                endpoints.MapMigrationEndpoints();
 
                 endpoints.MapHealthChecks("health", new HealthCheckOptions()
                                                     {

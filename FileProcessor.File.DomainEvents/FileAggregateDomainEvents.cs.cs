@@ -30,6 +30,9 @@
                                    Guid OperatorId,
                                    Guid FileProfileVersionId = default) : DomainEvent(FileId, Guid.NewGuid());
 
+    public record FileProfileVersionAssignedEvent(Guid FileId,
+                                                   Guid FileProfileVersionId) : DomainEvent(FileId, Guid.NewGuid());
+
     public record FileRejectedEvent(Guid FileId,
                                     Guid EstateId,
                                     Guid MerchantId,
