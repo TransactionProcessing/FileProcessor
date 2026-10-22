@@ -16,6 +16,8 @@ public static class OpenApiExampleExtensions
 {
     private const string EstateIdParameterName = "estateId";
     private const string FileProfileIdParameterName = "fileProfileId";
+    private const string EstateIdExampleValue = "435613ac-a468-47a3-ac4f-649d89764c22";
+    private const string FileProfileIdExampleValue = "9c89c59e-8608-47b1-b280-052a75bcf84b";
 
     private static readonly IReadOnlyDictionary<string, EndpointExamples> Examples = new Dictionary<string, EndpointExamples>
     {
@@ -88,7 +90,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileId"] = "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
-                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22"
+                [EstateIdParameterName] = EstateIdExampleValue
             },
             Responses = new Dictionary<string, string>
             {
@@ -142,7 +144,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileId"] = "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
-                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = EstateIdExampleValue,
                 ["lineNumber"] = 1
             }
         },
@@ -150,7 +152,7 @@ public static class OpenApiExampleExtensions
         {
             Parameters = new Dictionary<string, object>
             {
-                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = EstateIdExampleValue,
                 ["startDate"] = "2026-10-21",
                 ["endDate"] = "2026-10-22",
                 ["merchantId"] = "ab1c99fb-1c6c-4694-9a32-b71be5d1da33",
@@ -197,7 +199,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileImportLogId"] = "9eeab611-33a4-4e31-9e84-b61d1302f743",
-                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = EstateIdExampleValue,
                 ["merchantId"] = "ab1c99fb-1c6c-4694-9a32-b71be5d1da33"
             },
             Responses = new Dictionary<string, string>
@@ -283,7 +285,7 @@ public static class OpenApiExampleExtensions
         },
         ["GetFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = FileProfileIdExampleValue },
             Responses = new Dictionary<string, string>
             {
                 ["200"] = """
@@ -305,7 +307,7 @@ public static class OpenApiExampleExtensions
         },
         ["UpdateFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = FileProfileIdExampleValue },
             RequestBody = """
                 {
                   "name": "Voucher transactions",
@@ -337,11 +339,11 @@ public static class OpenApiExampleExtensions
         },
         ["ArchiveFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" }
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = FileProfileIdExampleValue }
         },
         ["GetFileProfileVersions"] = new()
         {
-            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = FileProfileIdExampleValue },
             Responses = new Dictionary<string, string>
             {
                 ["200"] = """
@@ -380,7 +382,7 @@ public static class OpenApiExampleExtensions
         {
             Parameters = new Dictionary<string, object>
             {
-                [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b",
+                [FileProfileIdParameterName] = FileProfileIdExampleValue,
                 ["fileProfileVersionId"] = "7738df59-9b15-44cb-8d7a-df4845bb8bd4"
             },
             Responses = new Dictionary<string, string>
