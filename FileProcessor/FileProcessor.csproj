@@ -40,14 +40,16 @@
 
   <Target Name="CopyApiXmlDocumentationToOutput" AfterTargets="Build">
     <ItemGroup>
-      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml" />
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml"
+                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml')" />
     </ItemGroup>
     <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="CopyApiXmlDocumentationToPublish" AfterTargets="Publish">
     <ItemGroup>
-      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml" />
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml"
+                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml')" />
     </ItemGroup>
     <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
