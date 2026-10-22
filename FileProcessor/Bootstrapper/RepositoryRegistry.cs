@@ -20,6 +20,7 @@ using Shared.General;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;
+using Microsoft.AspNetCore.Hosting;
 
 [ExcludeFromCodeCoverage]
 public class RepositoryRegistry : ServiceRegistry
@@ -29,10 +30,10 @@ public class RepositoryRegistry : ServiceRegistry
     /// <summary>
     /// Initializes a new instance of the <see cref="RepositoryRegistry"/> class.
     /// </summary>
-    public RepositoryRegistry()
+    public RepositoryRegistry(IConfiguration configuration, IWebHostEnvironment environment)
     {
         this.AddSingleton(typeof(IDbContextResolver<>), typeof(DbContextResolver<>));
-        if (Startup.WebHostEnvironment.IsEnvironment("IntegrationTest") || Startup.Configuration.GetValue<Boolean>("ServiceOptions:UseInMemoryDatabase") == true)
+        if (environment.IsEnvironment("IntegrationTest") || configuration.GetValue<Boolean>("ServiceOptions:UseInMemoryDatabase") == true)
         {
             this.AddDbContext<EstateManagementContext>(builder => builder.UseInMemoryDatabase("TransactionProcessorReadModel"));
         }
@@ -42,7 +43,7 @@ public class RepositoryRegistry : ServiceRegistry
                 options.UseSqlServer(ConfigurationReader.GetConnectionString("TransactionProcessorReadModel")));
         }
 
-        String connectionString = Startup.Configuration.GetValue<String>("EventStoreSettings:ConnectionString");
+        String connectionString = configuration.GetValue<String>("EventStoreSettings:ConnectionString");
 
         this.AddKurrentDBProjectionManagementClient(connectionString);
         this.AddKurrentDBPersistentSubscriptionsClient(connectionString);

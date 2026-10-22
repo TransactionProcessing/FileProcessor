@@ -13,7 +13,11 @@ public static class DomainEventEndpoints
     public static void MapDomainEventEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapPost(Route, DomainEventHandlers.HandleDomainEvent)
-            .ExcludeFromDescription() // hides from Swagger
-            .WithName("DomainEvent");
+            .WithName("DomainEvent")
+            .WithSummary("Process a domain event")
+            .WithDescription("Internal event-delivery endpoint. Send the event JSON body and identify its registered event type in the `eventType` request header. Returns 200 when all configured handlers succeed or no handlers are configured; returns 500 when one or more handlers fail.")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status500InternalServerError)
+            .WithEndpointExamples();
     }
 }

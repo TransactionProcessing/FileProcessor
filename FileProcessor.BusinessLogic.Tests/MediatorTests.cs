@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FileProcessor.BusinessLogic.Managers;
+using FileProcessor.Bootstrapper;
+using FileProcessor.Common;
 using Xunit;
 
 namespace FileProcessor.BusinessLogic.Tests
@@ -20,6 +22,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using Services;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
+    using Shared.General;
 
     public class MediatorTests
     {
@@ -44,14 +47,24 @@ namespace FileProcessor.BusinessLogic.Tests
             hostingEnvironment.ApplicationName.Getter().Returns("Test Application");
 
             ServiceRegistry services = new ServiceRegistry();
-            Startup s = new Startup(hostingEnvironment.Instance());
-            Startup.Configuration = this.SetupMemoryConfiguration();
+            IConfigurationRoot configuration = this.SetupMemoryConfiguration();
+            ConfigurationReader.Initialise(configuration);
 
-            this.AddTestRegistrations(services, hostingEnvironment.Instance());
-            s.ConfigureContainer(services);
+            this.AddTestRegistrations(services, hostingEnvironment.Instance(), configuration);
+            TypeProvider.LoadDomainEventsTypeDynamically();
+            services.IncludeRegistry<MediatorRegistry>();
+            services.IncludeRegistry(new DomainEventHandlerRegistry(configuration));
+            services.IncludeRegistry(new RepositoryRegistry(configuration, hostingEnvironment.Instance()));
+            services.IncludeRegistry(new MiddlewareRegistry(configuration));
+            services.IncludeRegistry<FileRegistry>();
+            services.IncludeRegistry<MiscRegistry>();
+            services.IncludeRegistry<ClientRegistry>();
+            services.IncludeRegistry<SerialiserRegistry>();
+
+            using Container container = new Container(services);
 
             List<String> errors = new List<String>();
-            IMediator mediator = Startup.Container.GetService<IMediator>();
+            IMediator mediator = container.GetService<IMediator>();
             foreach (IBaseRequest baseRequest in this.Requests)
             {
                 try
@@ -95,7 +108,8 @@ namespace FileProcessor.BusinessLogic.Tests
         }
 
         private void AddTestRegistrations(ServiceRegistry services,
-                                          IWebHostEnvironment hostingEnvironment)
+                                          IWebHostEnvironment hostingEnvironment,
+                                          IConfiguration configuration)
         {
             services.AddLogging();
             DiagnosticListener diagnosticSource = new DiagnosticListener(hostingEnvironment.ApplicationName);
@@ -103,7 +117,7 @@ namespace FileProcessor.BusinessLogic.Tests
             services.AddSingleton<DiagnosticListener>(diagnosticSource);
             services.AddSingleton<IWebHostEnvironment>(hostingEnvironment);
             services.AddSingleton<IHostEnvironment>(hostingEnvironment);
-            services.AddSingleton<IConfiguration>(Startup.Configuration);
+            services.AddSingleton<IConfiguration>(configuration);
 
             services.OverrideServices(s => {
                 s.AddSingleton<IFileProcessorDomainService, DummyFileProcessorDomainService>();

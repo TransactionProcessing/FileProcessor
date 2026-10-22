@@ -66,17 +66,12 @@ public class FileHandlersTests
             FormFileCollection files = new() { formFile };
             FormCollection formCollection = new(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>(), files);
 
+            DefaultHttpContext httpContext = new();
+            httpContext.Request.Form = formCollection;
             await FileHandlers.UploadFile(
                 mediator.Instance(),
-                new FileProcessor.DataTransferObjects.UploadFileRequest
-                {
-                    FileId = TestData.FileId,
-                    EstateId = TestData.EstateId,
-                    MerchantId = TestData.MerchantId,
-                    UserId = TestData.UserId,
-                    FileProfileId = TestData.FileProfileId
-                },
-                formCollection,
+                CreateUploadRequest(formFile),
+                httpContext.Request,
                 CancellationToken.None);
 
             Directory.GetFiles(temporaryDirectory).ShouldBeEmpty();
@@ -107,8 +102,15 @@ public class FileHandlersTests
             IMediatorImposter mediator = new();
             mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
 
-            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(), CreateFormCollection(), CancellationToken.None);
-            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(), CreateFormCollection(), CancellationToken.None);
+            FormCollection firstForm = CreateFormCollection();
+            DefaultHttpContext firstContext = new();
+            firstContext.Request.Form = firstForm;
+            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(firstForm.Files[0]), firstContext.Request, CancellationToken.None);
+
+            FormCollection secondForm = CreateFormCollection();
+            DefaultHttpContext secondContext = new();
+            secondContext.Request.Form = secondForm;
+            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(secondForm.Files[0]), secondContext.Request, CancellationToken.None);
 
             Directory.GetFiles(temporaryDirectory).Length.ShouldBe(2);
         }
@@ -138,7 +140,10 @@ public class FileHandlersTests
             IMediatorImposter mediator = new();
             mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
 
-            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(), CreateFormCollection("invoice:payload.csv"), CancellationToken.None);
+            FormCollection formCollection = CreateFormCollection("invoice:payload.csv");
+            DefaultHttpContext httpContext = new();
+            httpContext.Request.Form = formCollection;
+            await FileHandlers.UploadFile(mediator.Instance(), CreateUploadRequest(formCollection.Files[0]), httpContext.Request, CancellationToken.None);
 
             string storedFileName = Path.GetFileName(Directory.GetFiles(temporaryDirectory).Single());
             storedFileName.ShouldNotContain(":");
@@ -151,13 +156,14 @@ public class FileHandlersTests
         }
     }
 
-    private static FileProcessor.DataTransferObjects.UploadFileRequest CreateUploadRequest() => new()
+    private static UploadFileForm CreateUploadRequest(IFormFile file) => new()
     {
         FileId = TestData.FileId,
         EstateId = TestData.EstateId,
         MerchantId = TestData.MerchantId,
         UserId = TestData.UserId,
-        FileProfileId = TestData.FileProfileId
+        FileProfileId = TestData.FileProfileId,
+        File = file
     };
 
     private static FormCollection CreateFormCollection(string fileName = "source.csv")

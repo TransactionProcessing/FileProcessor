@@ -19,17 +19,17 @@ public class DomainEventHandlerRegistry : ServiceRegistry
     /// <summary>
     /// Initializes a new instance of the <see cref="DomainEventHandlerRegistry"/> class.
     /// </summary>
-    public DomainEventHandlerRegistry()
+    public DomainEventHandlerRegistry(IConfiguration configuration)
     {
         Dictionary<String, String[]> eventHandlersConfiguration = new Dictionary<String, String[]>();
 
-        if (Startup.Configuration != null)
+        if (configuration != null)
         {
-            IConfigurationSection section = Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration");
+            IConfigurationSection section = configuration.GetSection("AppSettings:EventHandlerConfiguration");
 
             if (section != null)
             {
-                Startup.Configuration.GetSection("AppSettings:EventHandlerConfiguration").Bind(eventHandlersConfiguration);
+                configuration.GetSection("AppSettings:EventHandlerConfiguration").Bind(eventHandlersConfiguration);
             }
         }
 

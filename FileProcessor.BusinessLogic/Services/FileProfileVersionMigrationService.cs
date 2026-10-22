@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -125,17 +126,31 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
     private sealed record ExistingFile(Guid FileId, Guid FileProfileId);
 }
 
+/// <summary>Summary of the file-profile version migration.</summary>
+[Description("Summary of the file-profile version migration.")]
 public sealed class FileProfileVersionMigrationReport
 {
+    /// <summary>Gets the number of profiles checked.</summary>
+    [Description("Number of profiles checked.")]
     public Int32 ProfilesChecked { get; set; }
 
+    /// <summary>Gets the number of profiles that received an initial version.</summary>
+    [Description("Number of profiles that received an initial version.")]
     public Int32 ProfilesWithInitialVersion { get; set; }
 
+    /// <summary>Gets the number of files checked.</summary>
+    [Description("Number of files checked.")]
     public Int32 FilesChecked { get; set; }
 
+    /// <summary>Gets the number of files assigned to a profile version.</summary>
+    [Description("Number of files assigned to a profile version.")]
     public Int32 FilesAssigned { get; set; }
 
+    /// <summary>Gets the number of files skipped by the migration.</summary>
+    [Description("Number of files skipped by the migration.")]
     public Int32 FilesSkipped { get; set; }
 
+    /// <summary>Gets the migration failure messages.</summary>
+    [Description("Migration failure messages, if any.")]
     public List<String> Failures { get; } = new();
 }

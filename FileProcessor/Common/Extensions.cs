@@ -66,10 +66,13 @@ public static class Extensions
         }
     };
 
-    public static void PreWarm(this IApplicationBuilder applicationBuilder){
-        IFileSystem fileSystem = Startup.Container.GetInstance<IFileSystem>();
-        IFileProfileDirectorySynchronizer directorySynchronizer = Startup.Container.GetInstance<IFileProfileDirectorySynchronizer>();
-        IFileProfileDirectoryRecoveryService recoveryService = Startup.Container.GetInstance<IFileProfileDirectoryRecoveryService>();
+    public static void PreWarm(this IApplicationBuilder applicationBuilder,
+                              IFileSystem fileSystem,
+                              IFileProfileDirectorySynchronizer directorySynchronizer,
+                              IFileProfileDirectoryRecoveryService recoveryService,
+                              IConfiguration configuration,
+                              IDomainEventHandlerResolver mainEventHandlerResolver,
+                              Func<String, Int32, ISubscriptionRepository> subscriptionRepositoryResolver){
         var temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
         Logger.LogInformation($"Starting up, TemporaryFileLocation is [{temporaryFileLocation}]");
 
@@ -90,20 +93,16 @@ public static class Extensions
 
         TypeProvider.LoadDomainEventsTypeDynamically();
 
-        IConfigurationSection subscriptionConfigSection = Startup.Configuration.GetSection("AppSettings:SubscriptionConfiguration");
+        IConfigurationSection subscriptionConfigSection = configuration.GetSection("AppSettings:SubscriptionConfiguration");
         SubscriptionWorkersRoot subscriptionWorkersRoot = new SubscriptionWorkersRoot();
         subscriptionConfigSection.Bind(subscriptionWorkersRoot);
 
         String eventStoreConnectionString = ConfigurationReader.GetValue("EventStoreSettings", "ConnectionString");
 
-        IDomainEventHandlerResolver mainEventHandlerResolver = Startup.Container.GetInstance<IDomainEventHandlerResolver>("Main");
-
         Dictionary<String, IDomainEventHandlerResolver> eventHandlerResolvers = new Dictionary<String, IDomainEventHandlerResolver> {
                                                                                         {"Main", mainEventHandlerResolver}
                                                                                     };
 
-        Func<String, Int32, ISubscriptionRepository> subscriptionRepositoryResolver = Startup.Container.GetInstance<Func<String, Int32, ISubscriptionRepository>>();
-        
         applicationBuilder.ConfigureSubscriptionService(subscriptionWorkersRoot,
                                                         eventStoreConnectionString,
                                                         eventHandlerResolvers,
