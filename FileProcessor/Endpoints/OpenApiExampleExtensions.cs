@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
@@ -15,6 +14,9 @@ namespace FileProcessor.Endpoints;
 /// <summary>Adds the documented request, parameter, and response examples to an endpoint.</summary>
 public static class OpenApiExampleExtensions
 {
+    private const string EstateIdParameterName = "estateId";
+    private const string FileProfileIdParameterName = "fileProfileId";
+
     private static readonly IReadOnlyDictionary<string, EndpointExamples> Examples = new Dictionary<string, EndpointExamples>
     {
         ["DomainEvent"] = new()
@@ -66,13 +68,13 @@ public static class OpenApiExampleExtensions
         {
             RequestBody = """
                 {
-                  "file_id": "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
-                  "estate_id": "435613ac-a468-47a3-ac4f-649d89764c22",
-                  "merchant_id": "ab1c99fb-1c6c-4694-9a32-b71be5d1da33",
-                  "user_id": "a782891c-5c7d-45de-b002-1585a6db28df",
-                  "file_profile_id": "9c89c59e-8608-47b1-b280-052a75bcf84b",
-                  "upload_date_time": "2026-10-22T09:30:00Z",
-                  "file": "H,Operator,Phone,Amount\nD,Example Operator,01234567890,10.00"
+                  "FileId": "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
+                  "EstateId": "435613ac-a468-47a3-ac4f-649d89764c22",
+                  "MerchantId": "ab1c99fb-1c6c-4694-9a32-b71be5d1da33",
+                  "UserId": "a782891c-5c7d-45de-b002-1585a6db28df",
+                  "FileProfileId": "9c89c59e-8608-47b1-b280-052a75bcf84b",
+                  "UploadDateTime": "2026-10-22T09:30:00Z",
+                  "File": "H,Operator,Phone,Amount\nD,Example Operator,01234567890,10.00"
                 }
                 """,
             Responses = new Dictionary<string, string>
@@ -86,7 +88,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileId"] = "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
-                ["estateId"] = "435613ac-a468-47a3-ac4f-649d89764c22"
+                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22"
             },
             Responses = new Dictionary<string, string>
             {
@@ -140,7 +142,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileId"] = "c31f6a4b-8cd1-4d7e-9a2c-1f8a5b6d7e90",
-                ["estateId"] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
                 ["lineNumber"] = 1
             }
         },
@@ -148,7 +150,7 @@ public static class OpenApiExampleExtensions
         {
             Parameters = new Dictionary<string, object>
             {
-                ["estateId"] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
                 ["startDate"] = "2026-10-21",
                 ["endDate"] = "2026-10-22",
                 ["merchantId"] = "ab1c99fb-1c6c-4694-9a32-b71be5d1da33",
@@ -195,7 +197,7 @@ public static class OpenApiExampleExtensions
             Parameters = new Dictionary<string, object>
             {
                 ["fileImportLogId"] = "9eeab611-33a4-4e31-9e84-b61d1302f743",
-                ["estateId"] = "435613ac-a468-47a3-ac4f-649d89764c22",
+                [EstateIdParameterName] = "435613ac-a468-47a3-ac4f-649d89764c22",
                 ["merchantId"] = "ab1c99fb-1c6c-4694-9a32-b71be5d1da33"
             },
             Responses = new Dictionary<string, string>
@@ -281,7 +283,7 @@ public static class OpenApiExampleExtensions
         },
         ["GetFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { ["fileProfileId"] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
             Responses = new Dictionary<string, string>
             {
                 ["200"] = """
@@ -303,7 +305,7 @@ public static class OpenApiExampleExtensions
         },
         ["UpdateFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { ["fileProfileId"] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
             RequestBody = """
                 {
                   "name": "Voucher transactions",
@@ -335,11 +337,11 @@ public static class OpenApiExampleExtensions
         },
         ["ArchiveFileProfile"] = new()
         {
-            Parameters = new Dictionary<string, object> { ["fileProfileId"] = "9c89c59e-8608-47b1-b280-052a75bcf84b" }
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" }
         },
         ["GetFileProfileVersions"] = new()
         {
-            Parameters = new Dictionary<string, object> { ["fileProfileId"] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
+            Parameters = new Dictionary<string, object> { [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b" },
             Responses = new Dictionary<string, string>
             {
                 ["200"] = """
@@ -378,7 +380,7 @@ public static class OpenApiExampleExtensions
         {
             Parameters = new Dictionary<string, object>
             {
-                ["fileProfileId"] = "9c89c59e-8608-47b1-b280-052a75bcf84b",
+                [FileProfileIdParameterName] = "9c89c59e-8608-47b1-b280-052a75bcf84b",
                 ["fileProfileVersionId"] = "7738df59-9b15-44cb-8d7a-df4845bb8bd4"
             },
             Responses = new Dictionary<string, string>
@@ -405,49 +407,57 @@ public static class OpenApiExampleExtensions
     /// <summary>Attaches the examples for the endpoint's OpenAPI operation.</summary>
     public static RouteHandlerBuilder WithEndpointExamples(this RouteHandlerBuilder builder)
     {
-        return builder.AddOpenApiOperationTransformer(ApplyExamplesAsync);
+        return builder.AddOpenApiOperationTransformer((operation, _, _) => ApplyExamplesAsync(operation));
     }
 
-    private static Task ApplyExamplesAsync(OpenApiOperation operation,
-                                          OpenApiOperationTransformerContext context,
-                                          CancellationToken cancellationToken)
+    private static Task ApplyExamplesAsync(OpenApiOperation operation)
     {
         if (Examples.TryGetValue(operation.OperationId ?? string.Empty, out EndpointExamples? examples) == false || examples is null)
             return Task.CompletedTask;
 
-        if (examples.RequestBody is not null && operation.RequestBody?.Content is { } requestContent)
-        {
-            foreach (OpenApiMediaType mediaType in requestContent.Values)
-                mediaType.Example = JsonNode.Parse(examples.RequestBody);
-        }
-
-        if (examples.Responses is not null)
-        {
-            foreach ((string statusCode, string example) in examples.Responses)
-            {
-                if (operation.Responses?.TryGetValue(statusCode, out IOpenApiResponse? response) != true || response is null)
-                    continue;
-
-                if (response.Content is null)
-                    continue;
-
-                foreach (OpenApiMediaType mediaType in response.Content.Values)
-                    mediaType.Example = JsonNode.Parse(example);
-            }
-        }
-
-        if (examples.Parameters is not null)
-        {
-            AddDomainEventHeaderParameter(operation);
-
-            foreach (OpenApiParameter parameter in (operation.Parameters ?? []).OfType<OpenApiParameter>())
-            {
-                if (parameter.Name is string name && examples.Parameters.TryGetValue(name, out object? value) && value is not null)
-                    parameter.Example = JsonSerializer.SerializeToNode(value, value.GetType());
-            }
-        }
+        AddRequestBodyExample(operation, examples);
+        AddResponseExamples(operation, examples);
+        AddParameterExamples(operation, examples);
 
         return Task.CompletedTask;
+    }
+
+    private static void AddRequestBodyExample(OpenApiOperation operation, EndpointExamples examples)
+    {
+        if (examples.RequestBody is not string requestExample || operation.RequestBody?.Content is not { } requestContent)
+            return;
+
+        foreach (OpenApiMediaType mediaType in requestContent.Values)
+            mediaType.Example = JsonNode.Parse(requestExample);
+    }
+
+    private static void AddResponseExamples(OpenApiOperation operation, EndpointExamples examples)
+    {
+        if (examples.Responses is null)
+            return;
+
+        foreach ((string statusCode, string example) in examples.Responses)
+        {
+            if (operation.Responses?.TryGetValue(statusCode, out IOpenApiResponse? response) != true || response?.Content is not { } content)
+                continue;
+
+            foreach (OpenApiMediaType mediaType in content.Values)
+                mediaType.Example = JsonNode.Parse(example);
+        }
+    }
+
+    private static void AddParameterExamples(OpenApiOperation operation, EndpointExamples examples)
+    {
+        if (examples.Parameters is null)
+            return;
+
+        AddDomainEventHeaderParameter(operation);
+
+        foreach (OpenApiParameter parameter in (operation.Parameters ?? []).OfType<OpenApiParameter>())
+        {
+            if (parameter.Name is string name && examples.Parameters.TryGetValue(name, out object? value) && value is not null)
+                parameter.Example = JsonSerializer.SerializeToNode(value, value.GetType());
+        }
     }
 
     private static void AddDomainEventHeaderParameter(OpenApiOperation operation)
