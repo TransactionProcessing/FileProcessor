@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using FileProcessor.Handlers;
+using FileProcessor.BusinessLogic.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -17,6 +18,10 @@ public static class MigrationEndpoints
             .RequireAuthorization()
             .RequireAuthorization(AuthorizationExtensions.PolicyNames.ClientCredentialsOnlyPolicy)
             .WithTags("Migrations")
-            .WithName("MigrateProfileVersions");
+            .WithName("MigrateProfileVersions")
+            .WithSummary("Migrate file profile versions")
+            .WithDescription("Requires the client-credentials-only authorization policy. The request has no path parameters, query parameters, or body. Runs the file profile version migration and returns its report.")
+            .Produces<FileProfileVersionMigrationReport>(StatusCodes.Status200OK)
+            .WithEndpointExamples();
     }
 }

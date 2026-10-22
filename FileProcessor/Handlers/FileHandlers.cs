@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,10 +21,11 @@ namespace FileProcessor.Handlers;
 public static class FileHandlers
 {
     public static async Task<IResult> UploadFile(IMediator mediator,
-                                                      [FromForm] UploadFileRequest request,
-                                                      [FromForm] IFormCollection formCollection,
-                                                      CancellationToken cancellationToken)
+                                                 [FromForm, Description("Multipart form metadata and the file to upload.")] UploadFileForm request,
+                                                 HttpRequest httpRequest,
+                                                 CancellationToken cancellationToken)
     {
+        IFormCollection formCollection = await httpRequest.ReadFormAsync(cancellationToken);
         if (formCollection?.Files == null || formCollection.Files.Count != 1)
             return Results.BadRequest("Exactly one file must be supplied.");
 
@@ -120,8 +122,8 @@ public static class FileHandlers
     }
 
     public static async Task<IResult> GetFile(IMediator mediator,
-                                                   [FromRoute] Guid fileId,
-                                                   [FromQuery] Guid estateId,
+                                                   [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
+                                                   [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
                                                    CancellationToken cancellationToken)
     {
         FileQueries.GetFileQuery query = new(fileId, estateId);
@@ -131,9 +133,9 @@ public static class FileHandlers
     }
 
     public static async Task<IResult> ReplayLine(IMediator mediator,
-                                                   [FromRoute] Guid fileId,
-                                                   [FromQuery] Guid estateId,
-                                                   [FromRoute] Int32 lineNumber,
+                                                   [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
+                                                   [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
+                                                   [FromRoute, Description("One-based line number to retry.")] Int32 lineNumber,
                                                    CancellationToken cancellationToken)
     {
         FileCommands.ReplayFileLineCommand command = new(fileId, estateId, lineNumber);

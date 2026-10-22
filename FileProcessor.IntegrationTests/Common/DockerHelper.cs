@@ -1,4 +1,5 @@
 ﻿using DotNet.Testcontainers.Builders;
+using KurrentDB.Client;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace FileProcessor.IntegrationTests.Common
 
         private readonly TestingContext TestingContext;
 
-        public EventStoreProjectionManagementClient ProjectionManagementClient;
+        public KurrentDBProjectionManagementClient ProjectionManagementClient;
 
         public IAgencyBankingClient AgencyBankingClient;
 
@@ -83,9 +84,9 @@ namespace FileProcessor.IntegrationTests.Common
 
         public String AccessToken;
 
-        protected override String GenerateEventStoreConnectionString(String userName = "admin", String password = "changeit")
+        protected override String GenerateKurrentDbConnectionString(String userName = "admin", String password = "changeit")
         {
-            String eventStoreAddress = $"esdb://{userName}:{password}@{this.EventStoreContainerName}:{DockerPorts.EventStoreHttpDockerPort}?tls=false&defaultDeadline=240000";
+            String eventStoreAddress = $"esdb://{userName}:{password}@{this.KurrentDbContainerName}:{DockerPorts.KurrentDbHttpDockerPort}?tls=false&defaultDeadline=240000";
 
             return eventStoreAddress;
         }
@@ -126,7 +127,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.TestHostHttpClient.BaseAddress = new Uri($"http://127.0.0.1:{this.TestHostServicePort}");
             this.AgencyBankingClient = new AgencyBankingClient(TestHostServiceBaseAddressResolver, httpClient, Serialise_CamelCase, this.Deserialise_CamelCase);
             
-            this.ProjectionManagementClient = new EventStoreProjectionManagementClient(ConfigureEventStoreSettings());
+            this.ProjectionManagementClient = new KurrentDBProjectionManagementClient(this.ConfigureKurrentDbSettings());
 
             SimpleResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
             if (bootstrapToken.IsFailed || String.IsNullOrWhiteSpace(bootstrapToken.Data?.AccessToken))

@@ -25,7 +25,7 @@ namespace FileProcessor.IntegrationTests.Features
     [global::NUnit.Framework.CategoryAttribute("fileprofiles")]
     public partial class FileProfileFeature
     {
-
+        
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
@@ -168,7 +168,7 @@ namespace FileProcessor.IntegrationTests.Features
         {
             return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/FileProfile.feature.ndjson", 5);
         }
-
+        
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Create, update and list file profiles")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
@@ -276,7 +276,7 @@ await this.FeatureBackgroundAsync();
             }
             await this.ScenarioCleanupAsync();
         }
-
+        
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Reject duplicate file profile name and request type")]
         public async global::System.Threading.Tasks.Task RejectDuplicateFileProfileNameAndRequestType()
@@ -348,7 +348,7 @@ await this.FeatureBackgroundAsync();
             }
             await this.ScenarioCleanupAsync();
         }
-
+        
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Reject unsupported processing configuration")]
         public async global::System.Threading.Tasks.Task RejectUnsupportedProcessingConfiguration()

@@ -8,10 +8,34 @@ namespace FileProcessor.Common
     using FileImportLogResponse = DataTransferObjects.Responses.FileImportLog;
     using FileDetailsResponse = DataTransferObjects.Responses.FileDetails;
     using FileLineResponse = DataTransferObjects.Responses.FileLine;
+    using FileProfileResponse = DataTransferObjects.Responses.FileProfileResponse;
 
     public static class ModelFactory
     {
         #region Methods
+
+        public static List<FileProfileResponse> ConvertFrom(List<Models.FileProfile> fileProfiles)
+        {
+            return fileProfiles.Select(ConvertFrom).ToList();
+        }
+
+        public static FileProfileResponse ConvertFrom(Models.FileProfile fileProfile)
+        {
+            return new FileProfileResponse
+            {
+                FileProfileId = fileProfile.FileProfileId,
+                FileProfileVersionId = fileProfile.FileProfileVersionId,
+                FileProfileVersion = fileProfile.FileProfileVersion,
+                Name = fileProfile.Name,
+                OperatorName = fileProfile.OperatorName,
+                ListeningDirectory = fileProfile.ListeningDirectory,
+                ProcessedDirectory = fileProfile.ProcessedDirectory,
+                FailedDirectory = fileProfile.FailedDirectory,
+                FileFormatHandler = fileProfile.FileFormatHandler,
+                RequestType = fileProfile.RequestType,
+                LineTerminator = fileProfile.LineTerminator
+            };
+        }
 
         /// <summary>
         /// Converts from.

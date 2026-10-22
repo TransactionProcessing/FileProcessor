@@ -24,14 +24,9 @@
       <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Shared.Results.Web" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Filters" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
       <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
       <PackageReference Include="Sentry.AspNetCore" />
+      <PackageReference Include="TransactionProcessing.ApiDefaults" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,5 +37,19 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
   </ItemGroup>
+
+  <Target Name="CopyApiXmlDocumentationToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyApiXmlDocumentationToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

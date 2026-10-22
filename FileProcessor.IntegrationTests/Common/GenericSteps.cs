@@ -67,11 +67,11 @@ namespace FileProcessor.IntegrationTests.Common
             // the rest of the transaction-processing stack is unnecessary for these scenarios.
             if (scenarioTitle.Contains("file profile", StringComparison.OrdinalIgnoreCase))
             {
-                return DockerServices.EventStore | DockerServices.FileProcessor | DockerServices.SecurityService |
+                return DockerServices.KurrentDb | DockerServices.FileProcessor | DockerServices.SecurityService |
                        DockerServices.SqlServer | DockerServices.TransactionProcessor;
             }
 
-            return DockerServices.EventStore | DockerServices.FileProcessor | DockerServices.MessagingService |
+            return DockerServices.KurrentDb | DockerServices.FileProcessor | DockerServices.MessagingService |
                    DockerServices.SecurityService | DockerServices.SqlServer | DockerServices.TestHost | DockerServices.TransactionProcessor;
         }
 
