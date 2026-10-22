@@ -173,47 +173,75 @@ public static class FileProfileAggregateExtensions
         {
             return validationResult;
         }
-        
-        String lineTerminator = profile.LineTerminator;
-        if (request.LineTerminator.HasValue) {
-            Result<String> lineTerminatorResult = request.LineTerminator.Value.ToLineTerminator();
-            if (lineTerminatorResult.IsFailed) {
-                return ResultHelpers.CreateFailure(lineTerminatorResult);
-            }
+        Result<String> lineTerminatorResult = ResolveLineTerminator(profile, request);
+        if (lineTerminatorResult.IsFailed)
+            return ResultHelpers.CreateFailure(lineTerminatorResult);
 
-            lineTerminator = lineTerminatorResult.Data;
-        }
-
-        String name = request.Name == null ? profile.Name : request.Name.Trim();
-        String listeningDirectory = request.ListeningDirectory == null ? profile.ListeningDirectory : request.ListeningDirectory.Trim();
-        String requestType = request.RequestType == null ? profile.RequestType : request.RequestType.Trim();
-        String operatorName = request.OperatorName == null ? profile.OperatorName : request.OperatorName.Trim();
-        String fileFormatHandler = request.FileFormatHandler == null ? profile.FileFormatHandler : request.FileFormatHandler.Trim();
-
-        if (IsDomainEventRequired(profile.Name, name) == false &&
-            IsDomainEventRequired(profile.ListeningDirectory, listeningDirectory) == false &&
-            IsDomainEventRequired(profile.RequestType, requestType) == false &&
-            IsDomainEventRequired(profile.OperatorName, operatorName) == false &&
-            IsDomainEventRequired(profile.LineTerminator, lineTerminator) == false &&
-            IsDomainEventRequired(profile.FileFormatHandler, fileFormatHandler) == false)
-        {
+        FileProfileUpdate update = CreateUpdate(profile, request, lineTerminatorResult.Data);
+        if (HasProfileChanged(profile, update) == false)
             return Result.Success();
-        }
 
-        Int32 nextVersion = profile.Versions.Count == 0 ? 1 : profile.Versions.Max(version => version.FileProfileVersion) + 1;
-        aggregate.ApplyAndAppend(new FileProfileVersionCreatedEvent(aggregate.AggregateId,
-                                                                     fileProfileId,
-                                                                     Guid.NewGuid(),
-                                                                     nextVersion,
-                                                                     name,
-                                                                     listeningDirectory,
-                                                                     requestType,
-                                                                     operatorName,
-                                                                     lineTerminator,
-                                                                     fileFormatHandler));
+        aggregate.ApplyAndAppend(CreateVersionEvent(aggregate, fileProfileId, profile, update));
 
         return Result.Success();
     }
+
+    private static Result<String> ResolveLineTerminator(FileProfileState profile, UpdateFileProfileRequest request)
+    {
+        if (request.LineTerminator.HasValue == false)
+            return Result.Success(profile.LineTerminator);
+
+        Result<String> result = request.LineTerminator.Value.ToLineTerminator();
+        return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
+    }
+
+    private static FileProfileUpdate CreateUpdate(FileProfileState profile,
+                                                  UpdateFileProfileRequest request,
+                                                  String lineTerminator)
+    {
+        return new FileProfileUpdate(
+            request.Name == null ? profile.Name : request.Name.Trim(),
+            request.ListeningDirectory == null ? profile.ListeningDirectory : request.ListeningDirectory.Trim(),
+            request.RequestType == null ? profile.RequestType : request.RequestType.Trim(),
+            request.OperatorName == null ? profile.OperatorName : request.OperatorName.Trim(),
+            lineTerminator,
+            request.FileFormatHandler == null ? profile.FileFormatHandler : request.FileFormatHandler.Trim());
+    }
+
+    private static Boolean HasProfileChanged(FileProfileState profile, FileProfileUpdate update)
+    {
+        return IsDomainEventRequired(profile.Name, update.Name) ||
+               IsDomainEventRequired(profile.ListeningDirectory, update.ListeningDirectory) ||
+               IsDomainEventRequired(profile.RequestType, update.RequestType) ||
+               IsDomainEventRequired(profile.OperatorName, update.OperatorName) ||
+               IsDomainEventRequired(profile.LineTerminator, update.LineTerminator) ||
+               IsDomainEventRequired(profile.FileFormatHandler, update.FileFormatHandler);
+    }
+
+    private static FileProfileVersionCreatedEvent CreateVersionEvent(FileProfileAggregate aggregate,
+                                                                       Guid fileProfileId,
+                                                                       FileProfileState profile,
+                                                                       FileProfileUpdate update)
+    {
+        Int32 nextVersion = profile.Versions.Count == 0 ? 1 : profile.Versions.Max(version => version.FileProfileVersion) + 1;
+        return new FileProfileVersionCreatedEvent(aggregate.AggregateId,
+                                                   fileProfileId,
+                                                   Guid.NewGuid(),
+                                                   nextVersion,
+                                                   update.Name,
+                                                   update.ListeningDirectory,
+                                                   update.RequestType,
+                                                   update.OperatorName,
+                                                   update.LineTerminator,
+                                                   update.FileFormatHandler);
+    }
+
+    private sealed record FileProfileUpdate(String Name,
+                                            String ListeningDirectory,
+                                            String RequestType,
+                                            String OperatorName,
+                                            String LineTerminator,
+                                            String FileFormatHandler);
 
     private static String? TrimWhitespaceExceptLineBreaks(String value)
     {
