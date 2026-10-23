@@ -26,23 +26,8 @@ public static class FileHandlers
                                                  CancellationToken cancellationToken)
     {
         IFormCollection formCollection = await httpRequest.ReadFormAsync(cancellationToken);
-        if (formCollection?.Files == null || formCollection.Files.Count != 1)
-            return Results.BadRequest("Exactly one file must be supplied.");
-
-        IFormFile file = formCollection.Files[0];
-        if (file.Length <= 0)
-            return Results.BadRequest("The uploaded file must not be empty.");
-
-        if (file.Length > UploadFileSettings.GetMaximumFileSizeBytes())
-            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
-
-        String fileName = SanitizeFileName(file.FileName);
-        if (String.IsNullOrWhiteSpace(fileName))
-            return Results.BadRequest("The uploaded file must have a valid filename.");
-
-        String fileExtension = Path.GetExtension(fileName);
-        if (UploadFileSettings.GetAllowedFileExtensions().Contains(fileExtension, StringComparer.OrdinalIgnoreCase) == false)
-            return Results.BadRequest($"Files with extension [{fileExtension}] are not supported.");
+        if (TryValidateUpload(formCollection, out ValidatedUpload upload, out IResult validationError) == false)
+            return validationError;
 
         string temporaryFileLocation = ConfigurationReader.GetValue("AppSettings", "TemporaryFileLocation");
         string temporaryFileName = Guid.NewGuid().ToString("N");
@@ -57,7 +42,7 @@ public static class FileHandlers
             await using (FileStream stream = new(fullPath, FileMode.CreateNew))
             {
                 temporaryFileCreated = true;
-                await file.CopyToAsync(stream, cancellationToken);
+                await upload.File.CopyToAsync(stream, cancellationToken);
             }
 
             if (request.UploadDateTime == DateTime.MinValue)
@@ -70,7 +55,7 @@ public static class FileHandlers
                 fullPath,
                 request.FileProfileId,
                 request.UploadDateTime,
-                fileName);
+                upload.FileName);
 
             Result<Guid> result = await mediator.Send(command, cancellationToken);
             uploadAccepted = result.IsSuccess;
@@ -100,6 +85,42 @@ public static class FileHandlers
             }
         }
     }
+
+    private static Boolean TryValidateUpload(IFormCollection formCollection,
+                                             out ValidatedUpload upload,
+                                             out IResult validationError)
+    {
+        upload = null;
+        validationError = null;
+        if (formCollection?.Files == null || formCollection.Files.Count != 1)
+            return SetValidationError(Results.BadRequest("Exactly one file must be supplied."), out validationError);
+
+        IFormFile file = formCollection.Files[0];
+        if (file.Length <= 0)
+            return SetValidationError(Results.BadRequest("The uploaded file must not be empty."), out validationError);
+
+        if (file.Length > UploadFileSettings.GetMaximumFileSizeBytes())
+            return SetValidationError(Results.StatusCode(StatusCodes.Status413PayloadTooLarge), out validationError);
+
+        String fileName = SanitizeFileName(file.FileName);
+        if (String.IsNullOrWhiteSpace(fileName))
+            return SetValidationError(Results.BadRequest("The uploaded file must have a valid filename."), out validationError);
+
+        String fileExtension = Path.GetExtension(fileName);
+        if (UploadFileSettings.GetAllowedFileExtensions().Contains(fileExtension, StringComparer.OrdinalIgnoreCase) == false)
+            return SetValidationError(Results.BadRequest($"Files with extension [{fileExtension}] are not supported."), out validationError);
+
+        upload = new ValidatedUpload(file, fileName);
+        return true;
+    }
+
+    private static Boolean SetValidationError(IResult error, out IResult validationError)
+    {
+        validationError = error;
+        return false;
+    }
+
+    private sealed record ValidatedUpload(IFormFile File, String FileName);
 
     private static String SanitizeFileName(String fileName)
     {

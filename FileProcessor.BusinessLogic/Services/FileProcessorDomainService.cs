@@ -1,4 +1,4 @@
-﻿using SecurityService.DataTransferObjects;
+using SecurityService.DataTransferObjects;
 using Shared.EventStore.Helpers;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
 
@@ -59,15 +59,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     private readonly IFileProcessorManager FileProcessorManager;
 
     private readonly IAggregateRepository<FileImportLogAggregate, DomainEvent> FileImportLogAggregateRepository;
-        
+
     private readonly IAggregateRepository<FileAggregate, DomainEvent> FileAggregateRepository;
-        
+
     private readonly ITransactionProcessorClient TransactionProcessorClient;
-        
+
     private readonly ISecurityServiceClient SecurityServiceClient;
-        
+
     private readonly Func<String, IFileFormatHandler> FileFormatHandlerResolver;
-        
+
     private readonly IFileSystem FileSystem;
 
     private readonly Int32 MaximumDetailRecordCount;
@@ -170,97 +170,134 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // The import log is created only after validation and duplicate checks succeed.
         Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime.Date, command.EstateId);
 
-        Result result = await ApplyFileImportLogUpdates(async (fileImportLogAggregate) => {
-            IFileInfo file = this.FileSystem.FileInfo.New(command.FilePath);
-            if (file.Exists == false) {
-                return Result.NotFound($"File {file.FullName} not found");
-            }
+        Result result = await ApplyFileImportLogUpdates(
+            fileImportLogAggregate => this.RegisterUploadedFile(command, importLogDateTime, fileImportLogAggregate, cancellationToken),
+            importLogId,
+            cancellationToken,
+            false);
 
-            String originalName = String.IsNullOrWhiteSpace(command.OriginalFileName)
-                ? file.Name
-                : command.OriginalFileName;
-
-            // Read the original bytes so the server validates the same content hash as the uploader.
-            Byte[] fileContent;
-            await using (Stream fs = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
-                using MemoryStream memoryStream = new();
-                await fs.CopyToAsync(memoryStream, cancellationToken);
-                fileContent = memoryStream.ToArray();
-            }
-            Guid generatedFileId = CreateGuidFromFileData(fileContent);
-
-            if (generatedFileId != command.FileId) {
-                return Result.Invalid("File content does not match the file id provided");
-            }
-
-            Result<FileAggregate> existingFileResult = await this.FileAggregateRepository.GetLatestVersion(command.FileId, cancellationToken);
-            if (existingFileResult?.IsSuccess == true && existingFileResult.Data?.IsCreated == true)
-            {
-                FileDetails existingFile = existingFileResult.Data.GetFile();
-                if (existingFile.EstateId != command.EstateId ||
-                    existingFile.MerchantId != command.MerchantId ||
-                    existingFile.UserId != command.UserId ||
-                    existingFile.FileProfileId != command.FileProfileId)
-                {
-                    return Result.Invalid($"File Id [{command.FileId}] is already registered with different upload details");
-                }
-
-                this.DeleteDuplicateUploadFile(command.FilePath);
-                return Result.Success();
-            }
-            if (existingFileResult?.IsFailed == true && existingFileResult.Status != ResultStatus.NotFound)
-                return ResultHelpers.CreateFailure(existingFileResult);
-
-            // An identical file already on the current import log is accepted without appending another event.
-            Boolean fileAlreadyRegistered = fileImportLogAggregate.ContainsFile(command.FileId);
-            if (fileAlreadyRegistered)
-            {
-                Result duplicateResult = fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(command.FileId,
-                                                                                                            command.MerchantId,
-                                                                                                            command.UserId,
-                                                                                                            command.FileProfileId,
-                                                                                                            originalName,
-                                                                                                            command.FilePath,
-                                                                                                            command.FileUploadedDateTime));
-                if (duplicateResult.IsSuccess)
-                    this.DeleteDuplicateUploadFile(command.FilePath);
-
-                return duplicateResult;
-            }
-
-            Result<FileProfileModel> getFileProfileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
-            if (getFileProfileResult.IsFailed)
-                return ResultHelpers.CreateFailure(getFileProfileResult);
-
-            if (getFileProfileResult.Data == null)
-                return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
-
-            Guid fileProfileVersionId = getFileProfileResult.Data.FileProfileVersionId == Guid.Empty
-                ? getFileProfileResult.Data.FileProfileId
-                : getFileProfileResult.Data.FileProfileVersionId;
-
-            if (fileImportLogAggregate.IsCreated == false)
-            {
-                Result createResult = fileImportLogAggregate.CreateImportLog(command.EstateId, importLogDateTime);
-                if (createResult.IsFailed)
-                    return createResult;
-            }
-
-            Result stateResult = fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(command.FileId,
-                                                                                                   command.MerchantId,
-                                                                                                   command.UserId,
-                                                                                                   command.FileProfileId,
-                                                                                                   originalName,
-                                                                                                   command.FilePath,
-                                                                                                   command.FileUploadedDateTime,
-                                                                                                   fileProfileVersionId));
-            if (stateResult.IsFailed)
-                return stateResult;
-            
-            return Result.Success();
-        }, importLogId, cancellationToken, false);
-        
         return result;
+    }
+
+    private async Task<Result> RegisterUploadedFile(FileCommands.UploadFileCommand command,
+                                                    DateTime importLogDateTime,
+                                                    FileImportLogAggregate fileImportLogAggregate,
+                                                    CancellationToken cancellationToken)
+    {
+        IFileInfo file = this.FileSystem.FileInfo.New(command.FilePath);
+        if (file.Exists == false)
+            return Result.NotFound($"File {file.FullName} not found");
+
+        String originalName = String.IsNullOrWhiteSpace(command.OriginalFileName) ? file.Name : command.OriginalFileName;
+        Result contentResult = await this.ValidateUploadedFileContent(file, command.FileId, cancellationToken);
+        if (contentResult.IsFailed)
+            return contentResult;
+
+        Result<Boolean> existingFileResult = await this.HandleExistingFile(command, cancellationToken);
+        if (existingFileResult.IsFailed)
+            return ResultHelpers.CreateFailure(existingFileResult);
+        if (existingFileResult.Data)
+            return Result.Success();
+
+        if (fileImportLogAggregate.ContainsFile(command.FileId))
+            return this.RegisterDuplicateImportLogFile(command, originalName, fileImportLogAggregate);
+
+        return await this.RegisterNewImportLogFile(command,
+                                                   originalName,
+                                                   importLogDateTime,
+                                                   fileImportLogAggregate,
+                                                   cancellationToken);
+    }
+
+    private async Task<Result> ValidateUploadedFileContent(IFileInfo file,
+                                                           Guid fileId,
+                                                           CancellationToken cancellationToken)
+    {
+        // Validate the same original bytes used by the uploader to calculate the file id.
+        Byte[] fileContent;
+        await using (Stream stream = file.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+        using (MemoryStream memoryStream = new())
+        {
+            await stream.CopyToAsync(memoryStream, cancellationToken);
+            fileContent = memoryStream.ToArray();
+        }
+
+        return CreateGuidFromFileData(fileContent) == fileId
+            ? Result.Success()
+            : Result.Invalid("File content does not match the file id provided");
+    }
+
+    private async Task<Result<Boolean>> HandleExistingFile(FileCommands.UploadFileCommand command,
+                                                           CancellationToken cancellationToken)
+    {
+        Result<FileAggregate> existingFileResult = await this.FileAggregateRepository.GetLatestVersion(command.FileId, cancellationToken);
+        if (existingFileResult?.IsSuccess == true && existingFileResult.Data?.IsCreated == true)
+        {
+            FileDetails existingFile = existingFileResult.Data.GetFile();
+            if (existingFile.EstateId != command.EstateId ||
+                existingFile.MerchantId != command.MerchantId ||
+                existingFile.UserId != command.UserId ||
+                existingFile.FileProfileId != command.FileProfileId)
+                return Result.Invalid($"File Id [{command.FileId}] is already registered with different upload details");
+
+            this.DeleteDuplicateUploadFile(command.FilePath);
+            return Result.Success(true);
+        }
+
+        if (existingFileResult?.IsFailed == true && existingFileResult.Status != ResultStatus.NotFound)
+            return ResultHelpers.CreateFailure(existingFileResult);
+
+        return Result.Success(false);
+    }
+
+    private Result RegisterDuplicateImportLogFile(FileCommands.UploadFileCommand command,
+                                                  String originalName,
+                                                  FileImportLogAggregate fileImportLogAggregate)
+    {
+        Result result = fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(command.FileId,
+                                                                                         command.MerchantId,
+                                                                                         command.UserId,
+                                                                                         command.FileProfileId,
+                                                                                         originalName,
+                                                                                         command.FilePath,
+                                                                                         command.FileUploadedDateTime));
+        if (result.IsSuccess)
+            this.DeleteDuplicateUploadFile(command.FilePath);
+
+        return result;
+    }
+
+    private async Task<Result> RegisterNewImportLogFile(FileCommands.UploadFileCommand command,
+                                                        String originalName,
+                                                        DateTime importLogDateTime,
+                                                        FileImportLogAggregate fileImportLogAggregate,
+                                                        CancellationToken cancellationToken)
+    {
+        Result<FileProfileModel> profileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
+        if (profileResult.IsFailed)
+            return ResultHelpers.CreateFailure(profileResult);
+        if (profileResult.Data == null)
+            return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
+
+        Guid fileProfileVersionId = profileResult.Data.FileProfileVersionId == Guid.Empty
+            ? profileResult.Data.FileProfileId
+            : profileResult.Data.FileProfileVersionId;
+
+        if (fileImportLogAggregate.IsCreated == false)
+        {
+            Result createResult = fileImportLogAggregate.CreateImportLog(command.EstateId, importLogDateTime);
+            if (createResult.IsFailed)
+                return createResult;
+        }
+
+        return fileImportLogAggregate.AddImportedFile(new AddImportedFileRequest(command.FileId,
+                                                                                 command.MerchantId,
+                                                                                 command.UserId,
+                                                                                 command.FileProfileId,
+                                                                                 originalName,
+                                                                                 command.FilePath,
+                                                                                 command.FileUploadedDateTime,
+                                                                                 fileProfileVersionId));
     }
 
     public static Guid CreateGuidFromFileData(String fileContents)
@@ -350,13 +387,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                     cancellationToken);
             return result;
         }
-        
+
         Result processResult = await this.ProcessFile(command.FileId,
                                                       command.FileProfileId,
                                                       command.FileProfileVersionId,
                                                       command.FilePath,
                                                       cancellationToken);
-        
+
         return processResult;
     }
 
@@ -618,7 +655,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                         out String operatorName) {
         // need to now parse the line (based on the file format), this builds the metadata
         Dictionary<String, String> transactionMetadata = this.ParseFileLine(fileLine.LineData, fileProfile.FileFormatHandler);
-            
+
         if (transactionMetadata.Any() == false) {
             // Line failed to parse so record this
             operatorName = null;
@@ -629,7 +666,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         transactionMetadata.Add("FileId", command.FileId.ToString());
         transactionMetadata.Add("FileLineNumber", fileLine.LineNumber.ToString());
         transactionMetadata.Add("EventId", command.EventId.ToString());
-        
+
         operatorName = fileProfile.OperatorName;
         if (transactionMetadata.ContainsKey("OperatorName")) {
             // extract the value
@@ -668,8 +705,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             AdditionalTransactionMetadata = transactionMetadata,
             TransactionSource = 2, // File based transaction
         };
-            
-            
+
+
         // Send request to transaction processor
         processingContext.Stage = FileLineProcessingStage.TransactionDispatchStarted;
         processingContext.TransactionDispatchAttempted = true;
@@ -821,144 +858,30 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                            Guid fileProfileVersionId,
                                            String fileName,
                                            CancellationToken cancellationToken) {
-        IFileInfo inProgressFile = null;
-        FileProfileModel fileProfile = null;
-
         Result<FileProfileModel> fileProfileResult =
             await this.GetFileProfileForProcessing(fileId, fileProfileId, fileProfileVersionId, cancellationToken);
 
         if (fileProfileResult.IsFailed)
             return ResultHelpers.CreateFailure(fileProfileResult);
-        fileProfile = fileProfileResult.Data;
-        // Check the processed/failed directories exist
-        if (this.FileSystem.Directory.Exists(fileProfile.ProcessedDirectory) == false) {
-            Logger.LogInformation($"Creating Directory {fileProfile.ProcessedDirectory} as not found");
-            this.FileSystem.Directory.CreateDirectory(fileProfile.ProcessedDirectory);
-        }
+        FileProfileModel fileProfile = fileProfileResult.Data;
 
-        if (this.FileSystem.Directory.Exists(fileProfile.FailedDirectory) == false) {
-            Logger.LogInformation($"Creating Directory {fileProfile.FailedDirectory} as not found");
-            this.FileSystem.Directory.CreateDirectory(fileProfile.FailedDirectory);
-        }
+        Result<IFileInfo> inProgressFileResult = this.ResolveInProgressFile(fileName, fileProfile);
+        if (inProgressFileResult.IsFailed)
+            return ResultHelpers.CreateFailure(inProgressFileResult);
 
-        inProgressFile = this.FileSystem.FileInfo.New(fileName);
-
-        if (inProgressFile.Exists == false) {
-            // We also want to check the processed and failed folders incase this is an event replay
-            IFileInfo failedFileInfo =
-                this.FileSystem.FileInfo.New($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
-            IFileInfo processedFileInfo =
-                this.FileSystem.FileInfo.New($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
-
-            (Boolean, Boolean) fileStatus = (failedFileInfo.Exists, processedFileInfo.Exists);
-
-            IFileInfo fileInfo = fileStatus switch
-            {
-                (true, false) => failedFileInfo,
-                (false, true) => processedFileInfo,
-                _ => null
-            };
-
-            if (fileInfo == null) {
-                return Result.NotFound($"File {inProgressFile.FullName} not found");
-            }
-
-            // Overwrite the inprogress file info object with the file found in the failed folder
-            inProgressFile = fileInfo;
-        }
+        IFileInfo inProgressFile = inProgressFileResult.Data;
 
         Boolean fileWasRejected = false;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
-
             if (fileAggregate.GetFile().IsRejected)
             {
                 fileWasRejected = true;
                 return Result.Success();
             }
 
-            String fileContent = null;
-            //Open file for Read\Write
-            using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)) {
-                //Create object of StreamReader by passing FileStream object on which it needs to operates on
-                using (StreamReader sr = new StreamReader(fs)) {
-                    //Use ReadToEnd method to read all the content from file
-                    fileContent = await sr.ReadToEndAsync(cancellationToken);
-                }
-            }
-
-            {
-                String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
-
-                IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfile.FileFormatHandler);
-                Int32 detailRecordCount = fileLines.Count(fileLine =>
-                {
-                    String trimmedLine = fileLine.Trim();
-                    return String.IsNullOrEmpty(trimmedLine) == false && fileFormatHandler.FileLineCanBeIgnored(trimmedLine) == false;
-                });
-
-                if (detailRecordCount > this.MaximumDetailRecordCount)
-                {
-                    Result rejectionResult = fileAggregate.RejectFile(detailRecordCount,
-                                                                       this.MaximumDetailRecordCount,
-                                                                       MaximumDetailRecordsExceededCode,
-                                                                       $"File contains {detailRecordCount} detail records; the maximum permitted is {this.MaximumDetailRecordCount}",
-                                                                       DateTime.UtcNow);
-                    if (rejectionResult.IsFailed)
-                        return rejectionResult;
-
-                    fileWasRejected = true;
-                    return Result.Success();
-                }
-
-                FileValidationResult validationResult;
-                using (StringReader validationReader = new(fileContent))
-                    validationResult = fileFormatHandler.ValidateFile(validationReader, fileProfile.LineTerminator);
-
-                if (validationResult == null)
-                {
-                    Result unavailableResult = fileAggregate.RejectFile(detailRecordCount,
-                                                                         this.MaximumDetailRecordCount,
-                                                                         "ValidationUnavailable",
-                                                                         "File validation did not return a result",
-                                                                         DateTime.UtcNow);
-                    if (unavailableResult.IsFailed)
-                        return unavailableResult;
-
-                    fileWasRejected = true;
-                    return Result.Success();
-                }
-
-                if (validationResult.IsValid == false)
-                {
-                    String rejectionReason = String.Join("; ", validationResult.Errors.Select(FormatValidationError));
-                    Result rejectionResult = fileAggregate.RejectFile(detailRecordCount,
-                                                                       this.MaximumDetailRecordCount,
-                                                                       validationResult.Errors.First().Code,
-                                                                       rejectionReason,
-                                                                       DateTime.UtcNow);
-                    if (rejectionResult.IsFailed)
-                        return rejectionResult;
-
-                    fileWasRejected = true;
-                    return Result.Success();
-                }
-
-                HashSet<String> previouslyPersistedLines = fileAggregate.GetFile().FileLines
-                    .Select(fileLine => fileLine.LineData)
-                    .ToHashSet(StringComparer.Ordinal);
-
-                foreach (String fileLine in fileLines) {
-                    String trimmedFileLine = fileLine.Trim();
-                    if (previouslyPersistedLines.Contains(trimmedFileLine))
-                        continue;
-
-                    Result stateResult = fileAggregate.AddFileLine(trimmedFileLine);
-                    if (stateResult.IsFailed)
-                        return stateResult;
-                }
-            }
-
-            return Result.Success();
+            Result contentResult = await this.ProcessFileContents(fileAggregate, inProgressFile, fileProfile, cancellationToken);
+            fileWasRejected = fileAggregate.GetFile().IsRejected;
+            return contentResult;
         }, fileId, cancellationToken);
 
         if (result.IsSuccess) {
@@ -980,6 +903,107 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         return result;
+    }
+
+    private Result<IFileInfo> ResolveInProgressFile(String fileName, FileProfileModel fileProfile)
+    {
+        EnsureDirectoryExists(fileProfile.ProcessedDirectory);
+        EnsureDirectoryExists(fileProfile.FailedDirectory);
+
+        IFileInfo inProgressFile = this.FileSystem.FileInfo.New(fileName);
+        if (inProgressFile.Exists)
+            return Result.Success(inProgressFile);
+
+        IFileInfo failedFileInfo = this.FileSystem.FileInfo.New($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
+        IFileInfo processedFileInfo = this.FileSystem.FileInfo.New($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
+        IFileInfo replayFile = (failedFileInfo.Exists, processedFileInfo.Exists) switch
+        {
+            (true, false) => failedFileInfo,
+            (false, true) => processedFileInfo,
+            _ => null
+        };
+
+        return replayFile == null
+            ? Result.NotFound($"File {inProgressFile.FullName} not found")
+            : Result.Success(replayFile);
+    }
+
+    private void EnsureDirectoryExists(String directory)
+    {
+        if (this.FileSystem.Directory.Exists(directory))
+            return;
+
+        Logger.LogInformation($"Creating Directory {directory} as not found");
+        this.FileSystem.Directory.CreateDirectory(directory);
+    }
+
+    private async Task<Result> ProcessFileContents(FileAggregate fileAggregate,
+                                                   IFileInfo inProgressFile,
+                                                   FileProfileModel fileProfile,
+                                                   CancellationToken cancellationToken)
+    {
+        String fileContent;
+        using (Stream fs = inProgressFile.Open(FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read))
+        using (StreamReader reader = new(fs))
+            fileContent = await reader.ReadToEndAsync(cancellationToken);
+
+        String[] fileLines = fileContent.Split(fileProfile.LineTerminator);
+        IFileFormatHandler fileFormatHandler = this.FileFormatHandlerResolver(fileProfile.FileFormatHandler);
+        Int32 detailRecordCount = fileLines.Count(fileLine =>
+        {
+            String trimmedLine = fileLine.Trim();
+            return String.IsNullOrEmpty(trimmedLine) == false && fileFormatHandler.FileLineCanBeIgnored(trimmedLine) == false;
+        });
+
+        if (detailRecordCount > this.MaximumDetailRecordCount)
+            return this.RejectFile(fileAggregate,
+                                   detailRecordCount,
+                                   MaximumDetailRecordsExceededCode,
+                                   $"File contains {detailRecordCount} detail records; the maximum permitted is {this.MaximumDetailRecordCount}");
+
+        FileValidationResult validationResult;
+        using (StringReader validationReader = new(fileContent))
+            validationResult = fileFormatHandler.ValidateFile(validationReader, fileProfile.LineTerminator);
+
+        if (validationResult == null)
+            return this.RejectFile(fileAggregate, detailRecordCount, "ValidationUnavailable", "File validation did not return a result");
+
+        if (validationResult.IsValid == false)
+            return this.RejectFile(fileAggregate,
+                                   detailRecordCount,
+                                   validationResult.Errors.First().Code,
+                                   String.Join("; ", validationResult.Errors.Select(FormatValidationError)));
+
+        return PersistFileLines(fileAggregate, fileLines);
+    }
+
+    private Result RejectFile(FileAggregate fileAggregate, Int32 detailRecordCount, String errorCode, String reason)
+    {
+        return fileAggregate.RejectFile(detailRecordCount,
+                                        this.MaximumDetailRecordCount,
+                                        errorCode,
+                                        reason,
+                                        DateTime.UtcNow);
+    }
+
+    private static Result PersistFileLines(FileAggregate fileAggregate, IEnumerable<String> fileLines)
+    {
+        HashSet<String> previouslyPersistedLines = fileAggregate.GetFile().FileLines
+            .Select(fileLine => fileLine.LineData)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (String fileLine in fileLines)
+        {
+            String trimmedFileLine = fileLine.Trim();
+            if (previouslyPersistedLines.Contains(trimmedFileLine))
+                continue;
+
+            Result stateResult = fileAggregate.AddFileLine(trimmedFileLine);
+            if (stateResult.IsFailed)
+                return stateResult;
+        }
+
+        return Result.Success();
     }
 
     private async Task<Result<FileProfileModel>> GetFileProfileForProcessing(Guid fileId,
@@ -1058,7 +1082,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 Logger.LogWarning($"Failed to get token: {getTokenResult.Message}");
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
-            
+
             return getTokenResult.Data;
         }
 
