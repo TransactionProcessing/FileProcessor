@@ -62,27 +62,58 @@ internal static class FileLineProcessingDiagnostics
 {
     public static void LineProcessingStarted(FileLineProcessingContext context)
     {
-        Logger.LogInformation($"line-processing-started FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} FileProfileId={context.FileProfileId}");
+        Logger.LogInformation(
+            "line-processing-started FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} FileProfileId={FileProfileId}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.FileProfileId);
     }
 
     public static void LineProcessingSkipped(FileLineProcessingContext context, ProcessingResult processingResult)
     {
-        Logger.LogInformation($"file-line-processing-skipped FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} ProcessingResult={processingResult}");
+        Logger.LogInformation(
+            "file-line-processing-skipped FileId={FileId} LineNumber={LineNumber} ProcessingResult={ProcessingResult}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            processingResult);
     }
 
     public static void LineIgnored(FileLineProcessingContext context)
     {
-        Logger.LogInformation($"file-line-ignored FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} Operator={context.OperatorName} Reason=Ignored by file format handler");
+        Logger.LogInformation(
+            "file-line-ignored FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} Operator={Operator} Reason={Reason}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.OperatorName,
+            "Ignored by file format handler");
     }
 
     public static void LineRejected(FileLineProcessingContext context, String reason)
     {
-        Logger.LogWarning($"file-line-rejected FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} Operator={context.OperatorName} Reason={reason}");
+        Logger.LogWarning(
+            "file-line-rejected FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} Operator={Operator} Reason={Reason}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.OperatorName,
+            reason);
     }
 
     public static void LineStateDetermined(FileLineProcessingContext context, ProcessingResult processingResult)
     {
-        Logger.LogInformation($"file-line-state-determined FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} ProcessingResult={processingResult} TransactionDispatchAttempted={context.TransactionDispatchAttempted} TransactionDispatchSucceeded={context.TransactionDispatchSucceeded} ResponseCode={context.ResponseCode}");
+        Logger.LogInformation(
+            "file-line-state-determined FileId={FileId} LineNumber={LineNumber} ProcessingResult={ProcessingResult} TransactionDispatchAttempted={TransactionDispatchAttempted} TransactionDispatchSucceeded={TransactionDispatchSucceeded} ResponseCode={ResponseCode}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            processingResult,
+            context.TransactionDispatchAttempted,
+            context.TransactionDispatchSucceeded,
+            context.ResponseCode);
     }
 
     public static void ProcessingFailed(FileLineProcessingContext context, Result result)
@@ -90,42 +121,112 @@ internal static class FileLineProcessingDiagnostics
         String stage = context.Stage == FileLineProcessingStage.FileLineStatePersisted
             ? "file-line-state-persisted/failed"
             : GetStageName(context.Stage);
-        Logger.LogError($"{stage} failed FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} FileProfileId={context.FileProfileId} Operator={context.OperatorName} TransactionDispatchAttempted={context.TransactionDispatchAttempted} TransactionDispatchSucceeded={context.TransactionDispatchSucceeded} ResponseCode={context.ResponseCode} ResultStatus={result.Status} Error={result.Message}");
+        Logger.LogError(
+            "{Stage} failed FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} FileProfileId={FileProfileId} Operator={Operator} TransactionDispatchAttempted={TransactionDispatchAttempted} TransactionDispatchSucceeded={TransactionDispatchSucceeded} ResponseCode={ResponseCode} ResultStatus={ResultStatus} Error={Error}",
+            stage,
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.FileProfileId,
+            context.OperatorName,
+            context.TransactionDispatchAttempted,
+            context.TransactionDispatchSucceeded,
+            context.ResponseCode,
+            result.Status,
+            result.Message);
     }
 
     public static void LineStatePersisted(FileLineProcessingContext context)
     {
-        Logger.LogInformation($"file-line-state-persisted FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} FileProfileId={context.FileProfileId} Operator={context.OperatorName} TransactionDispatchAttempted={context.TransactionDispatchAttempted} TransactionDispatchSucceeded={context.TransactionDispatchSucceeded} ResponseCode={context.ResponseCode}");
+        Logger.LogInformation(
+            "file-line-state-persisted FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} FileProfileId={FileProfileId} Operator={Operator} TransactionDispatchAttempted={TransactionDispatchAttempted} TransactionDispatchSucceeded={TransactionDispatchSucceeded} ResponseCode={ResponseCode}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.FileProfileId,
+            context.OperatorName,
+            context.TransactionDispatchAttempted,
+            context.TransactionDispatchSucceeded,
+            context.ResponseCode);
     }
 
     public static void TransactionDispatchStarted(FileLineProcessingContext context)
     {
-        Logger.LogInformation($"transaction-dispatch-started FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} Operator={context.OperatorName} ClientOperation=PerformTransaction");
+        Logger.LogInformation(
+            "transaction-dispatch-started FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} Operator={Operator} ClientOperation={ClientOperation}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.OperatorName,
+            "PerformTransaction");
     }
 
     public static void TransactionDispatchFailed(FileLineProcessingContext context, Result<SaleTransactionResponse> result)
     {
-        Logger.LogError($"transaction-dispatch-failed FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} Operator={context.OperatorName} ClientOperation=PerformTransaction ResultStatus={result.Status} Error={result.Message}");
+        Logger.LogError(
+            "transaction-dispatch-failed FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} Operator={Operator} ClientOperation={ClientOperation} ResultStatus={ResultStatus} Error={Error}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.OperatorName,
+            "PerformTransaction",
+            result.Status,
+            result.Message);
     }
 
     public static void TransactionDispatchCompleted(FileLineProcessingContext context, SaleTransactionResponse response)
     {
-        Logger.LogInformation($"transaction-dispatch-completed FileId={context.Command.FileId} LineNumber={context.Command.LineNumber} EstateId={context.EstateId} MerchantId={context.MerchantId} Operator={context.OperatorName} ClientOperation=PerformTransaction TransactionId={response.TransactionId} ResponseCode={response.ResponseCode} ResponseMessage={response.ResponseMessage}");
+        Logger.LogInformation(
+            "transaction-dispatch-completed FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} Operator={Operator} ClientOperation={ClientOperation} TransactionId={TransactionId} ResponseCode={ResponseCode} ResponseMessage={ResponseMessage}",
+            context.Command.FileId,
+            context.Command.LineNumber,
+            context.EstateId,
+            context.MerchantId,
+            context.OperatorName,
+            "PerformTransaction",
+            response.TransactionId,
+            response.ResponseCode,
+            response.ResponseMessage);
     }
 
     public static void EventHandlerDispatchFailed(FileLineAddedEvent domainEvent, Result result)
     {
-        Logger.LogError($"event-handler-dispatch-failed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} ResultStatus={result.Status} Error={result.Message}");
+        Logger.LogError(
+            "event-handler-dispatch-failed FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} EventType={EventType} ResultStatus={ResultStatus} Error={Error}",
+            domainEvent.FileId,
+            domainEvent.LineNumber,
+            domainEvent.EstateId,
+            domainEvent.MerchantId,
+            nameof(FileLineAddedEvent),
+            result.Status,
+            result.Message);
     }
 
     public static void EventHandlerDispatchCompleted(FileLineAddedEvent domainEvent)
     {
-        Logger.LogDebug($"event-handler-dispatch-completed FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)}");
+        Logger.LogDebug(
+            "event-handler-dispatch-completed FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} EventType={EventType}",
+            domainEvent.FileId,
+            domainEvent.LineNumber,
+            domainEvent.EstateId,
+            domainEvent.MerchantId,
+            nameof(FileLineAddedEvent));
     }
 
     public static void EventHandlerDispatchThrew(FileLineAddedEvent domainEvent, Exception exception)
     {
-        Logger.LogError($"event-handler-dispatch-threw FileId={domainEvent.FileId} LineNumber={domainEvent.LineNumber} EstateId={domainEvent.EstateId} MerchantId={domainEvent.MerchantId} EventType={nameof(FileLineAddedEvent)} Exception={exception}");
+        Logger.LogError(
+            "event-handler-dispatch-threw FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} EventType={EventType}",
+            exception,
+            domainEvent.FileId,
+            domainEvent.LineNumber,
+            domainEvent.EstateId,
+            domainEvent.MerchantId,
+            nameof(FileLineAddedEvent));
     }
 
     private static String GetStageName(FileLineProcessingStage stage) => stage switch

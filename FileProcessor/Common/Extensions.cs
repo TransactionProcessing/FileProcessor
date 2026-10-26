@@ -46,10 +46,10 @@ public static class Extensions
         switch (tt)
         {
             case TraceEventType.Critical:
-                Logger.LogCritical(new Exception(logMessage));
+                Logger.LogCritical(logMessage);
                 break;
             case TraceEventType.Error:
-                Logger.LogError(new Exception(logMessage));
+                Logger.LogError(logMessage);
                 break;
             case TraceEventType.Warning:
                 Logger.LogWarning(logMessage);

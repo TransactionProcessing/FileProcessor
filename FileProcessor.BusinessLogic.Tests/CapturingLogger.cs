@@ -1,32 +1,38 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
+using System.Linq;
+using Shared.Logger;
 
 namespace FileProcessor.BusinessLogic.Tests;
 
-internal sealed class CapturingLogger<T> : ILogger<T>
+internal sealed class CapturingLogger : Shared.Logger.ILogger
 {
+    public bool IsInitialised { get; set; } = true;
+
     public List<string> Messages { get; } = new();
 
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+    public void LogCritical(string message) => this.Capture(message);
+    public void LogCritical(Exception exception) => this.Capture(exception.ToString());
+    public void LogCritical(string message, params object[] args) => this.Capture(message, args);
+    public void LogCritical(Exception exception, string message, params object[] args) => this.Capture(message, args, exception.ToString());
+    public void LogCritical(string message, Exception exception) => this.Capture(message, null, exception.ToString());
+    public void LogDebug(string message) => this.Capture(message);
+    public void LogDebug(string message, params object[] args) => this.Capture(message, args);
+    public void LogError(Exception exception) => this.Capture(exception.ToString());
+    public void LogError(string message, params object[] args) => this.Capture(message, args);
+    public void LogError(Exception exception, string message, params object[] args) => this.Capture(message, args, exception.ToString());
+    public void LogError(string message) => this.Capture(message);
+    public void LogError(string message, Exception exception) => this.Capture(message, null, exception.ToString());
+    public void LogInformation(string message) => this.Capture(message);
+    public void LogInformation(string message, params object[] args) => this.Capture(message, args);
+    public void LogTrace(string message) => this.Capture(message);
+    public void LogTrace(string message, params object[] args) => this.Capture(message, args);
+    public void LogWarning(string message) => this.Capture(message);
+    public void LogWarning(string message, params object[] args) => this.Capture(message, args);
 
-    public bool IsEnabled(LogLevel logLevel) => true;
-
-    public void Log<TState>(LogLevel logLevel,
-                            EventId eventId,
-                            TState state,
-                            Exception exception,
-                            Func<TState, Exception, string> formatter)
+    private void Capture(string message, object[] args = null, string exception = null)
     {
-        this.Messages.Add(formatter(state, exception));
-    }
-
-    private sealed class NullScope : IDisposable
-    {
-        public static NullScope Instance { get; } = new();
-
-        public void Dispose()
-        {
-        }
+        String renderedArguments = args is { Length: > 0 } ? String.Join(" ", args) : String.Empty;
+        this.Messages.Add(String.Join(" ", new[] { message, renderedArguments, exception }.Where(value => !String.IsNullOrEmpty(value))));
     }
 }

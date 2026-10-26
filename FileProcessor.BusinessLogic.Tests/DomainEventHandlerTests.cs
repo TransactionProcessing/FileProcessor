@@ -1,3 +1,4 @@
+using Shared.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace FileProcessor.BusinessLogic.Tests
     {
         public DomainEventHandlerTests()
         {
-            Shared.Logger.Logger.Initialise(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
+            Shared.Logger.Logger.Initialise(new NullLogger());
         }
 
         [Fact]

@@ -4,8 +4,8 @@
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
-    <PackageVersion Include="ClientProxyBase" Version="2026.10.4" />
-    <PackageVersion Include="HealthMonitoring.Client" Version="2026.10.1" />
+    <PackageVersion Include="ClientProxyBase" Version="2026.11.2" />
+    <PackageVersion Include="HealthMonitoring.Client" Version="2026.10.2.55" />
     <PackageVersion Include="OpenIddict.Validation.AspNetCore" Version="7.7.2" />
     <PackageVersion Include="OpenIddict.Validation.SystemNetHttp" Version="7.7.2" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
@@ -13,18 +13,18 @@
     <PackageVersion Include="Ductus.FluentDocker" Version="2.85.0" />
     <PackageVersion Include="EventStoreProjections" Version="2023.12.3" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
-    <PackageVersion Include="Imposter" Version="1.0.3" />
+    <PackageVersion Include="Imposter" Version="1.0.7" />
     <PackageVersion Include="Lamar" Version="16.0.0" />
     <PackageVersion Include="Lamar.Microsoft.DependencyInjection" Version="16.0.0" />
-    <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.10.2.156" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.10.3.157" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
@@ -39,17 +39,17 @@
     <PackageVersion Include="Sentry.AspNetCore" Version="6.12.1" />
     <PackageVersion Include="SharpCompress" Version="0.50.7" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="Shared" Version="2026.10.4" />
-    <PackageVersion Include="Shared.DomainDrivenDesign" Version="2026.10.4" />
-    <PackageVersion Include="Shared.EventStore" Version="2026.10.4" />
-    <PackageVersion Include="Shared.IntegrationTesting" Version="2026.10.4" />
-    <PackageVersion Include="Shared.Results" Version="2026.10.4" />
-    <PackageVersion Include="Shared.Results.Web" Version="2026.10.4" />
-    <PackageVersion Include="SecurityService.Client" Version="2026.10.2.200" />
-    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.2.200" />
+    <PackageVersion Include="Shared" Version="2026.11.2" />
+    <PackageVersion Include="Shared.DomainDrivenDesign" Version="2026.11.2" />
+    <PackageVersion Include="Shared.EventStore" Version="2026.11.2" />
+    <PackageVersion Include="Shared.IntegrationTesting" Version="2026.11.2" />
+    <PackageVersion Include="Shared.Results" Version="2026.11.2" />
+    <PackageVersion Include="Shared.Results.Web" Version="2026.11.2" />
+    <PackageVersion Include="SecurityService.Client" Version="2026.10.3.204" />
+    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.3.204" />
     <PackageVersion Include="System.IO.Abstractions" Version="22.3.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.3.0" />
-    <PackageVersion Include="TransactionProcessing.ApiDefaults" Version="2026.10.4" />
+    <PackageVersion Include="TransactionProcessing.ApiDefaults" Version="2026.11.2" />
     <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.2.411" />
     <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.2.411" />
     <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.2.411" />

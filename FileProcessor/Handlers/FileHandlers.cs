@@ -59,11 +59,7 @@ public static class FileHandlers
 
             Result<Guid> result = await mediator.Send(command, cancellationToken);
             uploadAccepted = result.IsSuccess;
-
-            Shared.Logger.Logger.LogDebug($"Day is {request.UploadDateTime.Day}");
-            Shared.Logger.Logger.LogDebug($"Month is {request.UploadDateTime.Month}");
-            Shared.Logger.Logger.LogDebug($"Year is {request.UploadDateTime.Year}");
-
+            
             if (result.IsSuccess)
                 return Results.Accepted(value: request.FileId);
 

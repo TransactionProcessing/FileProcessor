@@ -189,7 +189,7 @@ public static class FileProfileAggregateExtensions
     private static Result<String> ResolveLineTerminator(FileProfileState profile, UpdateFileProfileRequest request)
     {
         if (request.LineTerminator.HasValue == false)
-            return Result.Success(profile.LineTerminator);
+            return Result.Success<String>(profile.LineTerminator);
 
         Result<String> result = request.LineTerminator.Value.ToLineTerminator();
         return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
