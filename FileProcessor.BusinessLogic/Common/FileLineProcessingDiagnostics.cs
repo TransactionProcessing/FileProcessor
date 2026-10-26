@@ -219,9 +219,8 @@ internal static class FileLineProcessingDiagnostics
 
     public static void EventHandlerDispatchThrew(FileLineAddedEvent domainEvent, Exception exception)
     {
-        Logger.LogError(
+        Logger.LogError(exception,
             "event-handler-dispatch-threw FileId={FileId} LineNumber={LineNumber} EstateId={EstateId} MerchantId={MerchantId} EventType={EventType}",
-            exception,
             domainEvent.FileId,
             domainEvent.LineNumber,
             domainEvent.EstateId,
