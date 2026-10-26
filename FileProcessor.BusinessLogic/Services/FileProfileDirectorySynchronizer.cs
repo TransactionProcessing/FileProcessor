@@ -44,7 +44,7 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         }
 
         this.FileSystem.Directory.CreateDirectory(temporaryFileLocation);
-        this.Logger.LogInformation("Ensured temporary file location exists at [{TemporaryFileLocation}]", temporaryFileLocation);
+        this.Logger.LogInformation("Ensured temporary file location exists at [{Directory}]", temporaryFileLocation);
 
         Result<List<FileProfileModel>> fileProfilesResult = await this.FileProfileManager.GetAllFileProfileVersions(cancellationToken);
         if (fileProfilesResult.IsFailed)
@@ -75,6 +75,6 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
     private void EnsureDirectory(string directoryPath, string directoryName)
     {
         this.FileSystem.Directory.CreateDirectory(directoryPath);
-        this.Logger.LogInformation("Ensured {DirectoryName} directory exists at [{DirectoryPath}]", directoryName, directoryPath);
+        this.Logger.LogInformation("Ensured {Directory} directory exists at [{DirectoryPath}]", directoryName, directoryPath);
     }
 }

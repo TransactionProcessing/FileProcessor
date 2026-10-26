@@ -117,16 +117,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result result = await action(fileAggregate);
             if (result.IsFailed)
                 return ResultHelpers.CreateFailure(result);
-            Logger.LogWarning("About to save");
+            
             Result saveResult = await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
             if (saveResult.IsFailed)
                 return ResultHelpers.CreateFailure(saveResult);
-            Logger.LogWarning("About to return success after save");
+            
             return Result.Success();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex);
             return Result.Failure(ex.GetExceptionMessages());
         }
     }
@@ -359,7 +358,6 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     public async Task<Result> ProcessUploadedFile(FileCommands.ProcessUploadedFileCommand command,
                                                   CancellationToken cancellationToken) {
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
-            Logger.LogWarning("In ProcessUploadedFile action");
             Result<Guid> operatorIdResult = await GetOperatorIdForFileProfile(command.FileId,
                                                                               command.EstateId,
                                                                               command.FileProfileId,
@@ -368,13 +366,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             if (operatorIdResult.IsFailed)
                 return ResultHelpers.CreateFailure(operatorIdResult);
 
-            Logger.LogWarning("About to Create File");
             FileAggregateExtensions.CreateFileRequest request = new(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.Data, command.FileProfileVersionId);
             Result stateResult = fileAggregate.CreateFile(request);
             if (stateResult.IsFailed)
                 return stateResult;
 
-            Logger.LogWarning("About to return success");
             return Result.Success();
 
         }, command.FileId, cancellationToken, false );
@@ -432,7 +428,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                               cancellationToken);
 
         if (fileProfileResult.IsFailed){
-            Logger.LogInformation($"file profile {fileProfileId} not  found");
+            Logger.LogInformation("file profile {fileProfileId} not found", fileProfileId);
             return ResultHelpers.CreateFailure(fileProfileResult);
         }
         FileProfileModel fileProfile = fileProfileResult.Data;
@@ -503,7 +499,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (result.IsFailed)
         {
             FileLineProcessingDiagnostics.ProcessingFailed(processingContext, result);
-            Logger.LogWarning($"{command.LineNumber} Status {result.Status} Message {result.Message}");
+            Logger.LogWarning("Line Processing failed {LineNumber} Status {Status} Message {Message}", command.LineNumber, result.Status, result.Message);
         }
         else if (processingContext.Stage == FileLineProcessingStage.FileLineStatePersisted)
         {
@@ -887,18 +883,18 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (result.IsSuccess) {
             if (fileWasRejected)
             {
-                Logger.LogWarning($"About to move rejected file {inProgressFile.Name} to [{fileProfile.FailedDirectory}]");
+                Logger.LogWarning("About to move rejected file {FileName} to [{Directory}]", inProgressFile.Name, fileProfile.FailedDirectory);
                 inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
                 return Result.Success();
             }
 
-            Logger.LogInformation($"About to move file {inProgressFile.Name} to [{fileProfile.ProcessedDirectory}]");
+            Logger.LogInformation("About to move file {{FileName}} to [{Directory}]", inProgressFile.Name, fileProfile.ProcessedDirectory);
 
             // Move file now
             inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}", true);
         }
         else {
-            Logger.LogWarning($"About to move file {inProgressFile.Name} to [{fileProfile.FailedDirectory}]. Reason(s) [{String.Join(",", result.Errors)}]");
+            Logger.LogWarning("About to move file {FileName} to [{Directory}]. Reason(s) [{Reason}]", inProgressFile.Name, fileProfile.FailedDirectory, String.Join(",", result.Errors));
             inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
         }
 
@@ -933,7 +929,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (this.FileSystem.Directory.Exists(directory))
             return;
 
-        Logger.LogInformation($"Creating Directory {directory} as not found");
+        Logger.LogInformation("Creating Directory {Directory} as not found", directory);
         this.FileSystem.Directory.CreateDirectory(directory);
     }
 

@@ -147,8 +147,9 @@ public class Program
             app.UseDeveloperExceptionPage();
         }
 
-        ILogger logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("FileProcessor");
-        Logger.Initialise(logger);
+        LogManager.Setup().LoadConfigurationFromFile("NLog.config");
+        NLog.Logger logger = LogManager.GetLogger("FileProcessor");
+        Shared.Logger.Logger.Initialise(logger, "FileProcessor");
         IConfigurationRoot configuration = (IConfigurationRoot)app.Configuration;
         configuration.LogConfiguration(Logger.LogWarning);
         ConfigurationReader.Initialise(configuration);

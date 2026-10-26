@@ -1,8 +1,6 @@
 ﻿using System;
-using FileProcessor.BusinessLogic.Services;
-using Microsoft.Extensions.Logging.Abstractions;
-
 using Shared.EventStore.Helpers;
+using Shared.Logger;
 using Shouldly;
 using SimpleResults;
 using Xunit;
@@ -12,7 +10,7 @@ namespace FileProcessor.BusinessLogic.Tests;
 public class DomainServiceHelperTests
 {
     public DomainServiceHelperTests() {
-        Shared.Logger.Logger.Initialise(NullLogger.Instance);
+        Shared.Logger.Logger.Initialise(new NullLogger());
     }
 
     [Fact]

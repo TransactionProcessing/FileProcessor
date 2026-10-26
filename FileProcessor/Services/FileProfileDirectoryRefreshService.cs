@@ -36,7 +36,7 @@ public sealed class FileProfileDirectoryRefreshService : BackgroundService
         pollingWindowInSeconds = Math.Max(1, pollingWindowInSeconds);
         TimeSpan pollingWindow = TimeSpan.FromSeconds(pollingWindowInSeconds);
 
-        this.Logger.LogInformation("File profile directory refresh started with a {PollingWindow} second interval", pollingWindowInSeconds);
+        this.Logger.LogInformation($"File profile directory refresh started with a {pollingWindowInSeconds} second interval");
 
         using PeriodicTimer timer = new PeriodicTimer(pollingWindow);
 
@@ -59,7 +59,7 @@ public sealed class FileProfileDirectoryRefreshService : BackgroundService
                 Result result = await this.DirectorySynchronizer.SyncAsync(stoppingToken);
                 if (result.IsFailed)
                 {
-                    this.Logger.LogWarning("File profile directory refresh failed: {Message}", result.Message);
+                    this.Logger.LogWarning($"File profile directory refresh failed: {result.Message}");
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

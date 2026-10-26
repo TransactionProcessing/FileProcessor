@@ -29,13 +29,13 @@ namespace FileProcessor.Handlers
 
             try
             {
-                Logger.LogInformation($"Processing event - ID [{domainEvent.EventId}], Type[{domainEvent.GetType().Name}]");
+                Logger.LogInformation("Processing event - ID [{eventId}], Type[{eventType}]", domainEvent.EventId, domainEvent.GetType().Name);
 
                 Result<List<IDomainEventHandler>> eventHandlersResult = resolver.GetDomainEventHandlers(domainEvent);
 
                 if (eventHandlersResult.IsFailed)
                 {
-                    Logger.LogWarning($"No event handlers configured for Event Type [{domainEvent.GetType().Name}]");
+                    Logger.LogWarning("No event handlers configured for Event Type [{eventType}]", domainEvent.GetType().Name);
                     return Results.Ok();
                 }
 
@@ -49,7 +49,7 @@ namespace FileProcessor.Handlers
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(new Exception($"One or more handlers threw while processing event [{domainEvent.EventId}]", ex));
+                    Logger.LogError(ex, "One or more handlers threw while processing event [{eventId}]", domainEvent.EventId);
                 }
 
                 List<HandlerFailure> failures = executions.SelectMany(GetFailures).ToList();
@@ -72,7 +72,7 @@ namespace FileProcessor.Handlers
             catch (Exception ex)
             {
                 string domainEventData = StringSerialiser.Serialise(domainEvent);
-                Logger.LogError($"Failed to process event. Data received [{domainEventData}]", ex);
+                Logger.LogError(ex, $"Failed to process event. Data received [{domainEventData}]");
                 throw;
             }
         }
@@ -81,7 +81,7 @@ namespace FileProcessor.Handlers
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                Logger.LogInformation($"Cancel request for EventId {eventId}");
+                Logger.LogInformation("Cancel request for EventId {eventId}", eventId);
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }

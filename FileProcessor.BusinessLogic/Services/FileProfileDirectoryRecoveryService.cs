@@ -8,6 +8,7 @@ using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.Models;
 using MediatR;
+using Shared.Logger;
 using Shared.Results;
 using SimpleResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
@@ -73,9 +74,8 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
     private async Task RecoverFileAsync(FileProfileModel fileProfile, string filePath, CancellationToken cancellationToken)
     {
         string fileName = Path.GetFileNameWithoutExtension(filePath);
-        if (TryParseIdentifiers(fileName, out Guid estateId, out Guid fileId) == false)
-        {
-            Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because the name does not contain recoverable identifiers");
+        if (TryParseIdentifiers(fileName, out Guid estateId, out Guid fileId) == false) {
+            Shared.Logger.Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because the name does not contain recoverable identifiers", filePath);
             return;
         }
 
@@ -106,9 +106,8 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
             FileImportLogModel importLog = importLogResult.Data;
             ImportLogFile importLogFile = importLog?.Files?.Find(file => file.FileId == fileId);
 
-            if (importLogResult.IsFailed || importLog == null || importLogFile == null)
-            {
-                Shared.Logger.Logger.LogWarning($"Skipping leftover in-progress file [{filePath}] because file [{fileId}] could not be loaded from the file aggregate or import log read model");
+            if (importLogResult.IsFailed || importLog == null || importLogFile == null) {
+                Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because file [{FileId}] could not be loaded from the file aggregate or import log read model", filePath, fileId);
                 return;
             }
 
@@ -127,11 +126,11 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         Result result = await this.Mediator.Send(command, cancellationToken);
         if (result.IsFailed)
         {
-            Shared.Logger.Logger.LogWarning($"Recovery processing failed for leftover in-progress file [{filePath}]: {result.Message}");
+            Logger.LogWarning("Recovery processing failed for leftover in-progress file [{FileName}]: {Message}", filePath, result.Message);
             return;
         }
 
-        Shared.Logger.Logger.LogInformation($"Recovered leftover in-progress file [{filePath}] for file profile [{fileProfile.FileProfileId}]");
+        Logger.LogInformation("Recovered leftover in-progress file [{FileName}] for file profile [{FileProfileId}]", filePath, fileProfile.FileProfileId);
     }
 
     private static bool TryParseIdentifiers(string fileName, out Guid estateId, out Guid fileId)

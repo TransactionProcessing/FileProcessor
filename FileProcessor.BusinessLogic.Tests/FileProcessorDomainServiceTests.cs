@@ -51,13 +51,13 @@ public class FileProcessorDomainServiceTests
     private FileProcessorDomainService FileProcessorDomainService;
 
     private MockFileSystem FileSystem;
-    private CapturingLogger<FileProcessorDomainService> DiagnosticLogger;
+    private CapturingLogger DiagnosticLogger;
     public FileProcessorDomainServiceTests()
     {
         IConfigurationRoot configurationRoot = new ConfigurationBuilder().AddInMemoryCollection(TestData.DefaultAppSettings).Build();
         ConfigurationReader.Initialise(configurationRoot);
 
-        Logger.Initialise(NullLogger.Instance);
+        //Logger.Initialise(NullLogger.Instance);
 
         this.FileProcessorManager = new IFileProcessorManagerImposter();
         this.FileProcessorManager.GetFileProfileVersion(Arg<Guid>.Any(),
@@ -73,7 +73,7 @@ public class FileProcessorDomainServiceTests
         this.FileFormatHandler.ValidateFile(Arg<TextReader>.Any(), Arg<String>.Any()).Returns(
             new FileValidationResult(Guid.Empty, true, Array.Empty<FileValidationError>()));
         this.FileSystem = new MockFileSystem();
-        this.DiagnosticLogger = new CapturingLogger<FileProcessorDomainService>();
+        this.DiagnosticLogger = new CapturingLogger();
 
         Func<String, IFileFormatHandler> fileFormatHandlerResolver = (format) =>
                                                                      {
