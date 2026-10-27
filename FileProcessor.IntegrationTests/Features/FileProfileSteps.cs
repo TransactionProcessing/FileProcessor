@@ -186,7 +186,7 @@ public class FileProfileSteps
 
     private static LineTerminatorType? ParseLineTerminator(string lineTerminator)
     {
-        if (string.IsNullOrWhiteSpace(lineTerminator))
+        if (string.IsNullOrEmpty(lineTerminator))
         {
             return null;
         }
