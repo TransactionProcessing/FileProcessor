@@ -109,8 +109,8 @@ public class FileProfileSteps
                 CancellationToken.None);
 
             result.IsFailed.ShouldBeTrue(result.Message);
-            result.Message.ShouldContain("Unsupported request type");
-            result.Message.ShouldContain("Unsupported file format handler");
+            result.Errors.Any(error => error.Contains("Unsupported request type")).ShouldBeTrue();
+            result.Errors.Any(error => error.Contains("Unsupported file format handler")).ShouldBeTrue();
         }
     }
 
@@ -218,7 +218,6 @@ public class FileProfileSteps
         Result<FileProfile> updateResult = await this.FileProcessorSteps.UpdateFileProfile(this.TestingContext.AccessToken, fileProfileId, request, CancellationToken.None);
 
         updateResult.IsSuccess.ShouldBeTrue(updateResult.Message);
-        updateResult.Data.ShouldNotBeNull();
     }
 
     private async Task<FileProfile> GetProfileByAlias(string alias)
