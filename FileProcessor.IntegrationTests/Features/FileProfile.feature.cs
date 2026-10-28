@@ -390,6 +390,15 @@ await this.FeatureBackgroundAsync();
                             "Operator",
                             "1",
                             "UnsupportedFileFormatHandler"});
+                table10.AddRow(new string[] {
+                            "Invalid Profile",
+                            "55555555-5555-5555-5555-555555555555",
+                            "Invalid Profile",
+                            "/home/txnproc/bulkfiles/invalid",
+                            "Profile A",
+                            "Operator",
+                            "1",
+                            "UnsupportedFileFormatHandler"});
 #line 48
  await testRunner.WhenAsync("I try to create the following invalid file profiles", ((string)(null)), table10, "When ");
 #line hidden

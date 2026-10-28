@@ -1,7 +1,5 @@
 ﻿using System.Linq;
 using System.Security.Cryptography;
-using System.Net.Http.Headers;
-using System.Text;
 using Shared.Results;
 
 namespace FileProcessor.Client {
@@ -19,46 +17,81 @@ namespace FileProcessor.Client {
     using FileProcessor.Models;
     using SimpleResults;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <seealso cref="ClientProxyBase" />
-    /// <seealso cref="FileProcessor.Client.IFileProcessorClient" />
-    public class FileProcessorClient : ClientProxyBase, IFileProcessorClient {
-        #region Fields
+    public enum SortDirection {
+        Ascending,
+        Descending,
+    }
+    public record PagingRequest(Int32 PageNumber, Int32 PageSize, SortDirection Direction);
 
-        /// <summary>
-        /// The base address resolver
-        /// </summary>
+    public interface IFileProcessorClient {
+
+        Task<Result<List<FileProfile>>> GetFileProfiles(String accessToken,
+                                                        CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> GetFileProfile(String accessToken,
+                                                 Guid fileProfileId,
+                                                 CancellationToken cancellationToken);
+
+        Task<Result<List<FileProfile>>> GetFileProfileVersions(String accessToken,
+                                                               Guid fileProfileId,
+                                                               CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> GetFileProfileVersion(String accessToken,
+                                                        Guid fileProfileId,
+                                                        Guid fileProfileVersionId,
+                                                        CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> CreateFileProfile(String accessToken,
+                                                    DataTransferObjects.Requests.CreateFileProfileRequest request,
+                                                    CancellationToken cancellationToken);
+
+        Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
+                                                    Guid fileProfileId,
+                                                    DataTransferObjects.Requests.UpdateFileProfileRequest request,
+                                                    CancellationToken cancellationToken);
+
+        Task<Result> ArchiveFileProfile(String accessToken,
+                                        Guid fileProfileId,
+                                        CancellationToken cancellationToken);
+
+        Task<Result<ApiFileDetails>> GetFile(String accessToken,
+                                             Guid estateId,
+                                             Guid fileId,
+                                             CancellationToken cancellationToken);
+
+        /// <returns></returns>
+        Task<Result<ApiFileImportLog>> GetFileImportLog(String accessToken,
+                                                        Guid fileImportLogId,
+                                                        Guid estateId,
+                                                        Guid? merchantId,
+                                                        CancellationToken cancellationToken);
+
+        Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
+                                                          Guid estateId,
+                                                          DateOnly startDate,
+                                                          DateOnly endDate,
+                                                          Guid? merchantId,
+                                                          PagingRequest pagingRequest,
+                                                          CancellationToken cancellationToken);
+
+        Task<Result<Guid>> UploadFile(String accessToken,
+                                      String fileName,
+                                      Byte[] fileData,
+                                      UploadFileRequest uploadFileRequest,
+                                      CancellationToken cancellationToken);
+
+    }
+
+    public class FileProcessorClient : ClientProxyBase, IFileProcessorClient {
+
         private readonly Func<String, String> BaseAddressResolver;
 
-        private readonly HttpClient HttpClient;
-
-        private readonly Func<Object, String> Serialise;
-
-        private readonly Func<String, Type, Object> Deserialise;
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileProcessorClient"/> class.
-        /// </summary>
-        /// <param name="baseAddressResolver">The base address resolver.</param>
-        /// <param name="httpClient">The HTTP client.</param>
         public FileProcessorClient(Func<String, String> baseAddressResolver,
                                    HttpClient httpClient,
                                    Func<object, string> serialise,
-                                   Func<string, Type, object> deserialise) : base(httpClient, serialise, deserialise)
-        {
+                                   Func<string, Type, object> deserialise) : base(httpClient, serialise, deserialise) {
             this.BaseAddressResolver = baseAddressResolver;
-            this.HttpClient = httpClient;
-            this.Serialise = serialise;
-            this.Deserialise = deserialise;
         }
-
-        #endregion
 
         #region Methods
 
@@ -66,7 +99,7 @@ namespace FileProcessor.Client {
                                                                      CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl("/api/file-profiles");
-            return await this.SendRequest<List<FileProfile>>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+            return await this.Get<List<FileProfile>>(requestUri, accessToken, null, cancellationToken);
         }
 
         public async Task<Result<FileProfile>> GetFileProfile(String accessToken,
@@ -74,7 +107,7 @@ namespace FileProcessor.Client {
                                                               CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
-            return await this.SendRequest<FileProfile>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+            return await this.Get<FileProfile>(requestUri, accessToken, null, cancellationToken);
         }
 
         public async Task<Result<List<FileProfile>>> GetFileProfileVersions(String accessToken,
@@ -82,7 +115,7 @@ namespace FileProcessor.Client {
                                                                              CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}/versions");
-            return await this.SendRequest<List<FileProfile>>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+            return await this.Get<List<FileProfile>>(requestUri, accessToken, null, cancellationToken);
         }
 
         public async Task<Result<FileProfile>> GetFileProfileVersion(String accessToken,
@@ -91,7 +124,7 @@ namespace FileProcessor.Client {
                                                                       CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}/versions/{fileProfileVersionId}");
-            return await this.SendRequest<FileProfile>(HttpMethod.Get, requestUri, accessToken, null, cancellationToken);
+            return await this.Get<FileProfile>(requestUri, accessToken, null, cancellationToken);
         }
 
         public async Task<Result<FileProfile>> CreateFileProfile(String accessToken,
@@ -99,7 +132,7 @@ namespace FileProcessor.Client {
                                                                  CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl("/api/file-profiles");
-            return await this.SendRequest<FileProfile>(HttpMethod.Post, requestUri, accessToken, request, cancellationToken);
+            return await this.Post<CreateFileProfileRequest, FileProfile>(requestUri, request, accessToken, cancellationToken);
         }
 
         public async Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
@@ -108,7 +141,7 @@ namespace FileProcessor.Client {
                                                                  CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
-            return await this.SendRequest<FileProfile>(HttpMethod.Patch, requestUri, accessToken, request, cancellationToken);
+            return await this.Patch<UpdateFileProfileRequest>(requestUri, request, accessToken, cancellationToken);
         }
 
         public async Task<Result> ArchiveFileProfile(String accessToken,
@@ -116,7 +149,7 @@ namespace FileProcessor.Client {
                                                      CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
-            Result<FileProfile> result = await this.SendRequest<FileProfile>(HttpMethod.Delete, requestUri, accessToken, null, cancellationToken);
+            Result<FileProfile> result = await this.Delete(requestUri, accessToken, cancellationToken);
 
             if (result.IsFailed)
             {
@@ -126,14 +159,6 @@ namespace FileProcessor.Client {
             return Result.Success();
         }
 
-        /// <summary>
-        /// Gets the file.
-        /// </summary>
-        /// <param name="accessToken">The access token.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="fileId">The file identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public async Task<Result<ApiFileDetails>> GetFile(String accessToken,
                                                           Guid estateId,
                                                           Guid fileId,
@@ -156,15 +181,6 @@ namespace FileProcessor.Client {
             }
         }
 
-        /// <summary>
-        /// Gets the file import log.
-        /// </summary>
-        /// <param name="accessToken">The access token.</param>
-        /// <param name="fileImportLogId">The file import log identifier.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public async Task<Result<ApiFileImportLog>> GetFileImportLog(String accessToken,
                                                                      Guid fileImportLogId,
                                                                      Guid estateId,
@@ -192,27 +208,21 @@ namespace FileProcessor.Client {
             }
         }
 
-        /// <summary>
-        /// Gets the file import logs.
-        /// </summary>
-        /// <param name="accessToken">The access token.</param>
-        /// <param name="estateId">The estate identifier.</param>
-        /// <param name="startDate">The first calendar date.</param>
-        /// <param name="endDate">The last calendar date.</param>
-        /// <param name="merchantId">The merchant identifier.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public async Task<Result<FileImportLogList>> GetFileImportLogs(String accessToken,
                                                                Guid estateId,
                                                                DateOnly startDate,
                                                                DateOnly endDate,
                                                                Guid? merchantId,
-                                                               Int32 pageNumber,
-                                                               Int32 pageSize,
-                                                               Boolean descending,
+                                                               PagingRequest pagingRequest,
                                                                CancellationToken cancellationToken) {
+
+            Boolean descending = pagingRequest.Direction switch {
+                                     SortDirection.Ascending => false,
+                                     _ => true
+                                 };
+
             String requestUri = this.BuildRequestUrl(
-                $"/api/fileImportLogs?estateId={estateId}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}&pageNumber={pageNumber}&pageSize={pageSize}&descending={descending}");
+                $"/api/fileImportLogs?estateId={estateId}&startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}&pageNumber={pagingRequest.PageNumber}&pageSize={pagingRequest.PageSize}&descending={descending}");
 
             if (merchantId.HasValue)
                 requestUri += $"&merchantId={merchantId}";
@@ -221,15 +231,6 @@ namespace FileProcessor.Client {
             return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
         }
 
-        /// <summary>
-        /// Uploads the file.
-        /// </summary>
-        /// <param name="accessToken">The access token.</param>
-        /// <param name="fileName">Name of the file.</param>
-        /// <param name="fileData">The file data.</param>
-        /// <param name="uploadFileRequest">The upload file request.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public async Task<Result<Guid>> UploadFile(String accessToken,
                                                    String fileName,
                                                    Byte[] fileData,
@@ -276,11 +277,6 @@ namespace FileProcessor.Client {
             }
         }
 
-        /// <summary>
-        /// Builds the request URL.
-        /// </summary>
-        /// <param name="route">The route.</param>
-        /// <returns></returns>
         private String BuildRequestUrl(String route) {
             String baseAddress = this.BaseAddressResolver("FileProcessorApi");
 
@@ -289,43 +285,6 @@ namespace FileProcessor.Client {
             return requestUri;
         }
 
-        private async Task<Result<T>> SendRequest<T>(HttpMethod method,
-                                                     String requestUri,
-                                                     String accessToken,
-                                                     Object body,
-                                                     CancellationToken cancellationToken)
-        {
-            using HttpRequestMessage request = new(method, requestUri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            if (body != null)
-            {
-                String payload = this.Serialise(body);
-                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
-            }
-
-            HttpResponseMessage response = await this.HttpClient.SendAsync(request, cancellationToken);
-            String responseContent = response.Content == null ? null : await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (response.IsSuccessStatusCode == false)
-            {
-                String message = String.IsNullOrWhiteSpace(responseContent)
-                    ? $"Request failed with status code {(Int32)response.StatusCode}"
-                    : responseContent;
-
-                return response.StatusCode == System.Net.HttpStatusCode.NotFound
-                    ? Result.NotFound(message)
-                    : Result.Failure(message);
-            }
-
-            if (String.IsNullOrWhiteSpace(responseContent))
-            {
-                return Result.Success(default(T));
-            }
-
-            Object deserialised = this.Deserialise(responseContent, typeof(T));
-            return Result.Success((T)deserialised);
-        }
 
         #endregion
     }

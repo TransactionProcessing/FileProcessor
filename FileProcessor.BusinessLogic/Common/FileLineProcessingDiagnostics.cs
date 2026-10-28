@@ -46,6 +46,7 @@ internal sealed class FileLineProcessingContext
     public Boolean TransactionDispatchSucceeded { get; set; }
 
     public String TransactionDispatchFailureType { get; set; }
+    public String TransactionDispatchFailureResult { get; set; }
 
     public Guid EstateId { get; set; }
 
