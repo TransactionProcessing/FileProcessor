@@ -40,7 +40,7 @@ public class FileProcessorSteps
                                                                 uploadFileRequest,
                                                                 CancellationToken.None);
         uploadFileResult.IsSuccess.ShouldBeTrue();
-        var fileId = uploadFileResult.Data;
+        Guid fileId = uploadFileResult.Data;
         fileId.ShouldNotBe(Guid.Empty);
 
         estateDetails.AddUploadedFile(new FileImportLogFile
@@ -124,7 +124,7 @@ public class FileProcessorSteps
                                                                                                             String filePath,
                                                                                                             Byte[] fileData,
                                                                                                             UploadFileRequest uploadFileRequest) {
-        var result = await this.FileProcessorClient.UploadFile(accessToken, Path.GetFileName(filePath), fileData, uploadFileRequest, CancellationToken.None);
+        Result<Guid> result = await this.FileProcessorClient.UploadFile(accessToken, Path.GetFileName(filePath), fileData, uploadFileRequest, CancellationToken.None);
         result.IsFailed.ShouldBeTrue();
     }
 
@@ -135,15 +135,15 @@ public class FileProcessorSteps
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
+        PagingRequest pagingRequest = new(1, 50, Client.SortDirection.Descending);
+
         await Retry.For(async () => {
-                            var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
+                            Result<FileImportLogList> getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                                                estate.EstateDetails.EstateId,
                                                                                                                DateOnly.FromDateTime(queryStartDate),
                                                                                                                DateOnly.FromDateTime(queryEndDate),
                                                                                                                null,
-                                                                                                               1,
-                                                                                                               50,
-                                                                                                               false,
+                                                                                                               pagingRequest,
                                                                                                                CancellationToken.None);
                             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
                             FileImportLogList importLogList = getFileImportLogsResult.Data;
@@ -165,23 +165,23 @@ public class FileProcessorSteps
         EstateDetails1 estate = estateDetailsList.SingleOrDefault(e => e.EstateDetails.EstateName == estateName);
         estate.ShouldNotBeNull();
 
+        PagingRequest pagingRequest = new(1, 50, Client.SortDirection.Descending);
+
         DateTime queryStartDate = ReqnrollTableHelper.GetDateForDateString(startDate, DateTime.Now);
-        var importLogListResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
+        Result<FileImportLogList> importLogListResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                            estate.EstateDetails.EstateId,
                                                                                            DateOnly.FromDateTime(queryStartDate),
                                                                                            DateOnly.FromDateTime(queryStartDate),
                                                                                            null,
-                                                                                           1,
-                                                                                           50,
-                                                                                           false,
+                                                                                           pagingRequest,
                                                                                            CancellationToken.None);
         importLogListResult.IsSuccess.ShouldBeTrue();
-        var importLogList = importLogListResult.Data;
+        FileImportLogList importLogList = importLogListResult.Data;
         importLogList.ShouldNotBeNull();
         importLogList.FileImportLogs.ShouldHaveSingleItem();
 
         Guid fileImportLogId = importLogList.FileImportLogs.Single().FileImportLogId;
-        var getImportLogResult = await this.FileProcessorClient.GetFileImportLog(accessToken,
+        Result<FileImportLog> getImportLogResult = await this.FileProcessorClient.GetFileImportLog(accessToken,
                                                                                       fileImportLogId,
                                                                                       estate.EstateDetails.EstateId,
                                                                                       null,
@@ -209,14 +209,13 @@ public class FileProcessorSteps
 
         DateTime expectedDate = ReqnrollTableHelper.GetDateForDateString(expectedDateString, DateTime.Now);
 
-        var getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
+        PagingRequest pagingRequest = new(1, 50, Client.SortDirection.Descending);
+        Result<FileImportLogList> getFileImportLogsResult = await this.FileProcessorClient.GetFileImportLogs(accessToken,
                                                                                          estate.EstateDetails.EstateId,
                                                                                          DateOnly.FromDateTime(expectedDate.AddDays(-1)),
                                                                                          DateOnly.FromDateTime(DateTime.Now),
                                                                                          null,
-                                                                                         1,
-                                                                                         50,
-                                                                                         false,
+                                                                                         pagingRequest,
                                                                                          CancellationToken.None);
 
         getFileImportLogsResult.IsSuccess.ShouldBeTrue();
@@ -234,9 +233,9 @@ public class FileProcessorSteps
 
         await Retry.For(async () =>
                         {
-                            var getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
+                            Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            var fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
 
                             fileDetails.ProcessingCompleted.ShouldBe(fileSummary.ProcessingCompleted);
@@ -256,9 +255,9 @@ public class FileProcessorSteps
         Guid fileId = estate.GetFileId(fileName);
 
         await Retry.For(async () => {
-                            var getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
+                            Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            var fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
 
                             foreach (ReqnrollExtensions.FileLineDetails fileLineDetail in fileLineDetails){
@@ -285,9 +284,9 @@ public class FileProcessorSteps
 
         await Retry.For(async () =>
                         {
-                            var getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
+                            Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            var fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.Data;
                             fileDetails.ShouldNotBeNull();
                             fileDetails.IsRejected.ShouldBeTrue();
                             fileDetails.RejectionCode.ShouldBe("MaximumDetailRecordsExceeded");
