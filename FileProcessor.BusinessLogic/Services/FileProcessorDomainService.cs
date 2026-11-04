@@ -169,7 +169,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return validateResult;
 
         // The import log is created only after validation and duplicate checks succeed.
-        Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime.Date, command.EstateId);
+        Guid importLogId = Helpers.CalculateFileImportLogAggregateId(importLogDateTime, command.EstateId);
 
         Result result = await ApplyFileImportLogUpdates(
             fileImportLogAggregate => this.RegisterUploadedFile(command, importLogDateTime, fileImportLogAggregate, cancellationToken),
