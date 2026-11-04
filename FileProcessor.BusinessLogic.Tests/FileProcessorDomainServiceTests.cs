@@ -1,5 +1,6 @@
 using System.Text;
 using SimpleResults;
+using TransactionProcessor.DataTransferObjects.Requests.Transaction;
 using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
 

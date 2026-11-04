@@ -102,7 +102,7 @@ namespace FileProcessor.BusinessLogic.Tests
             this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             await this.Context.SaveChangesAsync();
 
-            Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate), DateOnly.FromDateTime(TestData.ImportLogEndDate), null, 1, 50, false, CancellationToken.None);
+            Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), null, 1, 50, false, CancellationToken.None);
             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
             List<FileImportLog> importLogs = getFileImportLogsResult.Data.FileImportLogs;
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
@@ -120,7 +120,7 @@ namespace FileProcessor.BusinessLogic.Tests
             this.Context.Merchants.Add(new Merchant { MerchantId = TestData.MerchantId, Name = TestData.MerchantName });
             await this.Context.SaveChangesAsync();
 
-            Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate), DateOnly.FromDateTime(TestData.ImportLogEndDate), TestData.MerchantId, 1, 50, false, CancellationToken.None);
+            Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), TestData.MerchantId, 1, 50, false, CancellationToken.None);
 
             this.VerifyImportLogs(TestData.FileImportLogs, importLogsResult.Data.FileImportLogs, TestData.MerchantId);
             importLogsResult.Data.FileImportLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
@@ -171,8 +171,8 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLogQueryResult> result = await this.Manager.GetFileImportLogs(
                 TestData.EstateId,
-                DateOnly.FromDateTime(TestData.ImportLogStartDate),
-                DateOnly.FromDateTime(TestData.ImportLogEndDate),
+                DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime),
+                DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime),
                 null,
                 1,
                 1,

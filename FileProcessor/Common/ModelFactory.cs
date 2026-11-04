@@ -1,4 +1,5 @@
 ﻿using FileProcessor.Models;
+using System;
 
 namespace FileProcessor.Common
 {
@@ -75,7 +76,7 @@ namespace FileProcessor.Common
                                                           {
                                                               FileCount = fileImportLog.Files.Count(),
                                                               FileImportLogId = fileImportLog.FileImportLogId,
-                                                              ImportLogDate = fileImportLog.FileImportLogDateTime.Date,
+                                                              ImportLogDate = DateOnly.FromDateTime(fileImportLog.FileImportLogDateTime.Date),
                                                               ImportLogDateTime = fileImportLog.FileImportLogDateTime,
                                                               ImportLogTime = fileImportLog.FileImportLogDateTime.TimeOfDay,
                                                               Files = new List<FileImportLogFile>()

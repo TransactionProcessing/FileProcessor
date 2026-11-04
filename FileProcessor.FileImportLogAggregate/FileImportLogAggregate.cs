@@ -9,13 +9,11 @@ namespace FileProcessor.FileImportLogAggregate
     using System.Linq;
     using FileImportLog.DomainEvents;
     using FileProcessor.Models;
-    using Microsoft.AspNetCore.Mvc.Rendering;
     using Shared.DomainDrivenDesign.EventSourcing;
     using Shared.EventStore.Aggregate;
-    using Shared.General;
-
+    
     public static class FileImportLogAggregateExtensions{
-        public static Result CreateImportLog(this FileImportLogAggregate aggregate, Guid estateId, DateTime importLogDateTime)
+        public static Result CreateImportLog(this FileImportLogAggregate aggregate, Guid estateId, DateTimeOffset importLogDateTime)
         {
             // Silently handle a duplicate create
             if (aggregate.IsCreated)
@@ -34,7 +32,7 @@ namespace FileProcessor.FileImportLogAggregate
                                              Guid fileProfileId,
                                              String originalFileName,
                                              String filePath,
-                                             DateTime fileUploadedDateTime)
+                                             DateTimeOffset fileUploadedDateTime)
         {
             return aggregate.AddImportedFile(new AddImportedFileRequest(fileId,
                                                                          merchantId,
@@ -129,7 +127,7 @@ namespace FileProcessor.FileImportLogAggregate
                                          Guid FileProfileId,
                                          String OriginalFileName,
                                          String FilePath,
-                                         DateTime FileUploadedDateTime,
+                                         DateTimeOffset FileUploadedDateTime,
                                          Guid FileProfileVersionId = default);
 
 
@@ -167,7 +165,7 @@ namespace FileProcessor.FileImportLogAggregate
         
         public Guid EstateId { get; internal set; }
         
-        public DateTime ImportLogDateTime { get; internal set; }
+        public DateTimeOffset ImportLogDateTime { get; internal set; }
         
         internal List<ImportLogFile> Files;
 

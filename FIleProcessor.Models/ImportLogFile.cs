@@ -62,7 +62,7 @@
         /// <value>
         /// The uploaded date time.
         /// </value>
-        public DateTime UploadedDateTime { get; set; }
+        public DateTimeOffset UploadedDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets the user identifier.

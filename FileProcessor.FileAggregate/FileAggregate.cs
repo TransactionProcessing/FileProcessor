@@ -142,7 +142,7 @@ namespace FileProcessor.FileAggregate
             aggregate.IsCompleted = true;
         }
 
-        public record CreateFileRequest(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTime fileReceivedDateTime, Guid operatorId, Guid fileProfileVersionId = default);
+        public record CreateFileRequest(Guid fileImportLogId, Guid estateId, Guid merchantId, Guid userId, Guid fileProfileId, String fileLocation, DateTimeOffset fileReceivedDateTime, Guid operatorId, Guid fileProfileVersionId = default);
 
         public static Result CreateFile(this FileAggregate aggregate, CreateFileRequest createFileRequest)
         {
@@ -189,7 +189,7 @@ namespace FileProcessor.FileAggregate
                                         Int32 maximumDetailRecordCount,
                                         String rejectionCode,
                                         String rejectionReason,
-                                        DateTime rejectedDateTime)
+                                        DateTimeOffset rejectedDateTime)
         {
             if (aggregate.IsCreated == false)
                 return Result.Invalid($"File Id {aggregate.AggregateId} has not been uploaded yet");
@@ -352,7 +352,7 @@ namespace FileProcessor.FileAggregate
             if (aggregate.FileLines.Any(f => f.ProcessingResult == ProcessingResult.NotProcessed) == false)
             {
                 // All lines have been processed, write out a completed event
-                FileProcessingCompletedEvent fileProcessingCompletedEvent = new FileProcessingCompletedEvent(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, DateTime.Now);
+                FileProcessingCompletedEvent fileProcessingCompletedEvent = new FileProcessingCompletedEvent(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, DateTimeOffset.UtcNow);
 
                 aggregate.ApplyAndAppend(fileProcessingCompletedEvent);
             }
@@ -372,7 +372,7 @@ namespace FileProcessor.FileAggregate
 
         internal Guid FileImportLogId;
 
-        internal DateTime FileReceivedDateTime;
+        internal DateTimeOffset FileReceivedDateTime;
 
         internal Guid UserId;
 
@@ -390,7 +390,7 @@ namespace FileProcessor.FileAggregate
 
         internal Int32 MaximumDetailRecordCount;
 
-        internal DateTime RejectedDateTime;
+        internal DateTimeOffset RejectedDateTime;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAggregate" /> class.

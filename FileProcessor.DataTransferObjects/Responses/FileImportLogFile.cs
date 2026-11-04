@@ -28,7 +28,7 @@
 
         /// <summary>Gets or sets when the file was uploaded.</summary>
         [Description("When the file was uploaded.")]
-        public DateTime FileUploadedDateTime { get; set; }
+        public DateTimeOffset FileUploadedDateTime { get; set; }
 
         /// <summary>Gets or sets the identifier of the associated merchant.</summary>
         [Description("The identifier of the associated merchant.")]

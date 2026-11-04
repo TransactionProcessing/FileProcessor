@@ -29,6 +29,6 @@ namespace FileProcessor.DataTransferObjects
 
         /// <summary>Gets or sets the time the file was uploaded. If omitted or set to the minimum date value, the server uses the current local time.</summary>
         [Description("The time the file was uploaded. If omitted or set to the minimum date value, the server uses the current local time.")]
-        public DateTime UploadDateTime { get; set; }
+        public DateTimeOffset UploadDateTime { get; set; }
     }
 }

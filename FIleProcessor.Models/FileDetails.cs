@@ -66,7 +66,7 @@
 
         public Guid FileProfileVersionId { get; set; }
 
-        public DateTime FileReceivedDateTime { get; set; }
+        public DateTimeOffset FileReceivedDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets the merchant identifier.

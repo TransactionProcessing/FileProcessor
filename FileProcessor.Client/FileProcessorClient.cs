@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Security.Cryptography;
 using Shared.Results;
+using System.Globalization;
 
 namespace FileProcessor.Client {
     using System;
@@ -244,8 +245,9 @@ namespace FileProcessor.Client {
                 formFields.Add(("MerchantId", uploadFileRequest.MerchantId.ToString()));
                 formFields.Add(("FileProfileId", uploadFileRequest.FileProfileId.ToString()));
                 formFields.Add(("UserId", uploadFileRequest.UserId.ToString()));
-                formFields.Add(("UploadDateTime", uploadFileRequest.UploadDateTime.ToString("yyyy-MM-dd HH:mm:ss")));
-                
+                formFields.Add(("UploadDateTime",
+                    uploadFileRequest.UploadDateTime.ToString("O", CultureInfo.InvariantCulture)));
+
                 Guid fileId = CreateGuidFromFileData(fileData);
                 formFields.Add(("FileId", fileId.ToString()));
 

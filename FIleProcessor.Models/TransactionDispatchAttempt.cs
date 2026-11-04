@@ -8,6 +8,6 @@ namespace FileProcessor.Models
 
         public String FailureType { get; set; }
 
-        public DateTime AttemptedAt { get; set; }
+        public DateTimeOffset AttemptedAt { get; set; }
     }
 }
