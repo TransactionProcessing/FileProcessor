@@ -6,14 +6,14 @@
     <PackageVersion Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
     <PackageVersion Include="ClientProxyBase" Version="2026.11.2" />
     <PackageVersion Include="HealthMonitoring.Client" Version="2026.10.2.55" />
-    <PackageVersion Include="OpenIddict.Validation.AspNetCore" Version="7.7.2" />
-    <PackageVersion Include="OpenIddict.Validation.SystemNetHttp" Version="7.7.2" />
+    <PackageVersion Include="OpenIddict.Validation.AspNetCore" Version="7.8.0" />
+    <PackageVersion Include="OpenIddict.Validation.SystemNetHttp" Version="7.8.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="coverlet.msbuild" Version="10.1.0" />
     <PackageVersion Include="Ductus.FluentDocker" Version="2.85.0" />
     <PackageVersion Include="EventStoreProjections" Version="2023.12.3" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
-    <PackageVersion Include="Imposter" Version="1.0.7" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
+    <PackageVersion Include="Imposter" Version="1.0.12" />
     <PackageVersion Include="Lamar" Version="16.0.0" />
     <PackageVersion Include="Lamar.Microsoft.DependencyInjection" Version="16.0.0" />
     <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.10.3.157" />
@@ -37,7 +37,7 @@
     <PackageVersion Include="Reqnroll.NUnit" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.4" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.12.1" />
-    <PackageVersion Include="SharpCompress" Version="0.50.7" />
+    <PackageVersion Include="SharpCompress" Version="0.50.8" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="Shared" Version="2026.11.2" />
     <PackageVersion Include="Shared.DomainDrivenDesign" Version="2026.11.2" />
@@ -45,14 +45,14 @@
     <PackageVersion Include="Shared.IntegrationTesting" Version="2026.11.2" />
     <PackageVersion Include="Shared.Results" Version="2026.11.2" />
     <PackageVersion Include="Shared.Results.Web" Version="2026.11.2" />
-    <PackageVersion Include="SecurityService.Client" Version="2026.10.3.204" />
-    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.3.204" />
+    <PackageVersion Include="SecurityService.Client" Version="2026.10.3.207" />
+    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.3.207" />
     <PackageVersion Include="System.IO.Abstractions" Version="22.3.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.3.0" />
     <PackageVersion Include="TransactionProcessing.ApiDefaults" Version="2026.11.2" />
-    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.2.411" />
-    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.2.411" />
-    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.2.411" />
+    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.3.418" />
+    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.3.418" />
+    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.3.418" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>

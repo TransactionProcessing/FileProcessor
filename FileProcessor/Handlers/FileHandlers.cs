@@ -45,8 +45,8 @@ public static class FileHandlers
                 await upload.File.CopyToAsync(stream, cancellationToken);
             }
 
-            if (request.UploadDateTime == DateTime.MinValue)
-                request.UploadDateTime = DateTime.Now;
+            if (request.UploadDateTime == DateTimeOffset.MinValue)
+                request.UploadDateTime = DateTimeOffset.UtcNow;
 
             FileCommands.UploadFileCommand command = new(request.FileId,
                 request.EstateId,

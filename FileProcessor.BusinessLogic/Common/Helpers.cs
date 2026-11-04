@@ -5,10 +5,10 @@
 
     public static class Helpers
     {
-        public static Guid CalculateFileImportLogAggregateId(DateTime importLogDateTime,
+        public static Guid CalculateFileImportLogAggregateId(DateTimeOffset importLogDateTime,
                                                           Guid estateId)
         {
-            Guid aggregateId = GuidCalculator.Combine(estateId, importLogDateTime.ToGuid());
+            Guid aggregateId = GuidCalculator.Combine(estateId, importLogDateTime.DateTime.ToGuid());
             return aggregateId;
         }
     }

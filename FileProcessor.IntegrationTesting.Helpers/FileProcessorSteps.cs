@@ -154,7 +154,7 @@ public class FileProcessorSteps
                             foreach ((DateTime, Int32) expectedImportLog in expectedImportLogs)
                             {
                                 // Find the import log now
-                                FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == expectedImportLog.Item1.Date && fil.FileCount == expectedImportLog.Item2);
+                                FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == DateOnly.FromDateTime(expectedImportLog.Item1.Date) && fil.FileCount == expectedImportLog.Item2);
                                 importLog.ShouldNotBeNull();
                             }
                         });
@@ -221,7 +221,7 @@ public class FileProcessorSteps
         getFileImportLogsResult.IsSuccess.ShouldBeTrue();
         FileImportLogList? importLogs = getFileImportLogsResult.Data;
 
-        FileImportLog i = importLogs.FileImportLogs.SingleOrDefault(x => x.ImportLogDate == expectedDate.Date);
+        FileImportLog i = importLogs.FileImportLogs.SingleOrDefault(x => x.ImportLogDate == DateOnly.FromDateTime(expectedDate.Date));
         i.ShouldNotBeNull();
     }
 

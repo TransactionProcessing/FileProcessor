@@ -7,11 +7,11 @@
 
     public record DuplicateFileLineAddedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String FileLine) : DomainEvent(FileId, Guid.NewGuid());
     
-    public record FileProcessingCompletedEvent(Guid FileId, Guid EstateId, Guid MerchantId, DateTime ProcessingCompletedDateTime) : DomainEvent(FileId, Guid.NewGuid());
+    public record FileProcessingCompletedEvent(Guid FileId, Guid EstateId, Guid MerchantId, DateTimeOffset ProcessingCompletedDateTime) : DomainEvent(FileId, Guid.NewGuid());
 
     public record FileLineProcessingFailedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, Guid TransactionId, String ResponseCode, String ResponseMessage) : DomainEvent(FileId, Guid.NewGuid());
 
-    public record FileLineTransactionDispatchFailedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, Int32 TransactionNumber, String FailureType, DateTime AttemptedAt) : DomainEvent(FileId, Guid.NewGuid());
+    public record FileLineTransactionDispatchFailedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, Int32 TransactionNumber, String FailureType, DateTimeOffset AttemptedAt) : DomainEvent(FileId, Guid.NewGuid());
 
     public record FileLineProcessingRejectedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String Reason) : DomainEvent(FileId, Guid.NewGuid());
 
@@ -26,7 +26,7 @@
                                    Guid UserId,
                                    Guid FileProfileId,
                                    String FileLocation,
-                                   DateTime FileReceivedDateTime,
+                                   DateTimeOffset FileReceivedDateTime,
                                    Guid OperatorId,
                                    Guid FileProfileVersionId = default) : DomainEvent(FileId, Guid.NewGuid());
 
@@ -40,5 +40,5 @@
                                     String RejectionReason,
                                     Int32 ObservedDetailRecordCount,
                                     Int32 MaximumDetailRecordCount,
-                                    DateTime RejectedDateTime) : DomainEvent(FileId, Guid.NewGuid());
+                                    DateTimeOffset RejectedDateTime) : DomainEvent(FileId, Guid.NewGuid());
 }

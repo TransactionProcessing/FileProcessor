@@ -1,6 +1,8 @@
 using SecurityService.DataTransferObjects;
 using Shared.EventStore.Helpers;
+using TransactionProcessor.DataTransferObjects.Requests.Transaction;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
+using TransactionProcessor.DataTransferObjects.Responses.Transaction;
 
 namespace FileProcessor.BusinessLogic.Services;
 
@@ -160,7 +162,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     public async Task<Result> UploadFile(FileCommands.UploadFileCommand command,
                                        CancellationToken cancellationToken) {
-        DateTime importLogDateTime = command.FileUploadedDateTime;
+        DateTimeOffset importLogDateTime = command.FileUploadedDateTime;
 
         Result validateResult = this.ValidateRequest(command);
         if (validateResult.IsFailed)
@@ -179,7 +181,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     }
 
     private async Task<Result> RegisterUploadedFile(FileCommands.UploadFileCommand command,
-                                                    DateTime importLogDateTime,
+                                                    DateTimeOffset importLogDateTime,
                                                     FileImportLogAggregate fileImportLogAggregate,
                                                     CancellationToken cancellationToken)
     {
@@ -268,7 +270,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
     private async Task<Result> RegisterNewImportLogFile(FileCommands.UploadFileCommand command,
                                                         String originalName,
-                                                        DateTime importLogDateTime,
+                                                        DateTimeOffset importLogDateTime,
                                                         FileImportLogAggregate fileImportLogAggregate,
                                                         CancellationToken cancellationToken)
     {
@@ -692,6 +694,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             EstateId = fileDetails.EstateId,
             MerchantId = fileDetails.MerchantId,
             TransactionDateTime = fileDetails.FileReceivedDateTime,
+            HostDateTime = DateTimeOffset.UtcNow,
             TransactionNumber = transactionNumber.ToString(CultureInfo.InvariantCulture),
             TransactionType = "Sale",
             ContractId = detailsForTransaction.Data.ContractId,

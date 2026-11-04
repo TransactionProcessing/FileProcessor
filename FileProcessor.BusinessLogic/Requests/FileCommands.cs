@@ -17,7 +17,7 @@ public record FileCommands {
                                              Guid UserId,
                                              String FilePath,
                                              Guid FileProfileId,
-                                             DateTime FileUploadedDateTime,
+                                             DateTimeOffset FileUploadedDateTime,
                                              Guid FileProfileVersionId = default) : IRequest<Result>;
 
     public record UploadFileCommand(Guid FileId,
@@ -26,7 +26,7 @@ public record FileCommands {
                                     Guid UserId,
                                     String FilePath,
                                     Guid FileProfileId,
-                                    DateTime FileUploadedDateTime,
+                                    DateTimeOffset FileUploadedDateTime,
                                     String OriginalFileName = null) : IRequest<Result>;
 
     public record ReplayFileLineCommand(Guid FileId,

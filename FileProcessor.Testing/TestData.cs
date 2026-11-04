@@ -4,6 +4,7 @@ using TransactionProcessor.DataTransferObjects.Responses.Contract;
 using TransactionProcessor.DataTransferObjects.Responses.Merchant;
 using TransactionProcessor.DataTransferObjects.Responses.Operator;
 using FileProcessor.FileProfileAggregate;
+using TransactionProcessor.DataTransferObjects.Responses.Transaction;
 
 namespace FileProcessor.Testing
 {
@@ -578,8 +579,10 @@ namespace FileProcessor.Testing
 
         public static String VoucherFileFormatHandler = FileProfileConfiguration.VoucherFileFormatHandler;
 
-        public static DateTime ImportLogStartDate = new DateTime(2021,7,1);
-        public static DateTime ImportLogEndDate = new DateTime(2021,7,2);
+        public static DateTimeOffset ImportLogStartDate =
+            new DateTimeOffset(2021, 7, 1, 0, 0, 0, TimeSpan.Zero);
+        public static DateTimeOffset ImportLogEndDate =
+            new DateTimeOffset(2021, 7, 2, 0, 0, 0, TimeSpan.Zero);
 
         public static String RejectionReason = "Invalid Line Format";
         public static string UserEmailAddress = "securityuser@testemail.com";

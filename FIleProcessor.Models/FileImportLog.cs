@@ -24,7 +24,7 @@
         /// <value>
         /// The file import log date time.
         /// </value>
-        public DateTime FileImportLogDateTime { get; set; }
+        public DateTimeOffset FileImportLogDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets the file import log identifier.

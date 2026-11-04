@@ -17,6 +17,6 @@
 
         /// <summary>Gets or sets when the dispatch attempt occurred.</summary>
         [Description("When the dispatch attempt occurred.")]
-        public DateTime AttemptedAt { get; set; }
+        public DateTimeOffset AttemptedAt { get; set; }
     }
 }

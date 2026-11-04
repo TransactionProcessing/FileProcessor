@@ -6,6 +6,7 @@ using FileProcessor.Models;
 using Shared.Logger;
 using SimpleResults;
 using TransactionProcessor.DataTransferObjects;
+using TransactionProcessor.DataTransferObjects.Responses.Transaction;
 
 namespace FileProcessor.BusinessLogic.Common;
 

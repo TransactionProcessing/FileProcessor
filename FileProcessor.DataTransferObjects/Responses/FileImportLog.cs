@@ -14,11 +14,11 @@
 
         /// <summary>Gets or sets the import log timestamp.</summary>
         [Description("The import log timestamp.")]
-        public DateTime ImportLogDateTime { get; set; }
+        public DateTimeOffset ImportLogDateTime { get; set; }
         
         /// <summary>Gets or sets the calendar date of the import log.</summary>
         [Description("The calendar date of the import log.")]
-        public DateTime ImportLogDate { get; set; }
+        public DateOnly ImportLogDate { get; set; }
 
         /// <summary>Gets or sets the time of day of the import log.</summary>
         [Description("The time of day of the import log.")]
