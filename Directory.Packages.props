@@ -13,7 +13,7 @@
     <PackageVersion Include="Ductus.FluentDocker" Version="2.85.0" />
     <PackageVersion Include="EventStoreProjections" Version="2023.12.3" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
-    <PackageVersion Include="Imposter" Version="1.0.12" />
+    <PackageVersion Include="Imposter" Version="1.0.13" />
     <PackageVersion Include="Lamar" Version="16.0.0" />
     <PackageVersion Include="Lamar.Microsoft.DependencyInjection" Version="16.0.0" />
     <PackageVersion Include="MessagingService.IntegrationTesting.Helpers" Version="2026.10.3.157" />
@@ -50,10 +50,10 @@
     <PackageVersion Include="System.IO.Abstractions" Version="22.3.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.3.0" />
     <PackageVersion Include="TransactionProcessing.ApiDefaults" Version="2026.11.2" />
-    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.3.418" />
-    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.3.418" />
-    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.3.418" />
-    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.3.430" />
+    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.3.430" />
+    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.3.430" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
 </Project>

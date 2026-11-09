@@ -1,4 +1,5 @@
 ﻿using SecurityService.DataTransferObjects;
+using SimpleResults;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -199,20 +200,20 @@ namespace FileProcessor.IntegrationTests.Steps
 
             foreach (CreateEstateRequest request in requests)
             {
-                var createResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
-                    .CreateEstate(this.TestingContext.AccessToken, request, CancellationToken.None)
-                    .ConfigureAwait(false);
+                Result<Guid> createResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
+                                                      .CreateEstate(this.TestingContext.AccessToken, request, CancellationToken.None)
+                                                      .ConfigureAwait(false);
 
-                createResult.IsSuccess.ShouldBeTrue($"CreateEstate failed for EstateId {request.EstateId}: {createResult.Message}");
+                createResult.IsSuccess.ShouldBeTrue($"CreateEstate failed for Estate {request.EstateName}: {createResult.Message}");
 
                 EstateResponse estate = null;
                 await Retry.For(async () =>
                                 {
                                     var getEstatesResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
-                                        .GetEstates(this.TestingContext.AccessToken, request.EstateId, CancellationToken.None)
+                                        .GetEstates(this.TestingContext.AccessToken, createResult.Data, CancellationToken.None)
                                         .ConfigureAwait(false);
 
-                                    this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {request.EstateId}: " +
+                                    this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {createResult.Data}: " +
                                                                              $"isSuccess={getEstatesResult.IsSuccess}, message={getEstatesResult.Message}, " +
                                                                              $"rows={(getEstatesResult.Data == null ? "null" : getEstatesResult.Data.Count.ToString())}");
 
@@ -286,13 +287,13 @@ namespace FileProcessor.IntegrationTests.Steps
             var estates = this.TestingContext.Estates.Select(e => e.EstateDetails).ToList();
             var requests = table.Rows.ToCreateMerchantRequests(estates);
 
-            List<TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse> verifiedMerchants = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingMerchants(this.TestingContext.AccessToken, requests);
+            Dictionary<Guid, MerchantResponse> verifiedMerchants = await this.GetTransactionProcessorSteps().WhenICreateTheFollowingMerchants(this.TestingContext.AccessToken, requests);
 
-            foreach (TransactionProcessor.DataTransferObjects.Responses.Merchant.MerchantResponse verifiedMerchant in verifiedMerchants)
+            foreach (KeyValuePair<Guid, MerchantResponse> verifiedMerchant in verifiedMerchants)
             {
-                EstateDetails estateDetails = estates.SingleOrDefault(e => e.EstateId==verifiedMerchant.EstateId);
-                estateDetails.AddMerchant(verifiedMerchant);
-                this.TestingContext.Logger.LogInformation($"Merchant {verifiedMerchant.MerchantName} created with Id {verifiedMerchant.MerchantId} for Estate {estateDetails.EstateName}");
+                EstateDetails estateDetails = estates.SingleOrDefault(e => e.EstateId==verifiedMerchant.Value.EstateId);
+                estateDetails.AddMerchant(verifiedMerchant.Value);
+                this.TestingContext.Logger.LogInformation($"Merchant {verifiedMerchant.Value.MerchantName} created with Id {verifiedMerchant.Key} for Estate {estateDetails.EstateName}");
             }
         }
 
