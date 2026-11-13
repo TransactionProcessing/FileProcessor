@@ -102,10 +102,16 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
                 estateId,
                 cancellationToken);
 
+            if (importLogResult.IsFailed)
+            {
+                Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because file [{FileId}] could not be loaded from the file aggregate or import log read model", filePath, fileId);
+                return;
+            }
+
             FileImportLogModel importLog = importLogResult.GetValueOrThrow();
             ImportLogFile importLogFile = importLog?.Files?.Find(file => file.FileId == fileId);
 
-            if (importLogResult.IsFailed || importLog == null || importLogFile == null) {
+            if (importLog == null || importLogFile == null) {
                 Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because file [{FileId}] could not be loaded from the file aggregate or import log read model", filePath, fileId);
                 return;
             }

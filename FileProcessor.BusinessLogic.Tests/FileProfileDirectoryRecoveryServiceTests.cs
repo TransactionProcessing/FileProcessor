@@ -142,6 +142,55 @@ public class FileProfileDirectoryRecoveryServiceTests
     }
 
     [Fact]
+    public async Task RecoverInProgressFilesAsync_WhenFileAndImportLogAreMissing_SkipsFileAndContinues()
+    {
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
+
+        IFileProcessorManagerImposter fileProcessorManager = new();
+        IMediatorImposter mediator = new();
+        MockFileSystem fileSystem = new();
+
+        FileProfileModel fileProfile = TestData.FileProfile;
+        string inProgressDirectory = $"{fileProfile.ListeningDirectory}/inprogress";
+        string missingFilePath = $"{inProgressDirectory}/{TestData.EstateId:N}-{TestData.FileId:N}";
+        string recoverableFilePath = $"{inProgressDirectory}/{TestData.EstateId:N}-{TestData.FileId2:N}";
+
+        fileSystem.AddDirectory(inProgressDirectory);
+        fileSystem.AddFile(missingFilePath, new MockFileData("D,1,1,1"));
+        fileSystem.AddFile(recoverableFilePath, new MockFileData("D,1,1,1"));
+
+        fileProcessorManager
+            .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
+        fileProcessorManager
+            .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound("File aggregate not found"));
+        fileProcessorManager
+            .GetFileImportLogForFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound("Import log not found"));
+        fileProcessorManager
+            .GetFile(TestData.FileId2, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+        mediator
+            .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success());
+
+        FileProfileDirectoryRecoveryService service = new(
+            fileProcessorManager.Instance(),
+            mediator.Instance(),
+            fileSystem);
+
+        Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        mediator.Send(
+            Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
+                command.FileId == TestData.FileId2 &&
+                Path.GetFileName(command.FilePath) == Path.GetFileName(recoverableFilePath)),
+            Arg<CancellationToken>.Any()).Called(Count.Once());
+    }
+
+    [Fact]
     public async Task RecoverInProgressFilesAsync_ReplaysFilesFromHistoricalAndCurrentDirectories()
     {
         TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
