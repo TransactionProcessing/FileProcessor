@@ -1,13 +1,13 @@
-﻿using ClientProxyBase;
-using Shared.EventStore.SubscriptionWorker;
+using TransactionProcessing.ClientProxyBase;
+using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
 
 namespace FileProcessor.Bootstrapper;
 
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityService.Client;
-using Shared.General;
-using Shared.Serialisation;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Serialisation;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;

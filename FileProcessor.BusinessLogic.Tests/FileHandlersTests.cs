@@ -9,13 +9,12 @@ using FileProcessor.Handlers;
 using Imposter.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProcessor.Testing;
-using Shared.General;
-using Shared.Logger;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
 using Xunit;
 
 namespace FileProcessor.BusinessLogic.Tests;
@@ -28,11 +27,10 @@ public class FileHandlersTests
         IMediatorImposter mediator = new();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
 
-        IResult result = await FileHandlers.ReplayLine(
+        IResultOutcome result = await FileHandlers.ReplayLine(
             mediator.Instance(), TestData.FileId, TestData.EstateId, TestData.LineNumber, CancellationToken.None);
 
-        StatusCodeHttpResult response = result.ShouldBeOfType<StatusCodeHttpResult>();
-        response.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+        result.ShouldBeOfType<Result>().IsSuccess.ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
     }
 
@@ -53,7 +51,7 @@ public class FileHandlersTests
             Logger.Initialise(NullLogger.Instance);
 
             IMediatorImposter mediator = new();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure("Failure"));
 
             await using MemoryStream content = new("D,1,1,1"u8.ToArray());
             FormFile formFile = new(content, 0, content.Length, "file", "source.csv")

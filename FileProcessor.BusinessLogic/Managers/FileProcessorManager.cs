@@ -1,6 +1,5 @@
 using FileProcessor.Models;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using TransactionProcessor.Database.Contexts;
 using TransactionProcessor.Database.Entities;
 
@@ -10,10 +9,10 @@ namespace FileProcessor.BusinessLogic.Managers
     using FileAggregate;
     using FileProcessor.Models;
     using Microsoft.EntityFrameworkCore;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EntityFramework;
-    using Shared.EventStore.Aggregate;
-    using Shared.Exceptions;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.EntityFramework;
+    using TransactionProcessing.Shared.EventStore.Aggregate;
+    using TransactionProcessing.Shared.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -106,10 +105,10 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                  CancellationToken cancellationToken)
         {
             if (pageNumber < 1 || pageSize < 1 || pageSize > 200)
-                return Result.Invalid("Page number must be at least 1 and page size must be between 1 and 200");
+                return Result<FileImportLogQueryResult>.Fail(Error.Validation("Page number must be at least 1 and page size must be between 1 and 200"));
 
             if (endDate < startDate)
-                return Result.Invalid("End date must be on or after start date");
+                return Result<FileImportLogQueryResult>.Fail(Error.Validation("End date must be on or after start date"));
 
             DateTime startDateTime = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
             DateTime endDateTime = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
@@ -161,7 +160,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLogQueryResult>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(new FileImportLogQueryResult
@@ -214,7 +213,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(x, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(x);
@@ -261,7 +260,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(model);
@@ -277,7 +276,7 @@ namespace FileProcessor.BusinessLogic.Managers
             if (fileAggregateResult.IsFailed)
                 return ResultHelpers.CreateFailure(fileAggregateResult);
 
-            FileAggregate fileAggregate = fileAggregateResult.Data;
+            FileAggregate fileAggregate = fileAggregateResult.GetValueOrThrow();
             if (fileAggregate.IsCreated == false)
             {
                 return Result.NotFound($"File with Id [{fileId}] not found");
@@ -307,7 +306,7 @@ namespace FileProcessor.BusinessLogic.Managers
             {
                 return ResultHelpers.CreateFailure(getFileProfile);
             }
-            FileProfileModel fileProfile = getFileProfile.Data;
+            FileProfileModel fileProfile = getFileProfile.GetValueOrThrow();
             if (fileProfile != null)
             {
                 fileDetails.FileProfileName = fileProfile.Name;
@@ -334,12 +333,12 @@ namespace FileProcessor.BusinessLogic.Managers
                 {
                     Result<FileAggregate> fileAggregateResult = await this.FileAggregateRepository.GetLatestVersion(importLogFile.FileId,
                                                                                                                           cancellationToken);
-                    if (fileAggregateResult == null || fileAggregateResult.IsFailed || fileAggregateResult.Data == null || fileAggregateResult.Data.IsCreated == false)
+                    if (fileAggregateResult.IsFailed || fileAggregateResult.GetValueOrThrow() == null || fileAggregateResult.GetValueOrThrow().IsCreated == false)
                     {
                         continue;
                     }
 
-                    FileDetails fileDetails = fileAggregateResult.Data.GetFile();
+                    FileDetails fileDetails = fileAggregateResult.GetValueOrThrow().GetFile();
                     importLogFile.FileProfileVersionId = fileDetails.FileProfileVersionId == Guid.Empty
                         ? fileDetails.FileProfileId
                         : fileDetails.FileProfileVersionId;

@@ -1,4 +1,4 @@
-﻿using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Builders;
 using KurrentDB.Client;
 using System;
 using System.Collections.Generic;
@@ -9,14 +9,15 @@ namespace FileProcessor.IntegrationTests.Common
     using Client;
     using EventStore.Client;
     using SecurityService.Client;
-    using Shared.IntegrationTesting;
-    using Shared.Serialisation;
+    using TransactionProcessing.UnionResults;
+    using TransactionProcessing.Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.Serialisation;
     using System.Net.Http;
     using System.Threading;
     using TestHosts.Clients;
     using TransactionProcessor.Client;
 
-    public class DockerHelper : global::Shared.IntegrationTesting.TestContainers.DockerHelper{
+    public class DockerHelper : global::TransactionProcessing.Shared.IntegrationTesting.TestContainers.DockerHelper{
         #region Fields
         
         public HttpClient TestHostHttpClient;
@@ -129,12 +130,12 @@ namespace FileProcessor.IntegrationTests.Common
             
             this.ProjectionManagementClient = new KurrentDBProjectionManagementClient(this.ConfigureKurrentDbSettings());
 
-            SimpleResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
-            if (bootstrapToken.IsFailed || String.IsNullOrWhiteSpace(bootstrapToken.Data?.AccessToken))
+            TransactionProcessing.UnionResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
+            if (bootstrapToken.IsFailed || String.IsNullOrWhiteSpace(bootstrapToken.GetValueOrThrow()?.AccessToken))
             {
                 throw new InvalidOperationException("Unable to obtain the integration-test management bootstrap token.");
             }
-            this.AccessToken = bootstrapToken.Data.AccessToken;
+            this.AccessToken = bootstrapToken.GetValueOrThrow().AccessToken;
         }
 
         String Serialise(Object arg)

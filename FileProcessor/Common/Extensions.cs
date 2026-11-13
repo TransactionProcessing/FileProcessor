@@ -1,4 +1,4 @@
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.Common;
 
@@ -9,12 +9,12 @@ using KurrentDB.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.EventStore.Aggregate;
-using Shared.EventStore.EventHandling;
-using Shared.EventStore.Extensions;
-using Shared.EventStore.SubscriptionWorker;
-using Shared.General;
-using Shared.Logger;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.EventStore.EventHandling;
+using TransactionProcessing.Shared.EventStore.Extensions;
+using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

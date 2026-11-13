@@ -8,7 +8,7 @@ using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.Models;
 using Imposter.Abstractions;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 using FileProfileModel = FileProcessor.Models.FileProfile;
 
@@ -28,7 +28,7 @@ public class FileProfileRequestHandlerTests
 
         Result<List<FileProfileModel>> result = await handler.Handle(query, CancellationToken.None);
 
-        result.Data.ShouldBeSameAs(expected);
+        result.GetValueOrThrow().ShouldBeSameAs(expected);
         manager.GetFileProfileVersions(query.FileProfileId, CancellationToken.None).Called(Count.Once());
     }
 
@@ -44,7 +44,7 @@ public class FileProfileRequestHandlerTests
 
         Result<FileProfileModel> result = await handler.Handle(query, CancellationToken.None);
 
-        result.Data.ShouldBeSameAs(expected);
+        result.GetValueOrThrow().ShouldBeSameAs(expected);
         manager.GetFileProfileVersion(query.FileProfileId,
                                       query.FileProfileVersionId,
                                       CancellationToken.None).Called(Count.Once());

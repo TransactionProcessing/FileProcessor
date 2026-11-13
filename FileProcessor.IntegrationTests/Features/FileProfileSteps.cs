@@ -9,7 +9,7 @@ using FileProcessor.Models;
 using FileProcessorStepsHelper = FileProcessor.IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps.FileProcessorSteps;
 using Reqnroll;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.IntegrationTests.Features;
 
@@ -109,8 +109,8 @@ public class FileProfileSteps
                 CancellationToken.None);
 
             result.IsFailed.ShouldBeTrue(result.Message);
-            result.Errors.Any(error => error.Contains("Unsupported request type")).ShouldBeTrue();
-            result.Errors.Any(error => error.Contains("Unsupported file format handler")).ShouldBeTrue();
+            result.Errors.Any(error => error.Message.Contains("Unsupported request type")).ShouldBeTrue();
+            result.Errors.Any(error => error.Message.Contains("Unsupported file format handler")).ShouldBeTrue();
         }
     }
 
@@ -121,8 +121,8 @@ public class FileProfileSteps
         Result<List<FileProfile>> fileProfilesResult = await this.FileProcessorSteps.GetFileProfiles(this.TestingContext.AccessToken, CancellationToken.None);
 
         fileProfilesResult.IsSuccess.ShouldBeTrue(fileProfilesResult.Message);
-        fileProfilesResult.Data.ShouldNotBeNull();
-        fileProfilesResult.Data.Count.ShouldBe(expectedCount);
+        fileProfilesResult.GetValueOrThrow().ShouldNotBeNull();
+        fileProfilesResult.GetValueOrThrow().Count.ShouldBe(expectedCount);
     }
 
     [Then(@"the file profiles should have the following values")]
@@ -130,12 +130,12 @@ public class FileProfileSteps
     {
         Result<List<FileProfile>> fileProfilesResult = await this.FileProcessorSteps.GetFileProfiles(this.TestingContext.AccessToken, CancellationToken.None);
         fileProfilesResult.IsSuccess.ShouldBeTrue(fileProfilesResult.Message);
-        fileProfilesResult.Data.ShouldNotBeNull();
+        fileProfilesResult.GetValueOrThrow().ShouldNotBeNull();
 
         foreach (DataTableRow row in table.Rows)
         {
             Guid fileProfileId = this.FileProfileIds[row["Alias"]];
-            FileProfile fileProfile = fileProfilesResult.Data.SingleOrDefault(profile => profile.FileProfileId == fileProfileId);
+            FileProfile fileProfile = fileProfilesResult.GetValueOrThrow().SingleOrDefault(profile => profile.FileProfileId == fileProfileId);
 
             fileProfile.ShouldNotBeNull();
             fileProfile.Name.ShouldBe(row["Name"]);
@@ -166,9 +166,9 @@ public class FileProfileSteps
         Result<FileProfile> createResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
 
         createResult.IsSuccess.ShouldBeTrue(createResult.Message);
-        createResult.Data.ShouldNotBeNull();
+        createResult.GetValueOrThrow().ShouldNotBeNull();
 
-        this.FileProfileIds[alias] = createResult.Data.FileProfileId;
+        this.FileProfileIds[alias] = createResult.GetValueOrThrow().FileProfileId;
     }
 
     private UpdateFileProfileRequest BuildUpdateRequest(DataTableRow row)
@@ -215,7 +215,7 @@ public class FileProfileSteps
     private async Task UpdateProfile(string alias, UpdateFileProfileRequest request)
     {
         Guid fileProfileId = this.FileProfileIds[alias];
-        Result<FileProfile> updateResult = await this.FileProcessorSteps.UpdateFileProfile(this.TestingContext.AccessToken, fileProfileId, request, CancellationToken.None);
+        Result updateResult = await this.FileProcessorSteps.UpdateFileProfile(this.TestingContext.AccessToken, fileProfileId, request, CancellationToken.None);
 
         updateResult.IsSuccess.ShouldBeTrue(updateResult.Message);
     }
@@ -226,7 +226,7 @@ public class FileProfileSteps
         Result<FileProfile> result = await this.FileProcessorSteps.GetFileProfile(this.TestingContext.AccessToken, fileProfileId, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue(result.Message);
-        result.Data.ShouldNotBeNull();
-        return result.Data;
+        result.GetValueOrThrow().ShouldNotBeNull();
+        return result.GetValueOrThrow();
     }
 }

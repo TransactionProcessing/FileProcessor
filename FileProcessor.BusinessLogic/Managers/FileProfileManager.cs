@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 using FileProcessor.DataTransferObjects.Requests;
 using FileProcessor.Models;
 using FileProcessor.FileProfileAggregate;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EventStore.Aggregate;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.UnionResults;
 using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
@@ -32,7 +31,7 @@ public class FileProfileManager : IFileProfileManager
             return ResultHelpers.CreateFailure(aggregateResult);
         }
 
-        return Result.Success(aggregateResult.Data.GetAllProfiles());
+        return Result.Success(aggregateResult.GetValueOrThrow().GetAllProfiles());
     }
 
     public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId, CancellationToken cancellationToken)
@@ -43,7 +42,7 @@ public class FileProfileManager : IFileProfileManager
             return ResultHelpers.CreateFailure(aggregateResult);
         }
 
-        FileProfileModel fileProfile = aggregateResult.Data.GetProfile(fileProfileId);
+        FileProfileModel fileProfile = aggregateResult.GetValueOrThrow().GetProfile(fileProfileId);
         if (fileProfile == null)
         {
             return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
@@ -58,7 +57,7 @@ public class FileProfileManager : IFileProfileManager
         if (aggregateResult.IsFailed)
             return ResultHelpers.CreateFailure(aggregateResult);
 
-        List<FileProfileModel> versions = aggregateResult.Data.GetProfileVersions(fileProfileId);
+        List<FileProfileModel> versions = aggregateResult.GetValueOrThrow().GetProfileVersions(fileProfileId);
         if (versions.Count == 0)
             return Result.NotFound($"No file profile found for File Profile Id {fileProfileId}");
 
@@ -71,7 +70,7 @@ public class FileProfileManager : IFileProfileManager
         if (aggregateResult.IsFailed)
             return ResultHelpers.CreateFailure(aggregateResult);
 
-        return Result.Success(aggregateResult.Data.GetAllProfileVersions());
+        return Result.Success(aggregateResult.GetValueOrThrow().GetAllProfileVersions());
     }
 
     public async Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
@@ -82,7 +81,7 @@ public class FileProfileManager : IFileProfileManager
         if (aggregateResult.IsFailed)
             return ResultHelpers.CreateFailure(aggregateResult);
 
-        FileProfileModel version = aggregateResult.Data.GetProfileVersion(fileProfileId, fileProfileVersionId);
+        FileProfileModel version = aggregateResult.GetValueOrThrow().GetProfileVersion(fileProfileId, fileProfileVersionId);
         if (version == null)
             return Result.NotFound($"No file profile version found for File Profile Id {fileProfileId} and Version Id {fileProfileVersionId}");
 
@@ -97,13 +96,13 @@ public class FileProfileManager : IFileProfileManager
             return ResultHelpers.CreateFailure(aggregateResult);
         }
 
-        Result createResult = aggregateResult.Data.CreateProfile(request);
+        Result createResult = aggregateResult.GetValueOrThrow().CreateProfile(request);
         if (createResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(createResult);
         }
 
-        Result saveResult = await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.Data, cancellationToken);
+        Result saveResult = await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.GetValueOrThrow(), cancellationToken);
         if (saveResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(saveResult);
@@ -121,13 +120,13 @@ public class FileProfileManager : IFileProfileManager
             return ResultHelpers.CreateFailure(aggregateResult);
         }
 
-        Result updateResult = aggregateResult.Data.UpdateProfile(fileProfileId, request);
+        Result updateResult = aggregateResult.GetValueOrThrow().UpdateProfile(fileProfileId, request);
         if (updateResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(updateResult);
         }
 
-        Result saveResult = await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.Data, cancellationToken);
+        Result saveResult = await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.GetValueOrThrow(), cancellationToken);
         if (saveResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(saveResult);
@@ -145,13 +144,13 @@ public class FileProfileManager : IFileProfileManager
             return ResultHelpers.CreateFailure(aggregateResult);
         }
 
-        Result archiveResult = aggregateResult.Data.ArchiveProfile(fileProfileId);
+        Result archiveResult = aggregateResult.GetValueOrThrow().ArchiveProfile(fileProfileId);
         if (archiveResult.IsFailed)
         {
             return ResultHelpers.CreateFailure(archiveResult);
         }
 
-        return await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.Data, cancellationToken);
+        return await this.FileProfileAggregateRepository.SaveChanges(aggregateResult.GetValueOrThrow(), cancellationToken);
     }
 
     private async Task<Result<FileProfileAggregateRoot>> LoadAggregate(CancellationToken cancellationToken)
@@ -162,9 +161,9 @@ public class FileProfileManager : IFileProfileManager
             return aggregateResult;
         }
 
-        if (aggregateResult.Status != ResultStatus.NotFound)
+        if (aggregateResult.Errors[0].ErrorType != ErrorType.NotFound)
         {
-            return ResultHelpers.CreateFailure<FileProfileAggregateRoot>(aggregateResult);
+            return ResultHelpers.CreateFailure(aggregateResult);
         }
 
         return Result.Success(FileProfileAggregateRoot.Create());

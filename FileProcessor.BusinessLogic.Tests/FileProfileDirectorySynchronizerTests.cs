@@ -8,7 +8,7 @@ using FileProcessor.BusinessLogic.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Imposter.Abstractions;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Shouldly;
 using System.IO.Abstractions.TestingHelpers;
 using Xunit;

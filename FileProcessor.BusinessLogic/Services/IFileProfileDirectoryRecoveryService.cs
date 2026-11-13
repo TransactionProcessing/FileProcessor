@@ -1,4 +1,4 @@
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using System.Threading;
 using System.Threading.Tasks;
 

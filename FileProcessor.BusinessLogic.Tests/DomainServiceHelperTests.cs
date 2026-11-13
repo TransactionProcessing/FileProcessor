@@ -1,8 +1,8 @@
-﻿using System;
-using Shared.EventStore.Helpers;
-using Shared.Logger;
+using System;
+using TransactionProcessing.Shared.EventStore.Helpers;
+using TransactionProcessing.Shared.Logger;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 
 namespace FileProcessor.BusinessLogic.Tests;
@@ -10,7 +10,7 @@ namespace FileProcessor.BusinessLogic.Tests;
 public class DomainServiceHelperTests
 {
     public DomainServiceHelperTests() {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
     }
 
     [Fact]
@@ -24,8 +24,8 @@ public class DomainServiceHelperTests
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, true);
         handleResult.IsSuccess.ShouldBeTrue();
-        handleResult.Data.ShouldBeOfType(typeof(TestAggregate));
-        handleResult.Data.AggregateId.ShouldBe(aggregateId);
+        handleResult.GetValueOrThrow().ShouldBeOfType(typeof(TestAggregate));
+        handleResult.GetValueOrThrow().AggregateId.ShouldBe(aggregateId);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class DomainServiceHelperTests
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, false);
         handleResult.IsSuccess.ShouldBeTrue();
-        handleResult.Data.ShouldBeOfType(typeof(TestAggregate));
-        handleResult.Data.AggregateId.ShouldBe(aggregateId);
+        handleResult.GetValueOrThrow().ShouldBeOfType(typeof(TestAggregate));
+        handleResult.GetValueOrThrow().AggregateId.ShouldBe(aggregateId);
     }
 }

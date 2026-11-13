@@ -1,4 +1,4 @@
-﻿using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
 
@@ -6,7 +6,7 @@ using Client;
 using DataTransferObjects;
 using DataTransferObjects.Requests;
 using DataTransferObjects.Responses;
-using Shared.IntegrationTesting;
+using TransactionProcessing.Shared.IntegrationTesting;
 using Shouldly;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
@@ -40,7 +40,7 @@ public class FileProcessorSteps
                                                                 uploadFileRequest,
                                                                 CancellationToken.None);
         uploadFileResult.IsSuccess.ShouldBeTrue();
-        Guid fileId = uploadFileResult.Data;
+        Guid fileId = uploadFileResult.GetValueOrThrow();
         fileId.ShouldNotBe(Guid.Empty);
 
         estateDetails.AddUploadedFile(new FileImportLogFile
@@ -51,10 +51,10 @@ public class FileProcessorSteps
 
         await Retry.For(async () =>
                         {
-                            Result<FileDetails>? getFileResult =
+                            Result<FileDetails> getFileResult =
                                 await this.FileProcessorClient.GetFile(accessToken, estateDetails.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            FileDetails? fileDetails = getFileResult.Data;
+                            FileDetails? fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
                             if (!fileDetails.ProcessingCompleted && !fileDetails.IsRejected)
@@ -110,7 +110,7 @@ public class FileProcessorSteps
         return await this.FileProcessorClient.CreateFileProfile(accessToken, request, cancellationToken);
     }
 
-    public async Task<Result<FileProfileModel>> UpdateFileProfile(String accessToken, Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken)
+    public async Task<Result> UpdateFileProfile(String accessToken, Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken)
     {
         return await this.FileProcessorClient.UpdateFileProfile(accessToken, fileProfileId, request, cancellationToken);
     }
@@ -146,7 +146,7 @@ public class FileProcessorSteps
                                                                                                                pagingRequest,
                                                                                                                CancellationToken.None);
                             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
-                            FileImportLogList importLogList = getFileImportLogsResult.Data;
+                            FileImportLogList importLogList = getFileImportLogsResult.GetValueOrThrow();
                             importLogList.ShouldNotBeNull();
                             importLogList.FileImportLogs.ShouldNotBeNull();
                             importLogList.FileImportLogs.ShouldNotBeEmpty();
@@ -176,7 +176,7 @@ public class FileProcessorSteps
                                                                                            pagingRequest,
                                                                                            CancellationToken.None);
         importLogListResult.IsSuccess.ShouldBeTrue();
-        FileImportLogList importLogList = importLogListResult.Data;
+        FileImportLogList importLogList = importLogListResult.GetValueOrThrow();
         importLogList.ShouldNotBeNull();
         importLogList.FileImportLogs.ShouldHaveSingleItem();
 
@@ -187,7 +187,7 @@ public class FileProcessorSteps
                                                                                       null,
                                                                                       CancellationToken.None);
         getImportLogResult.IsSuccess.ShouldBeTrue();
-        FileImportLog fileImportLog = getImportLogResult.Data;
+        FileImportLog fileImportLog = getImportLogResult.GetValueOrThrow();
         fileImportLog.ShouldNotBeNull();
         fileImportLog.Files.ShouldNotBeNull();
         fileImportLog.Files.ShouldNotBeEmpty();
@@ -219,7 +219,7 @@ public class FileProcessorSteps
                                                                                          CancellationToken.None);
 
         getFileImportLogsResult.IsSuccess.ShouldBeTrue();
-        FileImportLogList? importLogs = getFileImportLogsResult.Data;
+        FileImportLogList? importLogs = getFileImportLogsResult.GetValueOrThrow();
 
         FileImportLog i = importLogs.FileImportLogs.SingleOrDefault(x => x.ImportLogDate == DateOnly.FromDateTime(expectedDate.Date));
         i.ShouldNotBeNull();
@@ -235,7 +235,7 @@ public class FileProcessorSteps
                         {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            FileDetails fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
                             fileDetails.ProcessingCompleted.ShouldBe(fileSummary.ProcessingCompleted);
@@ -257,7 +257,7 @@ public class FileProcessorSteps
         await Retry.For(async () => {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            FileDetails fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
                             foreach (ReqnrollExtensions.FileLineDetails fileLineDetail in fileLineDetails){
@@ -286,7 +286,7 @@ public class FileProcessorSteps
                         {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
-                            FileDetails fileDetails = getFileResult.Data;
+                            FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
                             fileDetails.IsRejected.ShouldBeTrue();
                             fileDetails.RejectionCode.ShouldBe("MaximumDetailRecordsExceeded");

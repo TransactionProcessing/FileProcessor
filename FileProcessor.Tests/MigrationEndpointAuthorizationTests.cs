@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Authorisation;
+using TransactionProcessing.Shared.Authorisation;
 using Shouldly;
 using Xunit;
 

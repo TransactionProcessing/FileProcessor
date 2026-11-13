@@ -1,6 +1,6 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Security.Cryptography;
-using Shared.Results;
+using TransactionProcessing.UnionResults;
 using System.Globalization;
 
 namespace FileProcessor.Client {
@@ -9,15 +9,13 @@ namespace FileProcessor.Client {
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using ClientProxyBase;
+    using TransactionProcessing.ClientProxyBase;
     using DataTransferObjects;
     using DataTransferObjects.Requests;
     using ApiFileDetails = DataTransferObjects.Responses.FileDetails;
     using ApiFileImportLog = DataTransferObjects.Responses.FileImportLog;
     using DataTransferObjects.Responses;
     using FileProcessor.Models;
-    using SimpleResults;
-
     public enum SortDirection {
         Ascending,
         Descending,
@@ -46,10 +44,10 @@ namespace FileProcessor.Client {
                                                     DataTransferObjects.Requests.CreateFileProfileRequest request,
                                                     CancellationToken cancellationToken);
 
-        Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
-                                                    Guid fileProfileId,
-                                                    DataTransferObjects.Requests.UpdateFileProfileRequest request,
-                                                    CancellationToken cancellationToken);
+        Task<Result> UpdateFileProfile(String accessToken,
+                                       Guid fileProfileId,
+                                       DataTransferObjects.Requests.UpdateFileProfileRequest request,
+                                       CancellationToken cancellationToken);
 
         Task<Result> ArchiveFileProfile(String accessToken,
                                         Guid fileProfileId,
@@ -83,7 +81,7 @@ namespace FileProcessor.Client {
 
     }
 
-    public class FileProcessorClient : ClientProxyBase, IFileProcessorClient {
+    public class FileProcessorClient : TransactionProcessing.ClientProxyBase.ClientProxyBase, IFileProcessorClient {
 
         private readonly Func<String, String> BaseAddressResolver;
 
@@ -136,7 +134,7 @@ namespace FileProcessor.Client {
             return await this.Post<CreateFileProfileRequest, FileProfile>(requestUri, request, accessToken, cancellationToken);
         }
 
-        public async Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
+        public async Task<Result> UpdateFileProfile(String accessToken,
                                                                  Guid fileProfileId,
                                                                  UpdateFileProfileRequest request,
                                                                  CancellationToken cancellationToken)
@@ -150,7 +148,7 @@ namespace FileProcessor.Client {
                                                      CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
-            Result<FileProfile> result = await this.Delete(requestUri, accessToken, cancellationToken);
+            Result result = await this.Delete(requestUri, accessToken, cancellationToken);
 
             if (result.IsFailed)
             {

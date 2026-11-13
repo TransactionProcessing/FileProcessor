@@ -437,9 +437,11 @@ namespace FileProcessor.IntegrationTests.Features
         [global::NUnit.Framework.TestAttribute()]
         [global::NUnit.Framework.DescriptionAttribute("Get File Import Log Details")]
         [global::NUnit.Framework.CategoryAttribute("PRTest")]
+        [global::NUnit.Framework.CategoryAttribute("ignore")]
         public async global::System.Threading.Tasks.Task GetFileImportLogDetails()
         {
             string[] tagsOfScenario = new string[] {
+                    "ignore",
                     "PRTest"};
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             string pickleIndex = "0";

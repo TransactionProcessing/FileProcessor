@@ -1,12 +1,12 @@
-﻿namespace FileProcessor.IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
+namespace FileProcessor.IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
 
 using System.Text;
 using DataTransferObjects;
 using DataTransferObjects.Responses;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Reqnroll;
-using Shared.IntegrationTesting;
-using Shared.Logger;
+using TransactionProcessing.Shared.IntegrationTesting;
+using TransactionProcessing.Shared.Logger;
 using Shouldly;
 
 public static class ReqnrollExtensions

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FileProcessor.DataTransferObjects.Requests;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.BusinessLogic.Managers;

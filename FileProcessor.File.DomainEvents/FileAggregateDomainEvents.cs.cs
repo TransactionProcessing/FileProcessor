@@ -1,7 +1,7 @@
-﻿namespace FileProcessor.File.DomainEvents
+namespace FileProcessor.File.DomainEvents
 {
     using System;using System.Xml;
-    using Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
 
     public record FileLineAddedEvent(Guid FileId, Guid EstateId, Guid MerchantId, Int32 LineNumber, String FileLine) : DomainEvent(FileId, Guid.NewGuid());
 

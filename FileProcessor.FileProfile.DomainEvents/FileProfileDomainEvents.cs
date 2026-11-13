@@ -1,5 +1,5 @@
 using System;
-using Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
 
 namespace FileProcessor.FileProfile.DomainEvents;
 

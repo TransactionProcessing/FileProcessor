@@ -10,11 +10,11 @@ using FileProcessor.BusinessLogic.Services;
 using FileProcessor.Models;
 using MediatR;
 using Imposter.Abstractions;
-using Shared.Results;
+using TransactionProcessing.UnionResults;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProcessor.Testing;
-using Shared.Logger;
+using TransactionProcessing.Shared.Logger;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 using FileImportLogModel = global::FileProcessor.Models.FileImportLog;
 using Xunit;
@@ -26,7 +26,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_ReplaysFilesFoundInInProgressDirectory()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -72,7 +72,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_WhenFileAggregateIsMissing_ReplaysUsingImportLogDetails()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -142,9 +142,58 @@ public class FileProfileDirectoryRecoveryServiceTests
     }
 
     [Fact]
+    public async Task RecoverInProgressFilesAsync_WhenFileAndImportLogAreMissing_SkipsFileAndContinues()
+    {
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
+
+        IFileProcessorManagerImposter fileProcessorManager = new();
+        IMediatorImposter mediator = new();
+        MockFileSystem fileSystem = new();
+
+        FileProfileModel fileProfile = TestData.FileProfile;
+        string inProgressDirectory = $"{fileProfile.ListeningDirectory}/inprogress";
+        string missingFilePath = $"{inProgressDirectory}/{TestData.EstateId:N}-{TestData.FileId:N}";
+        string recoverableFilePath = $"{inProgressDirectory}/{TestData.EstateId:N}-{TestData.FileId2:N}";
+
+        fileSystem.AddDirectory(inProgressDirectory);
+        fileSystem.AddFile(missingFilePath, new MockFileData("D,1,1,1"));
+        fileSystem.AddFile(recoverableFilePath, new MockFileData("D,1,1,1"));
+
+        fileProcessorManager
+            .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
+        fileProcessorManager
+            .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound("File aggregate not found"));
+        fileProcessorManager
+            .GetFileImportLogForFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound("Import log not found"));
+        fileProcessorManager
+            .GetFile(TestData.FileId2, TestData.EstateId, Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+        mediator
+            .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.Success());
+
+        FileProfileDirectoryRecoveryService service = new(
+            fileProcessorManager.Instance(),
+            mediator.Instance(),
+            fileSystem);
+
+        Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        mediator.Send(
+            Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
+                command.FileId == TestData.FileId2 &&
+                Path.GetFileName(command.FilePath) == Path.GetFileName(recoverableFilePath)),
+            Arg<CancellationToken>.Any()).Called(Count.Once());
+    }
+
+    [Fact]
     public async Task RecoverInProgressFilesAsync_ReplaysFilesFromHistoricalAndCurrentDirectories()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -198,7 +247,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_WhenVersionsShareDirectory_ReplaysFileOnce()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();

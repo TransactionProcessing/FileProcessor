@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +13,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Threading;
     using Common;
     using Reqnroll;
-    using Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.IntegrationTesting;
     using Shouldly;
 
     [Binding]

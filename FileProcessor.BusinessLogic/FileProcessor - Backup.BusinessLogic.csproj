@@ -1,22 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
   </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="EstateManagement.Database" Version="2024.3.5" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="11.0.0" />
 		<PackageReference Include="EstateManagement.Client" Version="2024.3.5" />
 		<PackageReference Include="SecurityService.Client" Version="2024.3.1" />
-		<PackageReference Include="Shared" Version="2024.4.2" />
-		<PackageReference Include="Shared.DomainDrivenDesign" Version="2024.4.2" />
+		<PackageReference Include="TransactionProcessing.Shared" Version="2026.11.4" />
+		<PackageReference Include="TransactionProcessing.Shared.DomainDrivenDesign" Version="2026.11.4" />
 		<PackageReference Include="MediatR" Version="12.2.0" />
-		<PackageReference Include="Shared.EventStore" Version="2024.4.2" />
+		<PackageReference Include="TransactionProcessing.Shared.EventStore" Version="2026.11.4" />
 		<PackageReference Include="System.IO.Abstractions" Version="21.0.2" />
-		<PackageReference Include="TransactionProcessor.Client" Version="2024.3.3" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.3" />
+		<PackageReference Include="TransactionProcessor.Client" Version="2026.10.3.434" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="11.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="11.0.0" />
+		<PackageReference Include="TransactionProcessing.UnionResults" Version="2026.11.4" />
 	</ItemGroup>
 
 	<ItemGroup>

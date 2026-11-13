@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net10.0</TargetFramework>
+	  <TargetFramework>net11.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <EnableNUnitRunner>true</EnableNUnitRunner>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Content Remove="C:\Users\stuar\.nuget\packages\eventstoreprojections\1.0.13\contentFiles\any\net6.0\projections\continuous\MerchantBalanceAggregator.js" />
+      <PackageReference Include="TransactionProcessing.UnionResults" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,8 +28,8 @@
     <PackageReference Include="Reqnroll.NUnit" />
     <PackageReference Include="SecurityService.Client" />
     <PackageReference Include="SecurityService.IntegrationTesting.Helpers" />
-    <PackageReference Include="Shared" />
-    <PackageReference Include="Shared.IntegrationTesting" />
+    <PackageReference Include="TransactionProcessing.Shared" />
+    <PackageReference Include="TransactionProcessing.Shared.IntegrationTesting" />
     <PackageReference Include="SharpCompress" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="TransactionProcessor.Client" />

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace FileProcessor.Bootstrapper;
 
@@ -6,8 +6,8 @@ using BusinessLogic.Common;
 using BusinessLogic.Services;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.General;
-using Shared.Middleware;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Middleware;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics.CodeAnalysis;

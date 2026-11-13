@@ -1,5 +1,5 @@
 using System;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 
 namespace FileProcessor.FileAggregate.Tests
@@ -7,7 +7,7 @@ namespace FileProcessor.FileAggregate.Tests
     using System.Linq;
     using File.DomainEvents;
     using FileProcessor.Models;
-    using Shared.Exceptions;
+    using TransactionProcessing.Shared.Exceptions;
     using Shouldly;
     using Testing;
 
@@ -232,7 +232,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.AddFileLine(TestData.FileLine);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -269,7 +269,7 @@ namespace FileProcessor.FileAggregate.Tests
             
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -281,7 +281,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -293,7 +293,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.NotFoundLineNumber, TestData.TransactionId);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.NotFound);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
         [Fact]
@@ -331,7 +331,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                                     
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -343,7 +343,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -356,7 +356,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsFailed(TestData.NotFoundLineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.NotFound);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
         [Fact]
@@ -393,7 +393,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -406,7 +406,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -419,7 +419,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.NotFoundLineNumber);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.NotFound);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
 
@@ -460,7 +460,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -473,7 +473,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -486,7 +486,7 @@ namespace FileProcessor.FileAggregate.Tests
             var result = fileAggregate.RecordFileLineAsRejected(TestData.NotFoundLineNumber, TestData.RejectionReason);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.NotFound);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
     }
 }

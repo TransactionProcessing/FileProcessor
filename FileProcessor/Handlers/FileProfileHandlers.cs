@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,15 +9,15 @@ using FileProcessor.DataTransferObjects.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Results.Web;
-using SimpleResults;
+using TransactionProcessing.UnionResults.AspNetCore;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.Handlers;
 
 public static class FileProfileHandlers
 {
-    public static async Task<IResult> GetFileProfiles(IMediator mediator, CancellationToken cancellationToken)
+    public static async Task<IResultOutcome> GetFileProfiles(IMediator mediator, CancellationToken cancellationToken)
     {
         FileProfileQueries.GetFileProfilesQuery query = new();
         Result<List<FileProfileModel>> result = await mediator.Send(query, cancellationToken);
@@ -25,7 +25,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> GetFileProfile(IMediator mediator,
+    public static async Task<IResultOutcome> GetFileProfile(IMediator mediator,
                                                      [FromRoute, Description("GUID identifying the file profile.")] Guid fileProfileId,
                                                      CancellationToken cancellationToken)
     {
@@ -35,7 +35,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> GetFileProfileVersions(IMediator mediator,
+    public static async Task<IResultOutcome> GetFileProfileVersions(IMediator mediator,
                                                               [FromRoute, Description("GUID identifying the file profile.")] Guid fileProfileId,
                                                               CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> GetFileProfileVersion(IMediator mediator,
+    public static async Task<IResultOutcome> GetFileProfileVersion(IMediator mediator,
                                                             [FromRoute, Description("GUID identifying the file profile.")] Guid fileProfileId,
                                                             [FromRoute, Description("GUID identifying the requested file profile version.")] Guid fileProfileVersionId,
                                                             CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> CreateFileProfile(IMediator mediator,
+    public static async Task<IResultOutcome> CreateFileProfile(IMediator mediator,
                                                         [FromBody] CreateFileProfileRequest request,
                                                         CancellationToken cancellationToken)
     {
@@ -66,7 +66,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> UpdateFileProfile(IMediator mediator,
+    public static async Task<IResultOutcome> UpdateFileProfile(IMediator mediator,
                                                         [FromRoute, Description("GUID identifying the file profile.")] Guid fileProfileId,
                                                         [FromBody] UpdateFileProfileRequest request,
                                                         CancellationToken cancellationToken)
@@ -77,7 +77,7 @@ public static class FileProfileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> ArchiveFileProfile(IMediator mediator,
+    public static async Task<IResultOutcome> ArchiveFileProfile(IMediator mediator,
                                                          [FromRoute, Description("GUID identifying the file profile.")] Guid fileProfileId,
                                                          CancellationToken cancellationToken)
     {
@@ -89,6 +89,6 @@ public static class FileProfileHandlers
             return ResponseFactory.FromResult(result);
         }
 
-        return Results.NoContent();
+        return Result.NoContent();
     }
 }

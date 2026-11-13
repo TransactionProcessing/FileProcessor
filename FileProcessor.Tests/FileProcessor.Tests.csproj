@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net10.0</TargetFramework>
+	  <TargetFramework>net11.0</TargetFramework>
 	  <OutputType>Exe</OutputType>
 	  <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
 	  <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
@@ -24,6 +24,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+      <PackageReference Include="TransactionProcessing.UnionResults" />
   </ItemGroup>
 
   <ItemGroup>

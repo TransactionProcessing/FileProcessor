@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using MediatR;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.BusinessLogic.Requests;
 

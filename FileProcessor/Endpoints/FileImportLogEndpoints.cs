@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using FileProcessor.Handlers;
 using FileProcessor.DataTransferObjects.Responses;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using TransactionProcessing.UnionResults.AspNetCore;
 
 namespace FileProcessor.Endpoints;
 
@@ -15,7 +16,8 @@ public static class FileImportLogEndpoints
     {
         RouteGroupBuilder group = app.MapGroup(BaseRoute)
             .WithTags("File Import Logs")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .AddUnionResultFilter();
 
         group.MapGet("/", FileImportLogHandlers.GetImportLogsAsync)
             .WithName("GetImportLogs")

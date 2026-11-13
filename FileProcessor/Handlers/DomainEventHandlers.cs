@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EventStore.Aggregate;
-using Shared.EventStore.EventHandling;
-using Shared.Exceptions;
-using Shared.General;
-using Shared.Logger;
-using Shared.Serialisation;
-using SimpleResults;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.EventStore.EventHandling;
+using TransactionProcessing.Shared.Exceptions;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
+using TransactionProcessing.Shared.Serialisation;
+using TransactionProcessing.UnionResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace FileProcessor.Handlers
                     return Results.Ok();
                 }
 
-                List<HandlerExecution> executions = eventHandlersResult.Data
+                List<HandlerExecution> executions = eventHandlersResult.GetValueOrThrow()
                     .Select(domainEventHandler => ExecuteHandler(domainEventHandler, domainEvent, cancellationToken))
                     .ToList();
 

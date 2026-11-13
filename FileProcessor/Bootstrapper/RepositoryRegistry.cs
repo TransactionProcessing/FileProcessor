@@ -1,4 +1,4 @@
-﻿using TransactionProcessor.Database.Contexts;
+using TransactionProcessor.Database.Contexts;
 
 namespace FileProcessor.Bootstrapper;
 
@@ -11,12 +11,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EntityFramework;
-using Shared.EventStore.Aggregate;
-using Shared.EventStore.EventStore;
-using Shared.EventStore.SubscriptionWorker;
-using Shared.General;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EntityFramework;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.EventStore.EventStore;
+using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
+using TransactionProcessing.Shared.General;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;

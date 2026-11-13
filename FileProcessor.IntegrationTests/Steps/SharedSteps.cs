@@ -1,5 +1,5 @@
-﻿using SecurityService.DataTransferObjects;
-using SimpleResults;
+using SecurityService.DataTransferObjects;
+using TransactionProcessing.UnionResults;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,7 +23,7 @@ namespace FileProcessor.IntegrationTests.Steps
     using IntegrationTesting.Helpers.FileProcessor.IntegrationTests.Steps;
     using Reqnroll;
     using SecurityService.IntegrationTesting.Helpers;
-    using Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.IntegrationTesting;
     using Shouldly;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
@@ -210,15 +210,15 @@ namespace FileProcessor.IntegrationTests.Steps
                 await Retry.For(async () =>
                                 {
                                     var getEstatesResult = await this.TestingContext.DockerHelper.TransactionProcessorClient
-                                        .GetEstates(this.TestingContext.AccessToken, createResult.Data, CancellationToken.None)
+                                        .GetEstates(this.TestingContext.AccessToken, createResult.GetValueOrThrow(), CancellationToken.None)
                                         .ConfigureAwait(false);
 
-                                    this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {createResult.Data}: " +
+                                    this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {createResult.GetValueOrThrow()}: " +
                                                                              $"isSuccess={getEstatesResult.IsSuccess}, message={getEstatesResult.Message}, " +
-                                                                             $"rows={(getEstatesResult.Data == null ? "null" : getEstatesResult.Data.Count.ToString())}");
+                                                                             $"rows={(getEstatesResult.GetValueOrThrow() == null ? "null" : getEstatesResult.GetValueOrThrow().Count.ToString())}");
 
                                     getEstatesResult.IsSuccess.ShouldBeTrue(getEstatesResult.Message);
-                                    List<EstateResponse> estates = getEstatesResult.Data;
+                                    List<EstateResponse> estates = getEstatesResult.GetValueOrThrow();
                                     estates.ShouldNotBeNull();
                                     estates.ShouldHaveSingleItem();
 

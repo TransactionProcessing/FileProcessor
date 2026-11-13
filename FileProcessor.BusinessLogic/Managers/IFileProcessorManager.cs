@@ -1,5 +1,5 @@
 using FileProcessor.Models;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.BusinessLogic.Managers
 {
