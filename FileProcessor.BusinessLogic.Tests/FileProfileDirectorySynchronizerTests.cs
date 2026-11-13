@@ -76,7 +76,7 @@ public class FileProfileDirectorySynchronizerTests
     }
 
     [Fact]
-    public async Task SyncAsync_WhenVersionsShareDirectory_EnsuresTransactionProcessing.SharedDirectoryWithoutDeletingFiles()
+    public async Task SyncAsync_WhenVersionsShareDirectory_EnsuresSharedDirectoryWithoutDeletingFiles()
     {
         MockFileSystem fileSystem = new();
         IFileProfileManagerImposter fileProfileManager = new();

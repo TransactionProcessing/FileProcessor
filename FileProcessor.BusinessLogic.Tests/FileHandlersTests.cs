@@ -28,7 +28,7 @@ public class FileHandlersTests
         IMediatorImposter mediator = new();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
 
-        IResult result = await FileHandlers.ReplayLine(
+        IResultOutcome result = await FileHandlers.ReplayLine(
             mediator.Instance(), TestData.FileId, TestData.EstateId, TestData.LineNumber, CancellationToken.None);
 
         StatusCodeHttpResult response = result.ShouldBeOfType<StatusCodeHttpResult>();

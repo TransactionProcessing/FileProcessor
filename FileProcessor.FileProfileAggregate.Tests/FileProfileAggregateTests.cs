@@ -450,8 +450,8 @@ public class FileProfileAggregateTests
 
         result.IsFailed.ShouldBeTrue();
         result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
-        result.Errors.ShouldContain(error => error.Contains("Unsupported request type"));
-        result.Errors.ShouldContain(error => error.Contains("Unsupported file format handler"));
+        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported request type"));
+        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
     }
 
     [Fact]
@@ -494,8 +494,8 @@ public class FileProfileAggregateTests
 
         result.IsFailed.ShouldBeTrue();
         result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
-        result.Errors.ShouldContain(error => error.Contains("Unsupported request type"));
-        result.Errors.ShouldContain(error => error.Contains("Unsupported file format handler"));
+        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported request type"));
+        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
     }
 
     private CreateFileProfileRequest CreateProfile(Guid fileProfileId,

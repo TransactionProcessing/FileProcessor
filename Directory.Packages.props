@@ -38,24 +38,24 @@
     <PackageVersion Include="Reqnroll.NUnit" Version="3.3.4" />
     <PackageVersion Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.4" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.12.1" />
-    <PackageVersion Include="TransactionProcessing.ClientProxyBase" Version="2026.11.4" />
+    <PackageVersion Include="TransactionProcessing.ClientProxyBase" Version="2026.11.5" />
     <PackageVersion Include="SharpCompress" Version="0.50.8" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="TransactionProcessing.Shared" Version="2026.11.4" />
-    <PackageVersion Include="TransactionProcessing.Shared.DomainDrivenDesign" Version="2026.11.4" />
-    <PackageVersion Include="TransactionProcessing.Shared.EventStore" Version="2026.11.4" />
-    <PackageVersion Include="TransactionProcessing.Shared.IntegrationTesting" Version="2026.11.4" />
-    <PackageVersion Include="TransactionProcessing.UnionResults" Version="2026.11.4" />
-    <PackageVersion Include="TransactionProcessing.UnionResults.AspNetCore" Version="2026.11.4" />
-    <PackageVersion Include="SecurityService.Client" Version="2026.10.3.207" />
-    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.3.207" />
+    <PackageVersion Include="TransactionProcessing.Shared" Version="2026.11.5" />
+    <PackageVersion Include="TransactionProcessing.Shared.DomainDrivenDesign" Version="2026.11.5" />
+    <PackageVersion Include="TransactionProcessing.Shared.EventStore" Version="2026.11.5" />
+    <PackageVersion Include="TransactionProcessing.Shared.IntegrationTesting" Version="2026.11.5" />
+    <PackageVersion Include="TransactionProcessing.UnionResults" Version="2026.11.5" />
+    <PackageVersion Include="TransactionProcessing.UnionResults.AspNetCore" Version="2026.11.5" />
+    <PackageVersion Include="SecurityService.Client" Version="2026.10.3.212" />
+    <PackageVersion Include="SecurityService.IntegrationTesting.Helpers" Version="2026.10.3.212" />
     <PackageVersion Include="System.IO.Abstractions" Version="22.3.0" />
     <PackageVersion Include="System.IO.Abstractions.TestingHelpers" Version="22.3.0" />
     <!-- ApiDefaults 2026.11.4 pulls Microsoft.OpenApi 3, which Asp.Versioning.OpenApi 10.2.3 does not support. -->
     <PackageVersion Include="TransactionProcessing.ApiDefaults" Version="2026.11.2" />
-    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.3.434" />
-    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.3.434" />
-    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.3.434" />
+    <PackageVersion Include="TransactionProcessor.Client" Version="2026.10.3.435" />
+    <PackageVersion Include="TransactionProcessor.Database" Version="2026.10.3.435" />
+    <PackageVersion Include="TransactionProcessor.IntegrationTesting.Helpers" Version="2026.10.3.435" />
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>

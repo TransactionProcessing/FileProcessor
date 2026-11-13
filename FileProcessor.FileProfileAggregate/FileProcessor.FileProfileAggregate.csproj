@@ -17,8 +17,4 @@
 	  <ProjectReference Include="..\FileProcessor.FileProfile.DomainEvents\FileProcessor.FileProfile.DomainEvents.csproj" />
 	  <ProjectReference Include="..\FIleProcessor.Models\FIleProcessor.Models.csproj" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\FileProcessor.ResultHelpers\ResultHelpers.cs" Link="ResultHelpers.cs" />
-  </ItemGroup>
 </Project>

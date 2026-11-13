@@ -9,6 +9,7 @@ namespace FileProcessor.IntegrationTests.Common
     using Client;
     using EventStore.Client;
     using SecurityService.Client;
+    using TransactionProcessing.UnionResults;
     using TransactionProcessing.Shared.IntegrationTesting;
     using TransactionProcessing.Shared.Serialisation;
     using System.Net.Http;

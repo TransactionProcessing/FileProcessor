@@ -163,7 +163,7 @@ public class FileProfileManager : IFileProfileManager
 
         if (aggregateResult.Errors[0].ErrorType != ErrorType.NotFound)
         {
-            return ResultHelpers.CreateFailure<FileProfileAggregateRoot>(aggregateResult);
+            return ResultHelpers.CreateFailure(aggregateResult);
         }
 
         return Result.Success(FileProfileAggregateRoot.Create());

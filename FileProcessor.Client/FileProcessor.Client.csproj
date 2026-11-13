@@ -13,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FileProcessor.DataTransferObjects\FileProcessor.DataTransferObjects.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\FIleProcessor.Models\FIleProcessor.Models.csproj" PrivateAssets="All" />
-    <Compile Include="..\FileProcessor.ResultHelpers\ResultHelpers.cs" Link="ResultHelpers.cs" />
   </ItemGroup>
 
 	<Target Name="IncludeP2PAssets">

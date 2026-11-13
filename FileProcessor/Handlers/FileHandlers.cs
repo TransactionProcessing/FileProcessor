@@ -57,13 +57,13 @@ public static class FileHandlers
                 request.UploadDateTime,
                 upload.FileName);
 
-            Result<Guid> result = await mediator.Send(command, cancellationToken);
+            Result result = await mediator.Send(command, cancellationToken);
             uploadAccepted = result.IsSuccess;
             
             if (result.IsSuccess)
                 return Results.Accepted(value: request.FileId);
 
-            return ResponseFactory.FromResult(result, r => r);
+            return ResponseFactory.FromResult(result);
         }
         finally
         {

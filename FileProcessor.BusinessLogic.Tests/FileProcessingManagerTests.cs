@@ -77,7 +77,6 @@ namespace FileProcessor.BusinessLogic.Tests
         public async Task FileProcessingManager_GetAllFileProfiles_AllFileProfilesReturned()
         {
             Result<List<FileProfileModel>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
-            allFileProfiles.ShouldNotBeNull();
             allFileProfiles.IsSuccess.ShouldBeTrue();
             allFileProfiles.GetValueOrThrow().ShouldNotBeEmpty();
         }
@@ -86,7 +85,6 @@ namespace FileProcessor.BusinessLogic.Tests
         public async Task FileProcessingManager_GetFileProfile_FileProfileReturned()
         {
             Result<FileProfileModel> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
-            fileProfile.ShouldNotBeNull();
             fileProfile.IsSuccess.ShouldBeTrue();
             fileProfile.GetValueOrThrow().FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
         }
@@ -105,7 +103,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), null, 1, 50, false, CancellationToken.None);
             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
             List<FileImportLog> importLogs = getFileImportLogsResult.GetValueOrThrow().FileImportLogs;
-            this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
+            this.VerifyImportLogs(TestData.FileImportLogs, Result.Success(importLogs));
             importLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
@@ -122,7 +120,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), TestData.MerchantId, 1, 50, false, CancellationToken.None);
 
-            this.VerifyImportLogs(TestData.FileImportLogs, importLogsResult.GetValueOrThrow().FileImportLogs, TestData.MerchantId);
+            this.VerifyImportLogs(TestData.FileImportLogs, Result.Success(importLogsResult.GetValueOrThrow().FileImportLogs), TestData.MerchantId);
             importLogsResult.GetValueOrThrow().FileImportLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
@@ -367,7 +365,7 @@ namespace FileProcessor.BusinessLogic.Tests
             foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in source)
             {
                 FileImportLog importLog = importLogs.GetValueOrThrow().SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
-                VerifyImportLog(fileImportLog, importLog, merchantId);
+                VerifyImportLog(fileImportLog, Result.Success(importLog), merchantId);
             }
         }
 

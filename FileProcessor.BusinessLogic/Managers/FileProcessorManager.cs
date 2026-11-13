@@ -160,7 +160,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLogQueryResult>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(new FileImportLogQueryResult
@@ -213,7 +213,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(x, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(x);
@@ -260,7 +260,7 @@ namespace FileProcessor.BusinessLogic.Managers
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
             if (enrichResult.IsFailed)
             {
-                return ResultHelpers.CreateFailure<FileImportLog>(enrichResult);
+                return ResultHelpers.CreateFailure(enrichResult);
             }
 
             return Result.Success(model);
@@ -333,7 +333,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 {
                     Result<FileAggregate> fileAggregateResult = await this.FileAggregateRepository.GetLatestVersion(importLogFile.FileId,
                                                                                                                           cancellationToken);
-                    if (fileAggregateResult == null || fileAggregateResult.IsFailed || fileAggregateResult.GetValueOrThrow() == null || fileAggregateResult.GetValueOrThrow().IsCreated == false)
+                    if (fileAggregateResult.IsFailed || fileAggregateResult.GetValueOrThrow() == null || fileAggregateResult.GetValueOrThrow().IsCreated == false)
                     {
                         continue;
                     }

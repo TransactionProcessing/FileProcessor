@@ -231,7 +231,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                            CancellationToken cancellationToken)
     {
         Result<FileAggregate> existingFileResult = await this.FileAggregateRepository.GetLatestVersion(command.FileId, cancellationToken);
-        if (existingFileResult?.IsSuccess == true && existingFileResult.GetValueOrThrow()?.IsCreated == true)
+        if (existingFileResult.IsSuccess == true && existingFileResult.GetValueOrThrow()?.IsCreated == true)
         {
             FileDetails existingFile = existingFileResult.GetValueOrThrow().GetFile();
             if (existingFile.EstateId != command.EstateId ||
@@ -244,7 +244,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return Result.Success(true);
         }
 
-        if (existingFileResult?.IsFailed == true && existingFileResult.Errors[0].ErrorType != ErrorType.NotFound)
+        if (existingFileResult.IsFailed == true && existingFileResult.Errors[0].ErrorType != ErrorType.NotFound)
             return ResultHelpers.CreateFailure(existingFileResult);
 
         return Result.Success(false);
@@ -484,9 +484,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     public async Task<Result> ProcessTransactionForFileLine(FileCommands.ProcessTransactionForFileLineCommand command,
                                                             CancellationToken cancellationToken) {
         FileLineProcessingContext processingContext = new(command);
-        Result dispatchFailureResult = null;
+        Result? dispatchFailureResult = null;
         Result result = await ApplyFileUpdates(async (FileAggregate fileAggregate) => {
-            (Result stateResult, Result dispatchResult) = await this.ProcessTransactionForFileLineInternal(fileAggregate,
+            (Result stateResult, Result? dispatchResult) = await this.ProcessTransactionForFileLineInternal(fileAggregate,
                                                                                                              command,
                                                                                                              processingContext,
                                                                                                              cancellationToken);
@@ -494,8 +494,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return stateResult;
         }, command.FileId, cancellationToken);
 
-        if (result.IsSuccess && dispatchFailureResult != null)
-            result = dispatchFailureResult;
+        if (result.IsSuccess && dispatchFailureResult.HasValue)
+            result = dispatchFailureResult.Value;
 
         if (result.IsFailed)
         {
@@ -510,7 +510,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         return result;
     }
 
-    private async Task<(Result StateResult, Result DispatchFailureResult)> ProcessTransactionForFileLineInternal(FileAggregate fileAggregate,
+    private async Task<(Result StateResult, Result? DispatchFailureResult)> ProcessTransactionForFileLineInternal(FileAggregate fileAggregate,
                                                                                                                     FileCommands.ProcessTransactionForFileLineCommand command,
                                                                                                                     FileLineProcessingContext processingContext,
                                                                                                                     CancellationToken cancellationToken)
@@ -587,7 +587,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                              cancellationToken);
     }
 
-    private async Task<(Result StateResult, Result DispatchFailureResult)> ProcessTransaction(FileAggregate fileAggregate,
+    private async Task<(Result StateResult, Result? DispatchFailureResult)> ProcessTransaction(FileAggregate fileAggregate,
                                                                                                 FileCommands.ProcessTransactionForFileLineCommand command,
                                                                                                 FileDetails fileDetails,
                                                                                                 FileProfileModel fileProfile,
@@ -1081,7 +1081,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
 
-            return getTokenResult.GetValueOrThrow();
+            return getTokenResult;
         }
 
         if (this.TokenResponse.Expires.UtcDateTime.Subtract(DateTime.UtcNow) < TimeSpan.FromMinutes(2))
@@ -1094,9 +1094,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
 
-            return getTokenResult.GetValueOrThrow();
+            return getTokenResult;
         }
 
-        return this.TokenResponse;
+        return Result.Success(this.TokenResponse);
     }
 }

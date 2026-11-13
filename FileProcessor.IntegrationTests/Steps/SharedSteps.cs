@@ -33,7 +33,7 @@ namespace FileProcessor.IntegrationTests.Steps
 
     [Binding]
     [Scope(Tag = "shared")]
-    public class TransactionProcessing.SharedSteps
+    public class SharedSteps
     {
         private readonly ScenarioContext ScenarioContext;
 
@@ -45,7 +45,7 @@ namespace FileProcessor.IntegrationTests.Steps
 
         private FileProcessorSteps? FileProcessorSteps;
         
-        public TransactionProcessing.SharedSteps(ScenarioContext scenarioContext,
+        public SharedSteps(ScenarioContext scenarioContext,
                            TestingContext testingContext)
         {
             ScenarioContext = scenarioContext;

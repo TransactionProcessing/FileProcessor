@@ -464,20 +464,38 @@ public static class FileProfileAggregateExtensions
                                                    string errorMessage,
                                                    ICollection<string> errors)
     {
-        if (value.HasValue == false || Enum.IsDefined(typeof(LineTerminatorType), value.Value) == false)
-        {
+        if (value.HasValue == false || Enum.IsDefined(typeof(LineTerminatorType), value.Value) == false) {
             errors.Add(errorMessage);
         }
     }
 
-    private static Result ValidateProposedUpdateValues(UpdateFileProfileRequest request)
-    {
-        return ValidateOptionalStringField(request.Name, "No file profile name provided") ??
-               ValidateOptionalStringField(request.ListeningDirectory, "No listening directory provided") ??
-               ValidateOptionalStringField(request.RequestType, "No request type provided") ??
-               ValidateOptionalStringField(request.OperatorName, "No operator name provided") ??
-               ValidateOptionalLineTerminatorField(request.LineTerminator, "No line terminator provided") ??
-               ValidateOptionalStringField(request.FileFormatHandler, "No file format handler provided");
+    private static Result ValidateProposedUpdateValues(UpdateFileProfileRequest request) {
+        Result result = ValidateOptionalStringField(request.Name, "No file profile name provided");
+        if (result.IsFailed) {
+            return result;
+        }
+
+        result = ValidateOptionalStringField(request.ListeningDirectory, "No listening directory provided");
+        if (result.IsFailed) {
+            return result;
+        }
+
+        result = ValidateOptionalStringField(request.RequestType, "No request type provided");
+        if (result.IsFailed) {
+            return result;
+        }
+
+        result = ValidateOptionalStringField(request.OperatorName, "No operator name provided");
+        if (result.IsFailed) {
+            return result;
+        }
+
+        result = ValidateOptionalLineTerminatorField(request.LineTerminator, "No line terminator provided");
+        if (result.IsFailed) {
+            return result;
+        }
+
+        return ValidateOptionalStringField(request.FileFormatHandler, "No file format handler provided");
     }
 
     private static Result ValidateOptionalLineTerminatorField(LineTerminatorType? value, string errorMessage)

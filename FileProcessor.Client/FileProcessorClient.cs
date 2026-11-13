@@ -44,10 +44,10 @@ namespace FileProcessor.Client {
                                                     DataTransferObjects.Requests.CreateFileProfileRequest request,
                                                     CancellationToken cancellationToken);
 
-        Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
-                                                    Guid fileProfileId,
-                                                    DataTransferObjects.Requests.UpdateFileProfileRequest request,
-                                                    CancellationToken cancellationToken);
+        Task<Result> UpdateFileProfile(String accessToken,
+                                       Guid fileProfileId,
+                                       DataTransferObjects.Requests.UpdateFileProfileRequest request,
+                                       CancellationToken cancellationToken);
 
         Task<Result> ArchiveFileProfile(String accessToken,
                                         Guid fileProfileId,
@@ -81,7 +81,7 @@ namespace FileProcessor.Client {
 
     }
 
-    public class FileProcessorClient : TransactionProcessing.ClientProxyBase, IFileProcessorClient {
+    public class FileProcessorClient : TransactionProcessing.ClientProxyBase.ClientProxyBase, IFileProcessorClient {
 
         private readonly Func<String, String> BaseAddressResolver;
 
@@ -134,7 +134,7 @@ namespace FileProcessor.Client {
             return await this.Post<CreateFileProfileRequest, FileProfile>(requestUri, request, accessToken, cancellationToken);
         }
 
-        public async Task<Result<FileProfile>> UpdateFileProfile(String accessToken,
+        public async Task<Result> UpdateFileProfile(String accessToken,
                                                                  Guid fileProfileId,
                                                                  UpdateFileProfileRequest request,
                                                                  CancellationToken cancellationToken)
@@ -148,7 +148,7 @@ namespace FileProcessor.Client {
                                                      CancellationToken cancellationToken)
         {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
-            Result<FileProfile> result = await this.Delete(requestUri, accessToken, cancellationToken);
+            Result result = await this.Delete(requestUri, accessToken, cancellationToken);
 
             if (result.IsFailed)
             {

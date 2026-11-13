@@ -30,7 +30,4 @@
 	<ItemGroup>
 	  <Folder Include="FileFormatHandlers\" />
 	</ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\FileProcessor.ResultHelpers\ResultHelpers.cs" Link="ResultHelpers.cs" />
-  </ItemGroup>
 </Project>

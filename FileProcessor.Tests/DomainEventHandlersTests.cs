@@ -64,7 +64,7 @@ public class DomainEventHandlersTests
             new Resolver(FailedHandlersResult()),
             CancellationToken.None);
 
-        result.ShouldBeOfType<Ok>();
+        result.ShouldBeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok>();
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class DomainEventHandlersTests
             new Resolver(Result.Success(new List<IDomainEventHandler> { new Handler(Result.Success()) })),
             CancellationToken.None);
 
-        result.ShouldBeOfType<Ok>();
+        result.ShouldBeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok>();
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class DomainEventHandlersTests
         private readonly Task<Result> task;
         private readonly Exception exception;
 
-        public Handler(Result result = null, Task<Result> task = null, Exception exception = null)
+        public Handler(Result? result = null, Task<Result> task = null, Exception exception = null)
         {
             this.task = task ?? Task.FromResult(result ?? Result.Success());
             this.exception = exception;

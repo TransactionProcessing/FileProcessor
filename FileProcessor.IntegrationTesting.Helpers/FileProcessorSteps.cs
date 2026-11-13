@@ -51,7 +51,7 @@ public class FileProcessorSteps
 
         await Retry.For(async () =>
                         {
-                            Result<FileDetails>? getFileResult =
+                            Result<FileDetails> getFileResult =
                                 await this.FileProcessorClient.GetFile(accessToken, estateDetails.EstateDetails.EstateId, fileId, CancellationToken.None);
                             getFileResult.IsSuccess.ShouldBeTrue();
                             FileDetails? fileDetails = getFileResult.GetValueOrThrow();
@@ -110,7 +110,7 @@ public class FileProcessorSteps
         return await this.FileProcessorClient.CreateFileProfile(accessToken, request, cancellationToken);
     }
 
-    public async Task<Result<FileProfileModel>> UpdateFileProfile(String accessToken, Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken)
+    public async Task<Result> UpdateFileProfile(String accessToken, Guid fileProfileId, UpdateFileProfileRequest request, CancellationToken cancellationToken)
     {
         return await this.FileProcessorClient.UpdateFileProfile(accessToken, fileProfileId, request, cancellationToken);
     }
