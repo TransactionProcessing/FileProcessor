@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 using FileProcessor.BusinessLogic.Managers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.BusinessLogic.Services;
@@ -40,7 +39,7 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         string temporaryFileLocation = this.Configuration.GetValue<string>(TemporaryFileLocationKey);
         if (string.IsNullOrWhiteSpace(temporaryFileLocation))
         {
-            return Result.Invalid("No temporary file location configured");
+            return Result.Fail(Error.Validation("No temporary file location configured"));
         }
 
         this.FileSystem.Directory.CreateDirectory(temporaryFileLocation);
@@ -54,7 +53,7 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         }
 
         HashSet<string> synchronizedDirectories = new(GetPathComparer());
-        foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
+        foreach (FileProfileModel fileProfile in fileProfilesResult.GetValueOrThrow())
         {
             if (synchronizedDirectories.Add(fileProfile.ListeningDirectory) == false)
                 continue;

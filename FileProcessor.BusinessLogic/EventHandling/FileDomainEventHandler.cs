@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProcessor.BusinessLogic.Common;
 
 namespace FileProcessor.BusinessLogic.EventHandling
@@ -10,13 +10,13 @@ namespace FileProcessor.BusinessLogic.EventHandling
     using FileImportLog.DomainEvents;
     using MediatR;
     using Requests;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.EventHandling;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.EventStore.EventHandling;
 
     /// <summary>
     /// 
     /// </summary>
-    /// <seealso cref="Shared.EventStore.EventHandling.IDomainEventHandler" />
+    /// <seealso cref="TransactionProcessing.Shared.EventStore.EventHandling.IDomainEventHandler" />
     public class FileDomainEventHandler : IDomainEventHandler
     {
         /// <summary>

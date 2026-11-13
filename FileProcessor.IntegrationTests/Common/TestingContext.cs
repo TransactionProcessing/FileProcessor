@@ -1,4 +1,4 @@
-﻿using Shared.IntegrationTesting;
+using TransactionProcessing.Shared.IntegrationTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using TransactionProcessor.IntegrationTesting.Helpers;
 
 namespace FileProcessor.IntegrationTests.Common
 {
-    using Shared.Logger;
+    using TransactionProcessing.Shared.Logger;
     using Shouldly;
     using System.IO;
     using IntegrationTesting.Helpers;

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using FileProcessor.Handlers;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using TransactionProcessing.UnionResults.AspNetCore;
 
 namespace FileProcessor.Endpoints;
 
@@ -15,7 +16,8 @@ public static class FileProfileEndpoints
     {
         RouteGroupBuilder group = app.MapGroup(BaseRoute)
             .WithTags("File Profiles")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .AddUnionResultFilter();
 
         group.MapGet("/", FileProfileHandlers.GetFileProfiles)
             .WithName("GetFileProfiles")

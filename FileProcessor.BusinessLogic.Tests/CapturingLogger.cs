@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Shared.Logger;
+using TransactionProcessing.Shared.Logger;
 
 namespace FileProcessor.BusinessLogic.Tests;
 
-internal sealed class CapturingLogger : Shared.Logger.ILogger
+internal sealed class CapturingLogger : TransactionProcessing.Shared.Logger.ILogger
 {
     public bool IsInitialised { get; set; } = true;
 

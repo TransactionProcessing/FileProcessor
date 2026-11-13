@@ -1,5 +1,5 @@
 using FileProcessor.Models;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +22,10 @@ namespace FileProcessor.BusinessLogic.Tests
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Imposter.Abstractions;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EntityFramework;
-    using Shared.EventStore.Aggregate;
-    using Shared.Exceptions;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.EntityFramework;
+    using TransactionProcessing.Shared.EventStore.Aggregate;
+    using TransactionProcessing.Shared.Exceptions;
     using Shouldly;
     using System.Threading;
     using Testing;
@@ -79,7 +79,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<List<FileProfileModel>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
             allFileProfiles.ShouldNotBeNull();
             allFileProfiles.IsSuccess.ShouldBeTrue();
-            allFileProfiles.Data.ShouldNotBeEmpty();
+            allFileProfiles.GetValueOrThrow().ShouldNotBeEmpty();
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileProfileModel> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
             fileProfile.ShouldNotBeNull();
             fileProfile.IsSuccess.ShouldBeTrue();
-            fileProfile.Data.FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
+            fileProfile.GetValueOrThrow().FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), null, 1, 50, false, CancellationToken.None);
             getFileImportLogsResult.IsSuccess.ShouldBeTrue();
-            List<FileImportLog> importLogs = getFileImportLogsResult.Data.FileImportLogs;
+            List<FileImportLog> importLogs = getFileImportLogsResult.GetValueOrThrow().FileImportLogs;
             this.VerifyImportLogs(TestData.FileImportLogs,importLogs);
             importLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
@@ -122,8 +122,8 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), TestData.MerchantId, 1, 50, false, CancellationToken.None);
 
-            this.VerifyImportLogs(TestData.FileImportLogs, importLogsResult.Data.FileImportLogs, TestData.MerchantId);
-            importLogsResult.Data.FileImportLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
+            this.VerifyImportLogs(TestData.FileImportLogs, importLogsResult.GetValueOrThrow().FileImportLogs, TestData.MerchantId);
+            importLogsResult.GetValueOrThrow().FileImportLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLog> importLog = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(), importLog);
-            importLog.Data.Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
+            importLog.GetValueOrThrow().Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
@@ -157,7 +157,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLog> importLog = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, TestData.MerchantId, CancellationToken.None);
 
             this.VerifyImportLog(TestData.FileImportLogs.First(),importLog, TestData.MerchantId);
-            importLog.Data.Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
+            importLog.GetValueOrThrow().Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
@@ -180,10 +180,10 @@ namespace FileProcessor.BusinessLogic.Tests
                 CancellationToken.None);
 
             result.IsSuccess.ShouldBeTrue();
-            result.Data.FileImportLogs.ShouldHaveSingleItem();
-            result.Data.FileImportLogs.Single().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
-            result.Data.TotalCount.ShouldBe(2);
-            result.Data.HasMore.ShouldBeTrue();
+            result.GetValueOrThrow().FileImportLogs.ShouldHaveSingleItem();
+            result.GetValueOrThrow().FileImportLogs.Single().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
+            result.GetValueOrThrow().TotalCount.ShouldBe(2);
+            result.GetValueOrThrow().HasMore.ShouldBeTrue();
         }
 
         [Fact]
@@ -200,9 +200,9 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLog> result = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
 
             result.IsSuccess.ShouldBeTrue();
-            result.Data.Files.ShouldNotBeEmpty();
-            result.Data.Files.ShouldAllBe(file => TestData.FileImportLog1Files.Any(expected => expected.FileId == file.FileId));
-            result.Data.Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
+            result.GetValueOrThrow().Files.ShouldNotBeEmpty();
+            result.GetValueOrThrow().Files.ShouldAllBe(file => TestData.FileImportLog1Files.Any(expected => expected.FileId == file.FileId));
+            result.GetValueOrThrow().Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
@@ -216,11 +216,11 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileImportLog> importLog = await this.Manager.GetFileImportLogForFile(TestData.FileId1, TestData.EstateId, CancellationToken.None);
 
             importLog.IsSuccess.ShouldBeTrue();
-            importLog.Data.FileImportLogId.ShouldBe(TestData.FileImportLogId1);
-            importLog.Data.Files.ShouldHaveSingleItem();
-            importLog.Data.Files.Single().FileId.ShouldBe(TestData.FileId1);
-            importLog.Data.Files.Single().UploadedDateTime.ShouldBe(TestData.FileUploadedDateTime);
-            importLog.Data.Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
+            importLog.GetValueOrThrow().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
+            importLog.GetValueOrThrow().Files.ShouldHaveSingleItem();
+            importLog.GetValueOrThrow().Files.Single().FileId.ShouldBe(TestData.FileId1);
+            importLog.GetValueOrThrow().Files.Single().UploadedDateTime.ShouldBe(TestData.FileUploadedDateTime);
+            importLog.GetValueOrThrow().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
         }
 
         [Fact]
@@ -236,14 +236,14 @@ namespace FileProcessor.BusinessLogic.Tests
 
              fileDetails.IsSuccess.ShouldBeTrue();
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-             fileDetails.Data.MerchantName.ShouldBeNull();
-             fileDetails.Data.UserEmailAddress.ShouldBeNull();
+             fileDetails.GetValueOrThrow().MerchantName.ShouldBeNull();
+             fileDetails.GetValueOrThrow().UserEmailAddress.ShouldBeNull();
         }
 
         [Fact]
         public async Task FileProcessingManager_GetFile_FileAggregateFailed_ErrorReturned()
         {
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure("Failure"));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
@@ -267,7 +267,7 @@ namespace FileProcessor.BusinessLogic.Tests
             fileDetails.IsSuccess.ShouldBeTrue();
 
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.Data.MerchantName.ShouldBe(TestData.MerchantName);
+            fileDetails.GetValueOrThrow().MerchantName.ShouldBe(TestData.MerchantName);
         }
 
         [Fact]
@@ -286,7 +286,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.Data.UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
+            fileDetails.GetValueOrThrow().UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
         }
 
         [Fact]
@@ -314,7 +314,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             fileDetails.IsSuccess.ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
-            fileDetails.Data.FileProfileName.ShouldBe(TestData.SafaricomProfileName);
+            fileDetails.GetValueOrThrow().FileProfileName.ShouldBe(TestData.SafaricomProfileName);
         }
 
         [Fact]
@@ -325,7 +325,7 @@ namespace FileProcessor.BusinessLogic.Tests
             Result<FileDetails> result = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.NotFound);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
 
@@ -333,25 +333,25 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             FileDetails fileModel = source.GetFile();
 
-            fileDetails.Data.FileId.ShouldBe(fileModel.FileId);
-            fileDetails.Data.FileImportLogId.ShouldBe(fileModel.FileImportLogId);
-            fileDetails.Data.FileLocation.ShouldBe(fileModel.FileLocation);
-            fileDetails.Data.FileProfileId.ShouldBe(fileModel.FileProfileId);
-            fileDetails.Data.MerchantId.ShouldBe(fileModel.MerchantId);
-            fileDetails.Data.ProcessingCompleted.ShouldBe(fileModel.ProcessingCompleted);
-            fileDetails.Data.UserId.ShouldBe(fileModel.UserId);
-            fileDetails.Data.EstateId.ShouldBe(fileModel.EstateId);
+            fileDetails.GetValueOrThrow().FileId.ShouldBe(fileModel.FileId);
+            fileDetails.GetValueOrThrow().FileImportLogId.ShouldBe(fileModel.FileImportLogId);
+            fileDetails.GetValueOrThrow().FileLocation.ShouldBe(fileModel.FileLocation);
+            fileDetails.GetValueOrThrow().FileProfileId.ShouldBe(fileModel.FileProfileId);
+            fileDetails.GetValueOrThrow().MerchantId.ShouldBe(fileModel.MerchantId);
+            fileDetails.GetValueOrThrow().ProcessingCompleted.ShouldBe(fileModel.ProcessingCompleted);
+            fileDetails.GetValueOrThrow().UserId.ShouldBe(fileModel.UserId);
+            fileDetails.GetValueOrThrow().EstateId.ShouldBe(fileModel.EstateId);
 
-            fileDetails.Data.ProcessingSummary.ShouldNotBeNull();
-            fileDetails.Data.ProcessingSummary.FailedLines.ShouldBe(fileModel.ProcessingSummary.FailedLines);
-            fileDetails.Data.ProcessingSummary.IgnoredLines.ShouldBe(fileModel.ProcessingSummary.IgnoredLines);
-            fileDetails.Data.ProcessingSummary.NotProcessedLines.ShouldBe(fileModel.ProcessingSummary.NotProcessedLines);
-            fileDetails.Data.ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(fileModel.ProcessingSummary.SuccessfullyProcessedLines);
-            fileDetails.Data.ProcessingSummary.TotalLines.ShouldBe(fileModel.ProcessingSummary.TotalLines);
+            fileDetails.GetValueOrThrow().ProcessingSummary.ShouldNotBeNull();
+            fileDetails.GetValueOrThrow().ProcessingSummary.FailedLines.ShouldBe(fileModel.ProcessingSummary.FailedLines);
+            fileDetails.GetValueOrThrow().ProcessingSummary.IgnoredLines.ShouldBe(fileModel.ProcessingSummary.IgnoredLines);
+            fileDetails.GetValueOrThrow().ProcessingSummary.NotProcessedLines.ShouldBe(fileModel.ProcessingSummary.NotProcessedLines);
+            fileDetails.GetValueOrThrow().ProcessingSummary.SuccessfullyProcessedLines.ShouldBe(fileModel.ProcessingSummary.SuccessfullyProcessedLines);
+            fileDetails.GetValueOrThrow().ProcessingSummary.TotalLines.ShouldBe(fileModel.ProcessingSummary.TotalLines);
 
             foreach (FileLine fileModelFileLine in fileModel.FileLines)
             {
-                FileLine? fileLineToVerify = fileDetails.Data.FileLines.SingleOrDefault(f => f.LineNumber == fileModelFileLine.LineNumber);
+                FileLine? fileLineToVerify = fileDetails.GetValueOrThrow().FileLines.SingleOrDefault(f => f.LineNumber == fileModelFileLine.LineNumber);
                 fileLineToVerify.ShouldNotBeNull();
                 fileLineToVerify.LineData.ShouldBe(fileModelFileLine.LineData);
                 fileLineToVerify.TransactionId.ShouldBe(fileModelFileLine.TransactionId);
@@ -361,22 +361,22 @@ namespace FileProcessor.BusinessLogic.Tests
 
         private void VerifyImportLogs(List<TransactionProcessor.Database.Entities.FileImportLog> source,  Result<List<FileProcessor.Models.FileImportLog>> importLogs, Guid? merchantId = null)
         {
-            importLogs.Data.ShouldNotBeNull();
-            importLogs.Data.ShouldNotBeEmpty();
-            importLogs.Data.Count.ShouldBe(TestData.FileImportLogs.Count);
+            importLogs.GetValueOrThrow().ShouldNotBeNull();
+            importLogs.GetValueOrThrow().ShouldNotBeEmpty();
+            importLogs.GetValueOrThrow().Count.ShouldBe(TestData.FileImportLogs.Count);
             foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in source)
             {
-                FileImportLog importLog = importLogs.Data.SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
+                FileImportLog importLog = importLogs.GetValueOrThrow().SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
                 VerifyImportLog(fileImportLog, importLog, merchantId);
             }
         }
 
         private void VerifyImportLog(TransactionProcessor.Database.Entities.FileImportLog source, Result<FileProcessor.Models.FileImportLog> importLog, Guid? merchantId = null)
         {
-            importLog.Data.ShouldNotBeNull();
-            importLog.Data.FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
+            importLog.GetValueOrThrow().ShouldNotBeNull();
+            importLog.GetValueOrThrow().FileImportLogDateTime.ShouldBe(source.ImportLogDateTime);
             
-            List<ImportLogFile> filesToVerify = importLog.Data.Files;
+            List<ImportLogFile> filesToVerify = importLog.GetValueOrThrow().Files;
             if (merchantId.HasValue)
             {
                 filesToVerify = filesToVerify.Where(f => f.MerchantId == merchantId.Value).ToList();
@@ -384,7 +384,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             foreach (ImportLogFile importLogFile in filesToVerify)
             {
-                ImportLogFile file = importLog.Data.Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
+                ImportLogFile file = importLog.GetValueOrThrow().Files.SingleOrDefault(impfile => impfile.FileId == importLogFile.FileId);
                 file.ShouldNotBeNull();
                 file.MerchantId.ShouldBe(importLogFile.MerchantId);
                 file.FilePath.ShouldBe(importLogFile.FilePath);

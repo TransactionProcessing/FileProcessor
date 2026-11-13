@@ -12,10 +12,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProcessor.Testing;
-using Shared.General;
-using Shared.Logger;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
 using Xunit;
 
 namespace FileProcessor.BusinessLogic.Tests;
@@ -53,7 +53,7 @@ public class FileHandlersTests
             Logger.Initialise(NullLogger.Instance);
 
             IMediatorImposter mediator = new();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure("Failure"));
 
             await using MemoryStream content = new("D,1,1,1"u8.ToArray());
             FormFile formFile = new(content, 0, content.Length, "file", "source.csv")

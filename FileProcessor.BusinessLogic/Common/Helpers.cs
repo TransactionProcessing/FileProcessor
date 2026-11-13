@@ -1,7 +1,7 @@
-﻿namespace FileProcessor.BusinessLogic.Common
+namespace FileProcessor.BusinessLogic.Common
 {
     using System;
-    using Shared.Extensions;
+    using TransactionProcessing.Shared.Extensions;
 
     public static class Helpers
     {

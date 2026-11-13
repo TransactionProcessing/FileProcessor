@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
@@ -8,14 +8,14 @@ using FileProcessor.Common;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Results.Web;
-using SimpleResults;
+using TransactionProcessing.UnionResults.AspNetCore;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.Handlers;
 
 public static class FileImportLogHandlers
 {
-    public static async Task<IResult> GetImportLogsAsync(IMediator mediator,
+    public static async Task<IResultOutcome> GetImportLogsAsync(IMediator mediator,
                                                          [FromQuery, Description("Required estate GUID to scope the logs or log lookup.")] Guid estateId,
                                                          [FromQuery, Description("Required inclusive start date in ISO 8601 date format (yyyy-MM-dd). Must be on or before endDate.")] DateOnly startDate,
                                                          [FromQuery, Description("Required inclusive end date in ISO 8601 date format (yyyy-MM-dd). Must be on or after startDate.")] DateOnly endDate,
@@ -33,7 +33,7 @@ public static class FileImportLogHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> GetImportLogAsync(IMediator mediator,
+    public static async Task<IResultOutcome> GetImportLogAsync(IMediator mediator,
                                                         [FromRoute, Description("GUID identifying the file import log.")] Guid fileImportLogId,
                                                         [FromQuery, Description("Required estate GUID to scope the logs or log lookup.")] Guid estateId,
                                                         [FromQuery, Description("Optional merchant GUID used to filter logs or files.")] Guid? merchantId,

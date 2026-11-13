@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using Shared.General;
+using TransactionProcessing.Shared.General;
 
 namespace FileProcessor.Common;
 

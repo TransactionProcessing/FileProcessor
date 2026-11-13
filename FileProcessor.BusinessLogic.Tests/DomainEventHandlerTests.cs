@@ -1,4 +1,4 @@
-using Shared.Logger;
+using TransactionProcessing.Shared.Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace FileProcessor.BusinessLogic.Tests
     using MediatR;
     using Imposter.Abstractions;
     using Requests;
-    using SimpleResults;
+    using TransactionProcessing.UnionResults;
     using Shouldly;
     using Shouldly.Configuration;
     using Testing;
@@ -24,7 +24,7 @@ namespace FileProcessor.BusinessLogic.Tests
     {
         public DomainEventHandlerTests()
         {
-            Shared.Logger.Logger.Initialise(new NullLogger());
+            TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
         }
 
         [Fact]

@@ -5,11 +5,10 @@ using System.Linq;
 using FileProcessor.DataTransferObjects.Requests;
 using FileProcessor.Models;
 using FileProcessor.FileProfile.DomainEvents;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EventStore.Aggregate;
-using Shared.General;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.FileProfileAggregate;
@@ -139,7 +138,7 @@ public static class FileProfileAggregateExtensions
                 return Result.Success();
             }
 
-            return Result.Invalid($"File profile [{request.FileProfileId}] already exists");
+            return Result.Fail(Error.Validation($"File profile [{request.FileProfileId}] already exists"));
         }
 
         var lineTerminatorResult = request.LineTerminator.Value.ToLineTerminator();
@@ -152,7 +151,7 @@ public static class FileProfileAggregateExtensions
                                                               request.ListeningDirectory.Trim(),
                                                               request.RequestType.Trim(),
                                                               request.OperatorName.Trim(),
-                                                              lineTerminatorResult.Data,
+                                                              lineTerminatorResult.GetValueOrThrow(),
                                                               request.FileFormatHandler.Trim(),
                                                               Guid.NewGuid(),
                                                               1);
@@ -177,7 +176,7 @@ public static class FileProfileAggregateExtensions
         if (lineTerminatorResult.IsFailed)
             return ResultHelpers.CreateFailure(lineTerminatorResult);
 
-        FileProfileUpdate update = CreateUpdate(profile, request, lineTerminatorResult.Data);
+        FileProfileUpdate update = CreateUpdate(profile, request, lineTerminatorResult.GetValueOrThrow());
         if (HasProfileChanged(profile, update) == false)
             return Result.Success();
 
@@ -351,17 +350,17 @@ public static class FileProfileAggregateExtensions
     {
         if (request == null)
         {
-            return Result.Invalid("No file profile data provided");
+            return Result.Fail(Error.Validation("No file profile data provided"));
         }
 
         if (request.FileProfileId == Guid.Empty)
         {
-            return Result.Invalid("No file profile Id provided");
+            return Result.Fail(Error.Validation("No file profile Id provided"));
         }
 
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return Result.Invalid("No file profile name provided");
+            return Result.Fail(Error.Validation("No file profile name provided"));
         }
 
         Result requiredFieldsResult = ValidateRequiredCreateFields(request);
@@ -384,7 +383,7 @@ public static class FileProfileAggregateExtensions
     {
         if (request == null)
         {
-            return Result.Invalid("No file profile data provided");
+            return Result.Fail(Error.Validation("No file profile data provided"));
         }
 
         FileProfileState currentProfile = aggregate.GetRequiredProfileState(fileProfileId);
@@ -428,7 +427,7 @@ public static class FileProfileAggregateExtensions
 
         return errors.Count == 0
             ? Result.Success()
-            : Result.Invalid(errors);
+            : Result.Fail(Result.Invalid("Validation failed.", errors));
     }
 
     private static Result ValidateSupportedConfiguration(string requestType, string fileFormatHandler)
@@ -450,7 +449,7 @@ public static class FileProfileAggregateExtensions
 
         return errors.Count == 0
             ? Result.Success()
-            : Result.Invalid(errors);
+            : Result.Fail(Result.Invalid("Validation failed.", errors));
     }
 
     private static void AddIfInvalid(string? value, string errorMessage, ICollection<string> errors)
@@ -490,7 +489,7 @@ public static class FileProfileAggregateExtensions
 
         return Enum.IsDefined(typeof(LineTerminatorType), value.Value)
             ? Result.Success()
-            : Result.Invalid(errorMessage);
+            : Result.Fail(Error.Validation(errorMessage));
     }
 
     private static Result ValidateCreateUniqueness(this FileProfileAggregate aggregate, CreateFileProfileRequest request)
@@ -500,12 +499,12 @@ public static class FileProfileAggregateExtensions
 
         if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.Name, proposedName)))
         {
-            return Result.Invalid($"A file profile with name [{request.Name}] already exists");
+            return Result.Fail(Error.Validation($"A file profile with name [{request.Name}] already exists"));
         }
 
         if (aggregate.FileProfiles.Values.Any(profile => profile.IsArchived == false && Comparer.Equals(profile.RequestType, proposedRequestType)))
         {
-            return Result.Invalid($"A file profile with request type [{request.RequestType}] already exists");
+            return Result.Fail(Error.Validation($"A file profile with request type [{request.RequestType}] already exists"));
         }
 
         return Result.Success();
@@ -535,7 +534,7 @@ public static class FileProfileAggregateExtensions
             Comparer.Equals(currentProfile.Name, proposedName) == false &&
             aggregate.FileProfiles.Values.Any(profile => profile.FileProfileId != fileProfileId && profile.IsArchived == false && Comparer.Equals(profile.Name, proposedName)))
         {
-            return Result.Invalid($"A file profile with name [{rawName}] already exists");
+            return Result.Fail(Error.Validation($"A file profile with name [{rawName}] already exists"));
         }
 
         return Result.Success();
@@ -551,7 +550,7 @@ public static class FileProfileAggregateExtensions
             Comparer.Equals(currentProfile.RequestType, proposedRequestType) == false &&
             aggregate.FileProfiles.Values.Any(profile => profile.FileProfileId != fileProfileId && profile.IsArchived == false && Comparer.Equals(profile.RequestType, proposedRequestType)))
         {
-            return Result.Invalid($"A file profile with request type [{rawRequestType}] already exists");
+            return Result.Fail(Error.Validation($"A file profile with request type [{rawRequestType}] already exists"));
         }
 
         return Result.Success();
@@ -559,7 +558,7 @@ public static class FileProfileAggregateExtensions
 
     private static Result ValidateStringField(String value, String errorMessage)
     {
-        return string.IsNullOrWhiteSpace(value) ? Result.Invalid(errorMessage) : Result.Success();
+        return string.IsNullOrWhiteSpace(value) ? Result.Fail(Error.Validation(errorMessage)) : Result.Success();
     }
 
     private static Result ValidateOptionalStringField(String value, String errorMessage)
@@ -629,7 +628,7 @@ public static class LineTerminatorTypeExtensions
             LineTerminatorType.LineFeed => Result.Success<string>("\n"),
             LineTerminatorType.CarriageReturnLineFeed => Result.Success<string>("\r\n"),
             LineTerminatorType.CarriageReturn => Result.Success<string>("\r"),
-            _ => Result.Invalid($"Invalid line terminator type {lineTerminator}")
+            _ => Result<string>.Fail(Error.Validation($"Invalid line terminator type {lineTerminator}"))
         };
     }
 }

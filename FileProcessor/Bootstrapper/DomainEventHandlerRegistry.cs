@@ -1,4 +1,4 @@
-﻿namespace FileProcessor.Bootstrapper;
+namespace FileProcessor.Bootstrapper;
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using BusinessLogic.EventHandling;
 using Lamar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EventStore.Aggregate;
-using Shared.EventStore.EventHandling;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.EventStore.EventHandling;
 
 [ExcludeFromCodeCoverage]
 public class DomainEventHandlerRegistry : ServiceRegistry

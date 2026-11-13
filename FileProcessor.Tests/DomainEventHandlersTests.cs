@@ -6,12 +6,12 @@ using FileProcessor.File.DomainEvents;
 using FileProcessor.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Shared.EventStore.EventHandling;
-using Shared.Exceptions;
-using Shared.General;
-using Shared.Logger;
-using Shared.Serialisation;
-using SimpleResults;
+using TransactionProcessing.Shared.EventStore.EventHandling;
+using TransactionProcessing.Shared.Exceptions;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
+using TransactionProcessing.Shared.Serialisation;
+using TransactionProcessing.UnionResults;
 using Shouldly;
 using FileProcessor.Testing;
 using Xunit;
@@ -177,16 +177,12 @@ public class DomainEventHandlersTests
 
     private static Result<List<IDomainEventHandler>> FailedHandlersResult()
     {
-        return new Result<List<IDomainEventHandler>>
-        {
-            Status = ResultStatus.Failure,
-            Message = "No handlers"
-        };
+        return Result<List<IDomainEventHandler>>.Fail(Error.Failure("No handlers"));
     }
 
     private sealed class Resolver(Result<List<IDomainEventHandler>> result) : IDomainEventHandlerResolver
     {
-        public Result<List<IDomainEventHandler>> GetDomainEventHandlers(Shared.DomainDrivenDesign.EventSourcing.IDomainEvent domainEvent) => result;
+        public Result<List<IDomainEventHandler>> GetDomainEventHandlers(TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing.IDomainEvent domainEvent) => result;
     }
 
     private sealed class Handler : IDomainEventHandler
@@ -200,7 +196,7 @@ public class DomainEventHandlersTests
             this.exception = exception;
         }
 
-        public Task<Result> Handle(Shared.DomainDrivenDesign.EventSourcing.IDomainEvent domainEvent, CancellationToken cancellationToken)
+        public Task<Result> Handle(TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing.IDomainEvent domainEvent, CancellationToken cancellationToken)
         {
             if (this.exception != null)
                 throw this.exception;

@@ -7,10 +7,10 @@ using FileProcessor.DataTransferObjects.Requests;
 using FileProcessor.FileProfileAggregate;
 using FileProcessor.Testing;
 using Imposter.Abstractions;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.Aggregate;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;
 using FileProfileModel = FileProcessor.Models.FileProfile;
@@ -31,9 +31,9 @@ public class FileProfileManagerTests
         Result<List<FileProfileModel>> result = await manager.GetFileProfileVersions(TestData.FileProfileId, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Data.Count.ShouldBe(2);
-        result.Data[0].FileProfileVersion.ShouldBe(1);
-        result.Data[1].FileProfileVersion.ShouldBe(2);
+        result.GetValueOrThrow().Count.ShouldBe(2);
+        result.GetValueOrThrow()[0].FileProfileVersion.ShouldBe(1);
+        result.GetValueOrThrow()[1].FileProfileVersion.ShouldBe(2);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class FileProfileManagerTests
                                                                                 CancellationToken.None);
 
         result.IsFailed.ShouldBeTrue();
-        result.Status.ShouldBe(ResultStatus.NotFound);
+        result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
         result.Message.ShouldContain(TestData.FileProfileId.ToString());
         result.Message.ShouldContain(missingVersionId.ToString());
     }
@@ -68,10 +68,10 @@ public class FileProfileManagerTests
         Result<List<FileProfileModel>> result = await manager.GetAllFileProfileVersions(CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Data.Count.ShouldBe(2);
-        result.Data[0].FileProfileId.ShouldBe(TestData.FileProfileId);
-        result.Data[0].FileProfileVersion.ShouldBe(1);
-        result.Data[1].FileProfileVersion.ShouldBe(2);
+        result.GetValueOrThrow().Count.ShouldBe(2);
+        result.GetValueOrThrow()[0].FileProfileId.ShouldBe(TestData.FileProfileId);
+        result.GetValueOrThrow()[0].FileProfileVersion.ShouldBe(1);
+        result.GetValueOrThrow()[1].FileProfileVersion.ShouldBe(2);
     }
 
     private FileProfileAggregateRoot CreateArchivedAggregate()

@@ -3,8 +3,8 @@ using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.File.DomainEvents;
 using FileProcessor.FileAggregate;
 using FileProcessor.Models;
-using Shared.Logger;
-using SimpleResults;
+using TransactionProcessing.Shared.Logger;
+using TransactionProcessing.UnionResults;
 using TransactionProcessor.DataTransferObjects;
 using TransactionProcessor.DataTransferObjects.Responses.Transaction;
 
@@ -135,7 +135,7 @@ internal static class FileLineProcessingDiagnostics
             context.TransactionDispatchAttempted,
             context.TransactionDispatchSucceeded,
             context.ResponseCode,
-            result.Status,
+            result.Errors[0].ErrorType,
             result.Message);
     }
 
@@ -176,7 +176,7 @@ internal static class FileLineProcessingDiagnostics
             context.MerchantId,
             context.OperatorName,
             "PerformTransaction",
-            result.Status,
+            result.Errors[0].ErrorType,
             result.Message);
     }
 
@@ -204,7 +204,7 @@ internal static class FileLineProcessingDiagnostics
             domainEvent.EstateId,
             domainEvent.MerchantId,
             nameof(FileLineAddedEvent),
-            result.Status,
+            result.Errors[0].ErrorType,
             result.Message);
     }
 

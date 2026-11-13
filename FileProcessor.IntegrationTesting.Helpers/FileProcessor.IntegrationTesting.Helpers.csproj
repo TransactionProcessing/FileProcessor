@@ -1,15 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net10.0</TargetFramework>
+	  <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Shared.IntegrationTesting" />
+	  <PackageReference Include="TransactionProcessing.Shared.IntegrationTesting" />
 	  <PackageReference Include="SharpCompress" />
 	  <PackageReference Include="TransactionProcessor.IntegrationTesting.Helpers" />
+      <PackageReference Include="TransactionProcessing.UnionResults" />
   </ItemGroup>
 
   <ItemGroup>

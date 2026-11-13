@@ -1,4 +1,4 @@
-﻿namespace FileProcessor.IntegrationTests.Common
+namespace FileProcessor.IntegrationTests.Common
 {
     using Ductus.FluentDocker.Builders;
     using Ductus.FluentDocker.Services;
@@ -6,8 +6,8 @@
     using Microsoft.Extensions.Logging;
     using NLog;
     using Reqnroll;
-    using Shared.IntegrationTesting;
-    using Shared.Logger;
+    using TransactionProcessing.Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.Logger;
     using Shouldly;
     using System;
     using System.Data;

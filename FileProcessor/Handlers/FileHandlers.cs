@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -11,16 +11,16 @@ using FileProcessor.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.General;
-using Shared.Results.Web;
-using Shared.Serialisation;
-using SimpleResults;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.UnionResults.AspNetCore;
+using TransactionProcessing.Shared.Serialisation;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.Handlers;
 
 public static class FileHandlers
 {
-    public static async Task<IResult> UploadFile(IMediator mediator,
+    public static async Task<object> UploadFile(IMediator mediator,
                                                  [FromForm, Description("Multipart form metadata and the file to upload.")] UploadFileForm request,
                                                  HttpRequest httpRequest,
                                                  CancellationToken cancellationToken)
@@ -76,7 +76,7 @@ public static class FileHandlers
                 }
                 catch (Exception exception)
                 {
-                    Shared.Logger.Logger.LogWarning($"Failed to remove temporary upload file [{fullPath}]. Error [{exception.Message}]");
+                    TransactionProcessing.Shared.Logger.Logger.LogWarning($"Failed to remove temporary upload file [{fullPath}]. Error [{exception.Message}]");
                 }
             }
         }
@@ -138,7 +138,7 @@ public static class FileHandlers
         return sanitizedName[..nameLength] + extension;
     }
 
-    public static async Task<IResult> GetFile(IMediator mediator,
+    public static async Task<IResultOutcome> GetFile(IMediator mediator,
                                                    [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
                                                    [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
                                                    CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ public static class FileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResult> ReplayLine(IMediator mediator,
+    public static async Task<IResultOutcome> ReplayLine(IMediator mediator,
                                                    [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
                                                    [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
                                                    [FromRoute, Description("One-based line number to retry.")] Int32 lineNumber,

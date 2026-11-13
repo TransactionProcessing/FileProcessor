@@ -1,5 +1,5 @@
 using System;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 
 namespace FileProcessor.FileImportLogAggregate.Tests
@@ -94,7 +94,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
 
             var result = fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
             result.IsFailed.ShouldBeTrue();
-            result.Status.ShouldBe(ResultStatus.Invalid);
+            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]

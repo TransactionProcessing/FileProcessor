@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using FileProcessor.DataTransferObjects.Requests;
 using FileProcessor.Models;
 using MediatR;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.BusinessLogic.Requests;

@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FileProcessor.BusinessLogic.Managers;
 using MediatR;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.BusinessLogic.Tests
 {

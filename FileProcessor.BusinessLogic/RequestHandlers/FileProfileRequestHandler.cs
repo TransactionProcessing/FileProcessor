@@ -5,7 +5,7 @@ using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.Models;
 using MediatR;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 
 namespace FileProcessor.BusinessLogic.RequestHandlers;

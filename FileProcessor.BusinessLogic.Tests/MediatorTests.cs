@@ -20,9 +20,9 @@ namespace FileProcessor.BusinessLogic.Tests
     using Lamar;
     using Microsoft.Extensions.DependencyInjection;
     using Services;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
-    using Shared.General;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.EventStore.Aggregate;
+    using TransactionProcessing.Shared.General;
 
     public class MediatorTests
     {

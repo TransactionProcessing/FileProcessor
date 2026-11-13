@@ -16,25 +16,26 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using LogManager = NLog.LogManager;
 using Sentry.Extensibility;
-using Shared.EventStore.EventHandling;
-using Shared.Extensions;
-using Shared.General;
-using Shared.Logger;
-using Shared.Middleware;
-using Shared.Serialisation;
-using Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EventStore.EventHandling;
+using TransactionProcessing.Shared.Extensions;
+using TransactionProcessing.Shared.General;
+using TransactionProcessing.Shared.Logger;
+using TransactionProcessing.Shared.Middleware;
+using TransactionProcessing.Shared.Serialisation;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Reflection;
 using NLog;
-using Logger = Shared.Logger.Logger;
+using Logger = TransactionProcessing.Shared.Logger.Logger;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
-using Shared.EventStore.Aggregate;
-using Shared.EventStore.SubscriptionWorker;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
 using System.IO.Abstractions;
 using TransactionProcessing.ApiDefaults;
+using TransactionProcessing.UnionResults.AspNetCore;
 
 namespace FileProcessor;
 
@@ -44,6 +45,7 @@ public class Program
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddUnionResults();
 
         FileInfo assemblyFile = new FileInfo(Assembly.GetExecutingAssembly().Location);
         string assemblyDirectory = assemblyFile.DirectoryName!;
@@ -55,7 +57,7 @@ public class Program
             b.SetupLogFactory(setup =>
             {
                 setup.AddCallSiteHiddenAssembly(typeof(NlogLogger).Assembly);
-                setup.AddCallSiteHiddenAssembly(typeof(Shared.Logger.Logger).Assembly);
+                setup.AddCallSiteHiddenAssembly(typeof(TransactionProcessing.Shared.Logger.Logger).Assembly);
                 setup.AddCallSiteHiddenAssembly(typeof(TenantMiddleware).Assembly);
             });
             b.LoadConfigurationFromFile(nlogConfigPath);
@@ -149,7 +151,7 @@ public class Program
 
         LogManager.Setup().LoadConfigurationFromFile("NLog.config");
         NLog.Logger logger = LogManager.GetLogger("FileProcessor");
-        Shared.Logger.Logger.Initialise(logger, "FileProcessor");
+        TransactionProcessing.Shared.Logger.Logger.Initialise(logger, "FileProcessor");
         IConfigurationRoot configuration = (IConfigurationRoot)app.Configuration;
         configuration.LogConfiguration(Logger.LogWarning);
         ConfigurationReader.Initialise(configuration);
@@ -170,7 +172,7 @@ public class Program
         app.MapHealthChecks("health", new HealthCheckOptions
         {
             Predicate = _ => true,
-            ResponseWriter = Shared.HealthChecks.HealthCheckMiddleware.WriteResponse
+            ResponseWriter = TransactionProcessing.Shared.HealthChecks.HealthCheckMiddleware.WriteResponse
         });
         // Health-check payload formatted for the Health Checks UI client.
         app.MapHealthChecks("healthui", new HealthCheckOptions

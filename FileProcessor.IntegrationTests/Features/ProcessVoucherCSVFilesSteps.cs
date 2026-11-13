@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace FileProcessor.IntegrationTests.Features
 {
@@ -12,7 +12,7 @@ namespace FileProcessor.IntegrationTests.Features
     using System.Threading.Tasks;
     using Common;
     using Reqnroll;
-    using Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.IntegrationTesting;
     using Shouldly;
 
     [Binding]

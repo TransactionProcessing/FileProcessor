@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using NUnit.Framework;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.IntegrationTests;
 
@@ -44,7 +44,7 @@ public class ClientProfileHistoryContractTests
                                                                          Guid.NewGuid(),
                                                                          CancellationToken.None);
 
-        Assert.That(result.Status, Is.EqualTo(ResultStatus.NotFound));
+        Assert.That(result.Errors[0].ErrorType, Is.EqualTo(ErrorType.NotFound));
         Assert.That(result.Message, Does.Contain("historical version missing"));
     }
 

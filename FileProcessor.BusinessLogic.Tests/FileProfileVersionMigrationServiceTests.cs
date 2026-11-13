@@ -10,11 +10,11 @@ using FileProcessor.Models;
 using Imposter.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EntityFramework;
-using Shared.EventStore.Aggregate;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EntityFramework;
+using TransactionProcessing.Shared.EventStore.Aggregate;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using TransactionProcessor.Database.Contexts;
 using Xunit;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
@@ -67,8 +67,8 @@ public class FileProfileVersionMigrationServiceTests
         Result<FileProfileVersionMigrationReport> result = await service.RunAsync(CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Data.FilesAssigned.ShouldBe(1);
-        result.Data.Failures.ShouldBeEmpty();
+        result.GetValueOrThrow().FilesAssigned.ShouldBe(1);
+        result.GetValueOrThrow().Failures.ShouldBeEmpty();
         aggregate.GetFile().FileProfileVersionId.ShouldBe(FileProcessor.Testing.TestData.FileProfileVersionId);
     }
 
@@ -104,9 +104,9 @@ public class FileProfileVersionMigrationServiceTests
         Result<FileProfileVersionMigrationReport> result = await service.RunAsync(CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Data.FilesAssigned.ShouldBe(0);
-        result.Data.Failures.Count.ShouldBe(1);
-        result.Data.Failures.Single().ShouldContain(file.FileId.ToString());
+        result.GetValueOrThrow().FilesAssigned.ShouldBe(0);
+        result.GetValueOrThrow().Failures.Count.ShouldBe(1);
+        result.GetValueOrThrow().Failures.Single().ShouldContain(file.FileId.ToString());
         aggregate.GetFile().FileProfileVersionId.ShouldBe(Guid.Empty);
     }
 
@@ -153,10 +153,10 @@ public class FileProfileVersionMigrationServiceTests
         Result<FileProfileVersionMigrationReport> firstResult = await service.RunAsync(CancellationToken.None);
         Result<FileProfileVersionMigrationReport> secondResult = await service.RunAsync(CancellationToken.None);
 
-        firstResult.Data.FilesAssigned.ShouldBe(1);
-        secondResult.Data.FilesAssigned.ShouldBe(0);
-        secondResult.Data.FilesSkipped.ShouldBe(1);
-        secondResult.Data.Failures.ShouldBeEmpty();
+        firstResult.GetValueOrThrow().FilesAssigned.ShouldBe(1);
+        secondResult.GetValueOrThrow().FilesAssigned.ShouldBe(0);
+        secondResult.GetValueOrThrow().FilesSkipped.ShouldBe(1);
+        secondResult.GetValueOrThrow().Failures.ShouldBeEmpty();
     }
 
     private (EstateManagementContext Context, IDbContextResolverImposter<EstateManagementContext> Resolver) CreateContext()

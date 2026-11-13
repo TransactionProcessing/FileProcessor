@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using FileProcessor.Models;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.Bootstrapper;
 

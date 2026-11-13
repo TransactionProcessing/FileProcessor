@@ -1,6 +1,6 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Security.Cryptography;
-using Shared.Results;
+using TransactionProcessing.UnionResults;
 using System.Globalization;
 
 namespace FileProcessor.Client {
@@ -9,15 +9,13 @@ namespace FileProcessor.Client {
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using ClientProxyBase;
+    using TransactionProcessing.ClientProxyBase;
     using DataTransferObjects;
     using DataTransferObjects.Requests;
     using ApiFileDetails = DataTransferObjects.Responses.FileDetails;
     using ApiFileImportLog = DataTransferObjects.Responses.FileImportLog;
     using DataTransferObjects.Responses;
     using FileProcessor.Models;
-    using SimpleResults;
-
     public enum SortDirection {
         Ascending,
         Descending,
@@ -83,7 +81,7 @@ namespace FileProcessor.Client {
 
     }
 
-    public class FileProcessorClient : ClientProxyBase, IFileProcessorClient {
+    public class FileProcessorClient : TransactionProcessing.ClientProxyBase, IFileProcessorClient {
 
         private readonly Func<String, String> BaseAddressResolver;
 

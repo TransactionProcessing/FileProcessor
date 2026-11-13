@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
@@ -9,7 +9,7 @@
       <PackageReference Include="HealthMonitoring.Client" />
       <PackageReference Include="OpenIddict.Validation.AspNetCore" />
       <PackageReference Include="OpenIddict.Validation.SystemNetHttp" />
-      <PackageReference Include="ClientProxyBase" />
+      <PackageReference Include="TransactionProcessing.ClientProxyBase" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
       <PackageReference Include="Lamar" />
       <PackageReference Include="Lamar.Microsoft.DependencyInjection" />
@@ -19,11 +19,13 @@
       <PackageReference Include="AspNetCore.HealthChecks.Uris" />
       <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.OpenApi" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Shared" />
+    <PackageReference Include="TransactionProcessing.Shared" />
       <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Shared.Results.Web" />
+    <PackageReference Include="TransactionProcessing.UnionResults.AspNetCore" />
       <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
       <PackageReference Include="Sentry.AspNetCore" />
       <PackageReference Include="TransactionProcessing.ApiDefaults" />
@@ -40,16 +42,16 @@
 
   <Target Name="CopyApiXmlDocumentationToOutput" AfterTargets="Build">
     <ItemGroup>
-      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml"
-                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml')" />
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net11.0\FileProcessor.DataTransferObjects.xml"
+                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net11.0\FileProcessor.DataTransferObjects.xml')" />
     </ItemGroup>
     <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="CopyApiXmlDocumentationToPublish" AfterTargets="Publish">
     <ItemGroup>
-      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml"
-                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net10.0\FileProcessor.DataTransferObjects.xml')" />
+      <ApiXmlDocumentation Include="$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net11.0\FileProcessor.DataTransferObjects.xml"
+                           Condition="Exists('$(MSBuildProjectDirectory)\..\FileProcessor.DataTransferObjects\bin\$(Configuration)\net11.0\FileProcessor.DataTransferObjects.xml')" />
     </ItemGroup>
     <Copy SourceFiles="@(ApiXmlDocumentation)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>

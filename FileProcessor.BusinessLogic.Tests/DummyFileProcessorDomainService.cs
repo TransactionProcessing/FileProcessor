@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.DataTransferObjects;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 using FileDetails = global::FileProcessor.Models.FileDetails;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.BusinessLogic.Tests;
 

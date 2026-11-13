@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +8,10 @@ using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.FileAggregate;
 using FileProcessor.Models;
 using Microsoft.EntityFrameworkCore;
-using Shared.DomainDrivenDesign.EventSourcing;
-using Shared.EntityFramework;
-using Shared.EventStore.Aggregate;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+using TransactionProcessing.Shared.EntityFramework;
+using TransactionProcessing.Shared.EventStore.Aggregate;
+using TransactionProcessing.UnionResults;
 using TransactionProcessor.Database.Contexts;
 using FileAggregateRoot = FileProcessor.FileAggregate.FileAggregate;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
@@ -48,7 +47,7 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
             return ResultHelpers.CreateFailure(profileVersionsResult);
 
         FileProfileVersionMigrationReport report = new();
-        Dictionary<Guid, Guid> initialVersions = this.GetInitialVersions(profileVersionsResult.Data, report);
+        Dictionary<Guid, Guid> initialVersions = this.GetInitialVersions(profileVersionsResult.GetValueOrThrow(), report);
 
         ResolvedDbContext<EstateManagementContext> resolvedContext = this.Resolver.Resolve(EstateManagementDatabaseName, null);
         List<ExistingFile> files = await resolvedContext.Context.Files
@@ -62,13 +61,13 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
             report.FilesChecked++;
 
             Result<FileAggregateRoot> aggregateResult = await this.FileAggregateRepository.GetLatestVersion(file.FileId, cancellationToken);
-            if (aggregateResult.IsFailed || aggregateResult.Data == null)
+            if (aggregateResult.IsFailed || aggregateResult.GetValueOrThrow() == null)
             {
                 report.Failures.Add($"File [{file.FileId}] could not be loaded: {aggregateResult.Message}");
                 continue;
             }
 
-            FileDetails fileDetails = aggregateResult.Data.GetFile();
+            FileDetails fileDetails = aggregateResult.GetValueOrThrow().GetFile();
             if (fileDetails.FileProfileVersionId != Guid.Empty)
             {
                 report.FilesSkipped++;
@@ -81,14 +80,14 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
                 continue;
             }
 
-            Result assignResult = aggregateResult.Data.AssignFileProfileVersion(initialVersionId);
+            Result assignResult = aggregateResult.GetValueOrThrow().AssignFileProfileVersion(initialVersionId);
             if (assignResult.IsFailed)
             {
                 report.Failures.Add($"File [{file.FileId}] could not be assigned profile version [{initialVersionId}]: {assignResult.Message}");
                 continue;
             }
 
-            Result saveResult = await this.FileAggregateRepository.SaveChanges(aggregateResult.Data, cancellationToken);
+            Result saveResult = await this.FileAggregateRepository.SaveChanges(aggregateResult.GetValueOrThrow(), cancellationToken);
             if (saveResult.IsFailed)
             {
                 report.Failures.Add($"File [{file.FileId}] could not be saved: {saveResult.Message}");

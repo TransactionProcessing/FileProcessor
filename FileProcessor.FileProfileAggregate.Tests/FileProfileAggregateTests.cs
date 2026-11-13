@@ -5,7 +5,7 @@ using FileProcessor.DataTransferObjects.Requests;
 using FileProcessor.FileProfileAggregate;
 using FileProcessor.Testing;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using Xunit;
 using FileProfileAggregateRoot = FileProcessor.FileProfileAggregate.FileProfileAggregate;
 
@@ -366,7 +366,7 @@ public class FileProfileAggregateTests
 
         firstCreate.IsSuccess.ShouldBeTrue();
         duplicateCreate.IsFailed.ShouldBeTrue();
-        duplicateCreate.Status.ShouldBe(ResultStatus.Invalid);
+        duplicateCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Theory]
@@ -385,7 +385,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomFileFormatHandler));
 
         firstCreate.IsFailed.ShouldBeTrue();
-        firstCreate.Status.ShouldBe(ResultStatus.Invalid);
+        firstCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public class FileProfileAggregateTests
             TestData.SafaricomFileFormatHandler));
 
         firstCreate.IsFailed.ShouldBeTrue();
-        firstCreate.Status.ShouldBe(ResultStatus.Invalid);
+        firstCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -431,7 +431,7 @@ public class FileProfileAggregateTests
 
         firstCreate.IsSuccess.ShouldBeTrue();
         duplicateCreate.IsFailed.ShouldBeTrue();
-        duplicateCreate.Status.ShouldBe(ResultStatus.Invalid);
+        duplicateCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -449,7 +449,7 @@ public class FileProfileAggregateTests
             "UnsupportedFileFormatHandler"));
 
         result.IsFailed.ShouldBeTrue();
-        result.Status.ShouldBe(ResultStatus.Invalid);
+        result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         result.Errors.ShouldContain(error => error.Contains("Unsupported request type"));
         result.Errors.ShouldContain(error => error.Contains("Unsupported file format handler"));
     }
@@ -493,7 +493,7 @@ public class FileProfileAggregateTests
         });
 
         result.IsFailed.ShouldBeTrue();
-        result.Status.ShouldBe(ResultStatus.Invalid);
+        result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
         result.Errors.ShouldContain(error => error.Contains("Unsupported request type"));
         result.Errors.ShouldContain(error => error.Contains("Unsupported file format handler"));
     }

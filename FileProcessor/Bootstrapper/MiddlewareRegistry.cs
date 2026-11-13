@@ -1,4 +1,4 @@
-﻿using HealthMonitoring.Client;
+using HealthMonitoring.Client;
 using KurrentDB.Client;
 using Microsoft.OpenApi;
 using Microsoft.Extensions.Configuration;
@@ -12,11 +12,11 @@ namespace FileProcessor.Bootstrapper
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using OpenIddict.Validation.AspNetCore;
-    using Shared.Authorisation;
-    using Shared.EventStore.Extensions;
-    using Shared.Extensions;
-    using Shared.General;
-    using Shared.Serialisation;
+    using TransactionProcessing.Shared.Authorisation;
+    using TransactionProcessing.Shared.EventStore.Extensions;
+    using TransactionProcessing.Shared.Extensions;
+    using TransactionProcessing.Shared.General;
+    using TransactionProcessing.Shared.Serialisation;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;

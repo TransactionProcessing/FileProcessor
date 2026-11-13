@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,8 +9,8 @@ namespace FileProcessor.IntegrationTests.Common
     using System.Threading;
     using NLog;
     using Reqnroll;
-    using Shared.IntegrationTesting;
-    using Shared.Logger;
+    using TransactionProcessing.Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.Logger;
     
     [Binding]
     [Scope(Tag = "base")]

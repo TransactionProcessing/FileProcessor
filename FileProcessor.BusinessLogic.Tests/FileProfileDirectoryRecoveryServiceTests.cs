@@ -10,11 +10,11 @@ using FileProcessor.BusinessLogic.Services;
 using FileProcessor.Models;
 using MediatR;
 using Imposter.Abstractions;
-using Shared.Results;
+using TransactionProcessing.UnionResults;
 using Shouldly;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 using FileProcessor.Testing;
-using Shared.Logger;
+using TransactionProcessing.Shared.Logger;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 using FileImportLogModel = global::FileProcessor.Models.FileImportLog;
 using Xunit;
@@ -26,7 +26,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_ReplaysFilesFoundInInProgressDirectory()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -72,7 +72,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_WhenFileAggregateIsMissing_ReplaysUsingImportLogDetails()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -144,7 +144,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_ReplaysFilesFromHistoricalAndCurrentDirectories()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();
@@ -198,7 +198,7 @@ public class FileProfileDirectoryRecoveryServiceTests
     [Fact]
     public async Task RecoverInProgressFilesAsync_WhenVersionsShareDirectory_ReplaysFileOnce()
     {
-        Shared.Logger.Logger.Initialise(new NullLogger());
+        TransactionProcessing.Shared.Logger.Logger.Initialise(new NullLogger());
 
         IFileProcessorManagerImposter fileProcessorManager = new();
         IMediatorImposter mediator = new();

@@ -8,9 +8,8 @@ using FileProcessor.BusinessLogic.Managers;
 using FileProcessor.BusinessLogic.Requests;
 using FileProcessor.Models;
 using MediatR;
-using Shared.Logger;
-using Shared.Results;
-using SimpleResults;
+using TransactionProcessing.Shared.Logger;
+using TransactionProcessing.UnionResults;
 using FileProfileModel = global::FileProcessor.Models.FileProfile;
 using FileImportLogModel = global::FileProcessor.Models.FileImportLog;
 
@@ -39,12 +38,12 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         Result<List<FileProfileModel>> fileProfilesResult = await this.FileProcessorManager.GetAllFileProfileVersions(cancellationToken);
         if (fileProfilesResult.IsFailed)
         {
-            Shared.Logger.Logger.LogWarning($"Unable to load file profiles for in-progress recovery: {fileProfilesResult.Message}");
+            TransactionProcessing.Shared.Logger.Logger.LogWarning($"Unable to load file profiles for in-progress recovery: {fileProfilesResult.Message}");
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
         HashSet<string> recoveredDirectories = new(GetPathComparer());
-        foreach (FileProfileModel fileProfile in fileProfilesResult.Data)
+        foreach (FileProfileModel fileProfile in fileProfilesResult.GetValueOrThrow())
         {
             string inProgressDirectory = Path.Combine(fileProfile.ListeningDirectory, InProgressDirectoryName);
             if (recoveredDirectories.Add(inProgressDirectory) == false)
@@ -75,16 +74,16 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
     {
         string fileName = Path.GetFileNameWithoutExtension(filePath);
         if (TryParseIdentifiers(fileName, out Guid estateId, out Guid fileId) == false) {
-            Shared.Logger.Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because the name does not contain recoverable identifiers", filePath);
+            TransactionProcessing.Shared.Logger.Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because the name does not contain recoverable identifiers", filePath);
             return;
         }
 
         Result<FileDetails> fileResult = await this.FileProcessorManager.GetFile(fileId, estateId, cancellationToken);
         FileCommands.ProcessUploadedFileCommand command;
 
-        if (fileResult.IsSuccess && fileResult.Data != null)
+        if (fileResult.IsSuccess && fileResult.GetValueOrThrow() != null)
         {
-            FileDetails fileDetails = fileResult.Data;
+            FileDetails fileDetails = fileResult.GetValueOrThrow();
             command = new(
                 fileDetails.EstateId,
                 fileDetails.MerchantId,
@@ -103,7 +102,7 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
                 estateId,
                 cancellationToken);
 
-            FileImportLogModel importLog = importLogResult.Data;
+            FileImportLogModel importLog = importLogResult.GetValueOrThrow();
             ImportLogFile importLogFile = importLog?.Files?.Find(file => file.FileId == fileId);
 
             if (importLogResult.IsFailed || importLog == null || importLogFile == null) {

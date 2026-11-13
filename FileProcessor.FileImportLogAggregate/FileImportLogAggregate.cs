@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using FileProcessor.Models;
-using SimpleResults;
+using TransactionProcessing.UnionResults;
 
 namespace FileProcessor.FileImportLogAggregate
 {
@@ -9,8 +9,8 @@ namespace FileProcessor.FileImportLogAggregate
     using System.Linq;
     using FileImportLog.DomainEvents;
     using FileProcessor.Models;
-    using Shared.DomainDrivenDesign.EventSourcing;
-    using Shared.EventStore.Aggregate;
+    using TransactionProcessing.Shared.DomainDrivenDesign.EventSourcing;
+    using TransactionProcessing.Shared.EventStore.Aggregate;
     
     public static class FileImportLogAggregateExtensions{
         public static Result CreateImportLog(this FileImportLogAggregate aggregate, Guid estateId, DateTimeOffset importLogDateTime)
@@ -47,7 +47,7 @@ namespace FileProcessor.FileImportLogAggregate
         {
             if (aggregate.IsCreated == false)
             {
-                return Result.Invalid("Import log has not been created");
+                return Result.Fail(Error.Validation("Import log has not been created"));
             }
 
             ImportLogFile existingFile = aggregate.Files.SingleOrDefault(f => f.FileId == request.FileId);
@@ -61,7 +61,7 @@ namespace FileProcessor.FileImportLogAggregate
                     return Result.Success();
                 }
 
-                return Result.Invalid($"File Id [{request.FileId}] is already registered with different upload details");
+                return Result.Fail(Error.Validation($"File Id [{request.FileId}] is already registered with different upload details"));
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
