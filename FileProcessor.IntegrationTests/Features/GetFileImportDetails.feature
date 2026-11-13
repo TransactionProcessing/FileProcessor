@@ -82,7 +82,8 @@ Background:
 	| Deposit1  | 300.00 | Today    | Test Merchant 1 | Test Estate 1 |
 	| Deposit1  | 300.00 | Today    | Test Merchant 2 | Test Estate 1 |
 
-@PRTest
+# Temporarily skipped while Transaction Processor investigates parked import-log events; re-enable under FileProcessor issue #880.
+@ignore @PRTest
 Scenario: Get File Import Log Details
 	Given I have a file named 'SafarcomTopup1.txt' with the following contents
 	| Column1 | Column2     | Column3 |
