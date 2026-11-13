@@ -39,13 +39,13 @@ public class DummyFileProcessorManager : IFileProcessorManager {
 
     public async Task<Result<FileProfileModel>> GetFileProfile(Guid fileProfileId,
                                                           CancellationToken cancellationToken) {
-        return Result.Success(default(FileProfileModel)!);
+        return Result.NotFound("No file profile found");
     }
 
     public async Task<Result<FileProfileModel>> GetFileProfileVersion(Guid fileProfileId,
                                                                        Guid fileProfileVersionId,
                                                                        CancellationToken cancellationToken) {
-        return Result.Success(default(FileProfileModel)!);
+        return Result.NotFound("No file profile version found");
     }
 
     public async Task<Result<Models.FileImportLogQueryResult>> GetFileImportLogs(Guid estateId,
@@ -56,25 +56,25 @@ public class DummyFileProcessorManager : IFileProcessorManager {
                                                                                   Int32 pageSize,
                                                                                   Boolean descending,
                                                                                   CancellationToken cancellationToken) {
-        return Result.Success(default(Models.FileImportLogQueryResult)!);
+        return Result.NotFound("No import logs found");
     }
 
     public async Task<Result<Models.FileImportLog>> GetFileImportLog(Guid fileImportLogId,
                                                                      Guid estateId,
                                                                      Guid? merchantId,
                                                                      CancellationToken cancellationToken) {
-        return Result.Success(default(Models.FileImportLog)!);
+        return Result.NotFound("No import log found");
     }
 
     public async Task<Result<Models.FileImportLog>> GetFileImportLogForFile(Guid fileId,
                                                                              Guid estateId,
                                                                              CancellationToken cancellationToken) {
-        return Result.Success(default(Models.FileImportLog)!);
+        return Result.NotFound("No import log found for file");
     }
 
     public async Task<Result<FileDetails>> GetFile(Guid fileId,
                                                    Guid estateId,
                                                    CancellationToken cancellationToken) {
-        return Result.Success(default(FileDetails)!);
+        return Result.NotFound("No file found");
     }
 }

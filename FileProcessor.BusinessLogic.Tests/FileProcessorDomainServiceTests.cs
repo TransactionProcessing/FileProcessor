@@ -68,6 +68,8 @@ public class FileProcessorDomainServiceTests
             new IAggregateRepositoryImposter<FileImportLogAggregate, DomainEvent>();
         this.FileAggregateRepository =
             new IAggregateRepositoryImposter<FileAggregate, DomainEvent>();
+        this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
+            .ReturnsAsync(Result.NotFound("No file aggregate found"));
         this.TransactionProcessorClient = new ITransactionProcessorClientImposter();
         this.SecurityServiceClient = new ISecurityServiceClientImposter();
         this.FileFormatHandler = new IFileFormatHandlerImposter();
@@ -219,7 +221,7 @@ public class FileProcessorDomainServiceTests
     [Fact]
     public async Task FileRequestHandler_UploadFileRequest_NoFileProfiles_RequestIsHandled()
     {
-        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.FileProfileNull));
+        this.FileProcessorManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.NotFound("No file profile found"));
 
         this.FileImportLogAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileImportLogAggregate()));
 

@@ -9,7 +9,6 @@ using FileProcessor.Handlers;
 using Imposter.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 using TransactionProcessing.UnionResults;
@@ -31,8 +30,7 @@ public class FileHandlersTests
         IResultOutcome result = await FileHandlers.ReplayLine(
             mediator.Instance(), TestData.FileId, TestData.EstateId, TestData.LineNumber, CancellationToken.None);
 
-        StatusCodeHttpResult response = result.ShouldBeOfType<StatusCodeHttpResult>();
-        response.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+        result.ShouldBeOfType<Result>().IsSuccess.ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
     }
 
