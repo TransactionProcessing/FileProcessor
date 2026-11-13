@@ -157,7 +157,7 @@ public class FileProcessorSteps
                                 FileImportLog? importLog = importLogList.FileImportLogs.SingleOrDefault(fil => fil.ImportLogDate == DateOnly.FromDateTime(expectedImportLog.Item1.Date) && fil.FileCount == expectedImportLog.Item2);
                                 importLog.ShouldNotBeNull();
                             }
-                        }, retryFor: TimeSpan.FromMinutes(10));
+                        });
     }
 
     public async Task WhenIGetTheImportLogForTheFollowingFileInformationIsReturned(String accessToken, String estateName, String startDate, List<EstateDetails1> estateDetailsList, List<(String, Guid)> expectedFiles)
