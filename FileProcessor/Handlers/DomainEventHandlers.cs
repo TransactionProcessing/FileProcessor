@@ -8,6 +8,7 @@ using TransactionProcessing.Shared.General;
 using TransactionProcessing.Shared.Logger;
 using TransactionProcessing.Shared.Serialisation;
 using TransactionProcessing.UnionResults;
+using HttpResults = Microsoft.AspNetCore.Http.Results;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,10 +34,10 @@ namespace FileProcessor.Handlers
 
                 Result<List<IDomainEventHandler>> eventHandlersResult = resolver.GetDomainEventHandlers(domainEvent);
 
-                if (eventHandlersResult.IsFailed)
+                if (eventHandlersResult.IsSuccess() == false)
                 {
                     Logger.LogWarning("No event handlers configured for Event Type [{eventType}]", domainEvent.GetType().Name);
-                    return Results.Ok();
+                    return HttpResults.Ok();
                 }
 
                 List<HandlerExecution> executions = eventHandlersResult.GetValueOrThrow()
@@ -55,7 +56,7 @@ namespace FileProcessor.Handlers
                 List<HandlerFailure> failures = executions.SelectMany(GetFailures).ToList();
                 if (failures.Any())
                 {
-                    return Results.Problem(title: "One or more event handlers failed",
+                    return HttpResults.Problem(title: "One or more event handlers failed",
                                         statusCode: 500,
                                         extensions: new Dictionary<String, Object>
                                         {
@@ -67,7 +68,7 @@ namespace FileProcessor.Handlers
 
                 Logger.LogInformation("Finished processing event - ID [{domainEvent.EventId}]");
 
-                return Results.Ok();
+                return HttpResults.Ok();
             }
             catch (Exception ex)
             {
@@ -116,9 +117,9 @@ namespace FileProcessor.Handlers
             {
                 yield return new HandlerFailure(execution.Handler.GetType().Name, "Handler execution was cancelled");
             }
-            else if (execution.Task.Result.IsFailed)
+            else if (execution.Task.Result.IsSuccess() == false)
             {
-                yield return new HandlerFailure(execution.Handler.GetType().Name, execution.Task.Result.Message);
+                yield return new HandlerFailure(execution.Handler.GetType().Name, execution.Task.Result.GetErrorMessage());
             }
         }
 

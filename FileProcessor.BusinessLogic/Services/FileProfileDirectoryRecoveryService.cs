@@ -36,9 +36,9 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
     public async Task<Result> RecoverInProgressFilesAsync(CancellationToken cancellationToken)
     {
         Result<List<FileProfileModel>> fileProfilesResult = await this.FileProcessorManager.GetAllFileProfileVersions(cancellationToken);
-        if (fileProfilesResult.IsFailed)
+        if (fileProfilesResult.IsSuccess() == false)
         {
-            TransactionProcessing.Shared.Logger.Logger.LogWarning($"Unable to load file profiles for in-progress recovery: {fileProfilesResult.Message}");
+            TransactionProcessing.Shared.Logger.Logger.LogWarning($"Unable to load file profiles for in-progress recovery: {fileProfilesResult.GetErrorMessage()}");
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
@@ -62,7 +62,7 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
             }
         }
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private static StringComparer GetPathComparer()
@@ -81,7 +81,7 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         Result<FileDetails> fileResult = await this.FileProcessorManager.GetFile(fileId, estateId, cancellationToken);
         FileCommands.ProcessUploadedFileCommand command;
 
-        if (fileResult.IsSuccess && fileResult.GetValueOrThrow() != null)
+        if (fileResult.IsSuccess() && fileResult.GetValueOrThrow() != null)
         {
             FileDetails fileDetails = fileResult.GetValueOrThrow();
             command = new(
@@ -102,7 +102,7 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
                 estateId,
                 cancellationToken);
 
-            if (importLogResult.IsFailed)
+            if (importLogResult.IsSuccess() == false)
             {
                 Logger.LogWarning("Skipping leftover in-progress file [{FileName}] because file [{FileId}] could not be loaded from the file aggregate or import log read model", filePath, fileId);
                 return;
@@ -129,9 +129,9 @@ public sealed class FileProfileDirectoryRecoveryService : IFileProfileDirectoryR
         }
 
         Result result = await this.Mediator.Send(command, cancellationToken);
-        if (result.IsFailed)
+        if (result.IsSuccess() == false)
         {
-            Logger.LogWarning("Recovery processing failed for leftover in-progress file [{FileName}]: {Message}", filePath, result.Message);
+            Logger.LogWarning("Recovery processing failed for leftover in-progress file [{FileName}]: {Message}", filePath, result.GetErrorMessage());
             return;
         }
 

@@ -39,7 +39,7 @@ public class FileProcessorSteps
                                                                 fileData,
                                                                 uploadFileRequest,
                                                                 CancellationToken.None);
-        uploadFileResult.IsSuccess.ShouldBeTrue();
+        uploadFileResult.IsSuccess().ShouldBeTrue();
         Guid fileId = uploadFileResult.GetValueOrThrow();
         fileId.ShouldNotBe(Guid.Empty);
 
@@ -53,7 +53,7 @@ public class FileProcessorSteps
                         {
                             Result<FileDetails> getFileResult =
                                 await this.FileProcessorClient.GetFile(accessToken, estateDetails.EstateDetails.EstateId, fileId, CancellationToken.None);
-                            getFileResult.IsSuccess.ShouldBeTrue();
+                            getFileResult.IsSuccess().ShouldBeTrue();
                             FileDetails? fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
@@ -125,7 +125,7 @@ public class FileProcessorSteps
                                                                                                             Byte[] fileData,
                                                                                                             UploadFileRequest uploadFileRequest) {
         Result<Guid> result = await this.FileProcessorClient.UploadFile(accessToken, Path.GetFileName(filePath), fileData, uploadFileRequest, CancellationToken.None);
-        result.IsFailed.ShouldBeTrue();
+        result.IsSuccess().ShouldBeFalse();
     }
 
     public async Task WhenIGetTheImportLogsBetweenAndTheFollowingDataIsReturned(String accessToken, String startDateString, String endDateString, String estateName, List<EstateDetails1> estateDetailsList, List<(DateTime, Int32)> expectedImportLogs)
@@ -145,7 +145,7 @@ public class FileProcessorSteps
                                                                                                                null,
                                                                                                                pagingRequest,
                                                                                                                CancellationToken.None);
-                            getFileImportLogsResult.IsSuccess.ShouldBeTrue();
+                            getFileImportLogsResult.IsSuccess().ShouldBeTrue();
                             FileImportLogList importLogList = getFileImportLogsResult.GetValueOrThrow();
                             importLogList.ShouldNotBeNull();
                             importLogList.FileImportLogs.ShouldNotBeNull();
@@ -175,7 +175,7 @@ public class FileProcessorSteps
                                                                                            null,
                                                                                            pagingRequest,
                                                                                            CancellationToken.None);
-        importLogListResult.IsSuccess.ShouldBeTrue();
+        importLogListResult.IsSuccess().ShouldBeTrue();
         FileImportLogList importLogList = importLogListResult.GetValueOrThrow();
         importLogList.ShouldNotBeNull();
         importLogList.FileImportLogs.ShouldHaveSingleItem();
@@ -186,7 +186,7 @@ public class FileProcessorSteps
                                                                                       estate.EstateDetails.EstateId,
                                                                                       null,
                                                                                       CancellationToken.None);
-        getImportLogResult.IsSuccess.ShouldBeTrue();
+        getImportLogResult.IsSuccess().ShouldBeTrue();
         FileImportLog fileImportLog = getImportLogResult.GetValueOrThrow();
         fileImportLog.ShouldNotBeNull();
         fileImportLog.Files.ShouldNotBeNull();
@@ -218,7 +218,7 @@ public class FileProcessorSteps
                                                                                          pagingRequest,
                                                                                          CancellationToken.None);
 
-        getFileImportLogsResult.IsSuccess.ShouldBeTrue();
+        getFileImportLogsResult.IsSuccess().ShouldBeTrue();
         FileImportLogList? importLogs = getFileImportLogsResult.GetValueOrThrow();
 
         FileImportLog i = importLogs.FileImportLogs.SingleOrDefault(x => x.ImportLogDate == DateOnly.FromDateTime(expectedDate.Date));
@@ -234,7 +234,7 @@ public class FileProcessorSteps
         await Retry.For(async () =>
                         {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
-                            getFileResult.IsSuccess.ShouldBeTrue();
+                            getFileResult.IsSuccess().ShouldBeTrue();
                             FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
@@ -256,7 +256,7 @@ public class FileProcessorSteps
 
         await Retry.For(async () => {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
-                            getFileResult.IsSuccess.ShouldBeTrue();
+                            getFileResult.IsSuccess().ShouldBeTrue();
                             FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
 
@@ -285,7 +285,7 @@ public class FileProcessorSteps
         await Retry.For(async () =>
                         {
                             Result<FileDetails> getFileResult = await this.FileProcessorClient.GetFile(accessToken, estate.EstateDetails.EstateId, fileId, CancellationToken.None);
-                            getFileResult.IsSuccess.ShouldBeTrue();
+                            getFileResult.IsSuccess().ShouldBeTrue();
                             FileDetails fileDetails = getFileResult.GetValueOrThrow();
                             fileDetails.ShouldNotBeNull();
                             fileDetails.IsRejected.ShouldBeTrue();

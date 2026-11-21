@@ -88,16 +88,16 @@ public class FileProfileAggregateTests
         FileProcessor.Models.FileProfile updatedProfile = aggregate.GetProfile(TestData.FileProfileId);
         FileProcessor.Models.FileProfile secondProfile = aggregate.GetProfile(TestData.SafaricomFileProfileId);
 
-        firstCreate.IsSuccess.ShouldBeTrue();
-        secondCreate.IsSuccess.ShouldBeTrue();
-        updateName.IsSuccess.ShouldBeTrue();
-        updateListeningDirectory.IsSuccess.ShouldBeTrue();
-        updateRequestType.IsSuccess.ShouldBeTrue();
-        updateOperatorName.IsSuccess.ShouldBeTrue();
-        updateLineTerminator.IsSuccess.ShouldBeTrue();
-        updateFileFormatHandler.IsSuccess.ShouldBeTrue();
-        duplicateNameCreate.IsFailed.ShouldBeTrue();
-        duplicateRequestTypeCreate.IsFailed.ShouldBeTrue();
+        firstCreate.IsSuccess().ShouldBeTrue();
+        secondCreate.IsSuccess().ShouldBeTrue();
+        updateName.IsSuccess().ShouldBeTrue();
+        updateListeningDirectory.IsSuccess().ShouldBeTrue();
+        updateRequestType.IsSuccess().ShouldBeTrue();
+        updateOperatorName.IsSuccess().ShouldBeTrue();
+        updateLineTerminator.IsSuccess().ShouldBeTrue();
+        updateFileFormatHandler.IsSuccess().ShouldBeTrue();
+        duplicateNameCreate.IsSuccess().ShouldBeFalse();
+        duplicateRequestTypeCreate.IsSuccess().ShouldBeFalse();
         fileProfiles.Count.ShouldBe(2);
         fileProfiles.Select(profile => profile.Name).ShouldContain("Safaricom Profile Updated");
         fileProfiles.Select(profile => profile.Name).ShouldContain(TestData.VoucherProfileName);
@@ -141,7 +141,7 @@ public class FileProfileAggregateTests
             FileFormatHandler = TestData.SafaricomFileFormatHandler
         });
 
-        updateResult.IsSuccess.ShouldBeTrue();
+        updateResult.IsSuccess().ShouldBeTrue();
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class FileProfileAggregateTests
 
         Result archiveResult = aggregate.ArchiveProfile(TestData.FileProfileId);
 
-        archiveResult.IsSuccess.ShouldBeTrue();
+        archiveResult.IsSuccess().ShouldBeTrue();
         aggregate.GetProfile(TestData.FileProfileId).ShouldBeNull();
         List<FileProcessor.Models.FileProfile> versions = aggregate.GetProfileVersions(TestData.FileProfileId);
         versions.Count.ShouldBe(2);
@@ -191,8 +191,8 @@ public class FileProfileAggregateTests
         Result firstArchive = aggregate.ArchiveProfile(TestData.FileProfileId);
         Result secondArchive = aggregate.ArchiveProfile(TestData.FileProfileId);
 
-        firstArchive.IsSuccess.ShouldBeTrue();
-        secondArchive.IsSuccess.ShouldBeTrue();
+        firstArchive.IsSuccess().ShouldBeTrue();
+        secondArchive.IsSuccess().ShouldBeTrue();
         aggregate.ActiveProfileCount.ShouldBe(0);
         aggregate.GetProfileVersions(TestData.FileProfileId).Count.ShouldBe(1);
     }
@@ -245,7 +245,7 @@ public class FileProfileAggregateTests
 
         FileProcessor.Models.FileProfile updatedProfile = aggregate.GetProfile(TestData.FileProfileId);
 
-        updateResult.IsSuccess.ShouldBeTrue();
+        updateResult.IsSuccess().ShouldBeTrue();
         updatedProfile.ShouldNotBeNull();
         updatedProfile.ListeningDirectory.ShouldBe("/home/txnproc/bulkfiles/new-safaricom");
         updatedProfile.ProcessedDirectory.ShouldBe("/home/txnproc/bulkfiles/new-safaricom/processed");
@@ -269,7 +269,7 @@ public class FileProfileAggregateTests
         FileProcessor.Models.FileProfile profile = aggregate.GetProfile(TestData.FileProfileId);
         List<FileProcessor.Models.FileProfile> versions = aggregate.GetProfileVersions(TestData.FileProfileId);
 
-        createResult.IsSuccess.ShouldBeTrue();
+        createResult.IsSuccess().ShouldBeTrue();
         profile.FileProfileVersionId.ShouldNotBe(Guid.Empty);
         profile.FileProfileVersion.ShouldBe(1);
         versions.Count.ShouldBe(1);
@@ -302,7 +302,7 @@ public class FileProfileAggregateTests
             originalProfile.FileProfileVersionId);
         List<FileProcessor.Models.FileProfile> versions = aggregate.GetProfileVersions(TestData.FileProfileId);
 
-        updateResult.IsSuccess.ShouldBeTrue();
+        updateResult.IsSuccess().ShouldBeTrue();
         updatedProfile.FileProfileVersionId.ShouldNotBe(originalProfile.FileProfileVersionId);
         updatedProfile.FileProfileVersion.ShouldBe(2);
         updatedProfile.FileFormatHandler.ShouldBe(TestData.VoucherFileFormatHandler);
@@ -364,9 +364,9 @@ public class FileProfileAggregateTests
             LineTerminatorType.LineFeed,
             TestData.VoucherFileFormatHandler));
 
-        firstCreate.IsSuccess.ShouldBeTrue();
-        duplicateCreate.IsFailed.ShouldBeTrue();
-        duplicateCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+        firstCreate.IsSuccess().ShouldBeTrue();
+        duplicateCreate.IsSuccess().ShouldBeFalse();
+        duplicateCreate.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Theory]
@@ -384,8 +384,8 @@ public class FileProfileAggregateTests
             lineTerminator,
             TestData.SafaricomFileFormatHandler));
 
-        firstCreate.IsFailed.ShouldBeTrue();
-        firstCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+        firstCreate.IsSuccess().ShouldBeFalse();
+        firstCreate.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -402,8 +402,8 @@ public class FileProfileAggregateTests
             (LineTerminatorType?)99,
             TestData.SafaricomFileFormatHandler));
 
-        firstCreate.IsFailed.ShouldBeTrue();
-        firstCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+        firstCreate.IsSuccess().ShouldBeFalse();
+        firstCreate.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -429,9 +429,9 @@ public class FileProfileAggregateTests
             LineTerminatorType.LineFeed,
             TestData.SafaricomFileFormatHandler));
 
-        firstCreate.IsSuccess.ShouldBeTrue();
-        duplicateCreate.IsFailed.ShouldBeTrue();
-        duplicateCreate.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+        firstCreate.IsSuccess().ShouldBeTrue();
+        duplicateCreate.IsSuccess().ShouldBeFalse();
+        duplicateCreate.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
     }
 
     [Fact]
@@ -448,10 +448,10 @@ public class FileProfileAggregateTests
             LineTerminatorType.LineFeed,
             "UnsupportedFileFormatHandler"));
 
-        result.IsFailed.ShouldBeTrue();
-        result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
-        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported request type"));
-        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
+        result.IsSuccess().ShouldBeFalse();
+        result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
+        result.GetErrors().ShouldContain(error => error.Message.Contains("Unsupported request type"));
+        result.GetErrors().ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
     }
 
     [Fact]
@@ -468,7 +468,7 @@ public class FileProfileAggregateTests
             LineTerminatorType.LineFeed,
             $" {TestData.SafaricomFileFormatHandler} "));
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         aggregate.GetProfile(TestData.FileProfileId).RequestType.ShouldBe(TestData.SafaricomRequestType);
         aggregate.GetProfile(TestData.FileProfileId).FileFormatHandler.ShouldBe(TestData.SafaricomFileFormatHandler);
     }
@@ -492,10 +492,10 @@ public class FileProfileAggregateTests
             FileFormatHandler = "UnsupportedFileFormatHandler"
         });
 
-        result.IsFailed.ShouldBeTrue();
-        result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
-        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported request type"));
-        result.Errors.ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
+        result.IsSuccess().ShouldBeFalse();
+        result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
+        result.GetErrors().ShouldContain(error => error.Message.Contains("Unsupported request type"));
+        result.GetErrors().ShouldContain(error => error.Message.Contains("Unsupported file format handler"));
     }
 
     private CreateFileProfileRequest CreateProfile(Guid fileProfileId,

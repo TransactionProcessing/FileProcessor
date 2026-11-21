@@ -25,12 +25,12 @@ public class FileProfileManagerTests
         FileProfileAggregateRoot aggregate = this.CreateArchivedAggregate();
         IAggregateRepositoryImposter<FileProfileAggregateRoot, DomainEvent> repository = new();
         repository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-                  .ReturnsAsync(Result.Success(aggregate));
+                  .ReturnsAsync(Results.Ok(aggregate));
         FileProfileManager manager = new(repository.Instance());
 
         Result<List<FileProfileModel>> result = await manager.GetFileProfileVersions(TestData.FileProfileId, CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         result.GetValueOrThrow().Count.ShouldBe(2);
         result.GetValueOrThrow()[0].FileProfileVersion.ShouldBe(1);
         result.GetValueOrThrow()[1].FileProfileVersion.ShouldBe(2);
@@ -42,7 +42,7 @@ public class FileProfileManagerTests
         FileProfileAggregateRoot aggregate = this.CreateArchivedAggregate();
         IAggregateRepositoryImposter<FileProfileAggregateRoot, DomainEvent> repository = new();
         repository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-                  .ReturnsAsync(Result.Success(aggregate));
+                  .ReturnsAsync(Results.Ok(aggregate));
         FileProfileManager manager = new(repository.Instance());
         Guid missingVersionId = Guid.NewGuid();
 
@@ -50,10 +50,10 @@ public class FileProfileManagerTests
                                                                                 missingVersionId,
                                                                                 CancellationToken.None);
 
-        result.IsFailed.ShouldBeTrue();
-        result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
-        result.Message.ShouldContain(TestData.FileProfileId.ToString());
-        result.Message.ShouldContain(missingVersionId.ToString());
+        result.IsSuccess().ShouldBeFalse();
+        result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
+        result.GetErrorMessage().ShouldContain(TestData.FileProfileId.ToString());
+        result.GetErrorMessage().ShouldContain(missingVersionId.ToString());
     }
 
     [Fact]
@@ -62,12 +62,12 @@ public class FileProfileManagerTests
         FileProfileAggregateRoot aggregate = this.CreateArchivedAggregate();
         IAggregateRepositoryImposter<FileProfileAggregateRoot, DomainEvent> repository = new();
         repository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-                  .ReturnsAsync(Result.Success(aggregate));
+                  .ReturnsAsync(Results.Ok(aggregate));
         FileProfileManager manager = new(repository.Instance());
 
         Result<List<FileProfileModel>> result = await manager.GetAllFileProfileVersions(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         result.GetValueOrThrow().Count.ShouldBe(2);
         result.GetValueOrThrow()[0].FileProfileId.ShouldBe(TestData.FileProfileId);
         result.GetValueOrThrow()[0].FileProfileVersion.ShouldBe(1);

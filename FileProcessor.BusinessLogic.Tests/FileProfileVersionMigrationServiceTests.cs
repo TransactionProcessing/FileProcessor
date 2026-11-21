@@ -34,7 +34,7 @@ public class FileProfileVersionMigrationServiceTests
 
         IFileProfileManagerImposter profileManager = new();
         profileManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-                      .ReturnsAsync(Result.Success(new List<FileProfileModel>
+                      .ReturnsAsync(Results.Ok(new List<FileProfileModel>
                       {
                           new FileProfileModel(file.FileProfileId,
                                                "Profile",
@@ -57,8 +57,8 @@ public class FileProfileVersionMigrationServiceTests
                                                                             FileProcessor.Testing.TestData.FileUploadedDateTime,
                                                                             FileProcessor.Testing.TestData.SafaricomOperatorId));
         IAggregateRepositoryImposter<FileAggregateRoot, DomainEvent> repository = new();
-        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(aggregate));
-        repository.SaveChanges(Arg<FileAggregateRoot>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(aggregate));
+        repository.SaveChanges(Arg<FileAggregateRoot>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
 
         FileProfileVersionMigrationService service = new(profileManager.Instance(),
                                                           resolver.Instance(),
@@ -66,7 +66,7 @@ public class FileProfileVersionMigrationServiceTests
 
         Result<FileProfileVersionMigrationReport> result = await service.RunAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         result.GetValueOrThrow().FilesAssigned.ShouldBe(1);
         result.GetValueOrThrow().Failures.ShouldBeEmpty();
         aggregate.GetFile().FileProfileVersionId.ShouldBe(FileProcessor.Testing.TestData.FileProfileVersionId);
@@ -83,7 +83,7 @@ public class FileProfileVersionMigrationServiceTests
 
         IFileProfileManagerImposter profileManager = new();
         profileManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-                      .ReturnsAsync(Result.Success(new List<FileProfileModel>()));
+                      .ReturnsAsync(Results.Ok(new List<FileProfileModel>()));
 
         FileAggregateRoot aggregate = FileAggregateRoot.Create(file.FileId);
         aggregate.CreateFile(new FileAggregateExtensions.CreateFileRequest(file.FileImportLogId,
@@ -95,7 +95,7 @@ public class FileProfileVersionMigrationServiceTests
                                                                             FileProcessor.Testing.TestData.FileUploadedDateTime,
                                                                             FileProcessor.Testing.TestData.SafaricomOperatorId));
         IAggregateRepositoryImposter<FileAggregateRoot, DomainEvent> repository = new();
-        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(aggregate));
+        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(aggregate));
 
         FileProfileVersionMigrationService service = new(profileManager.Instance(),
                                                           resolver.Instance(),
@@ -103,7 +103,7 @@ public class FileProfileVersionMigrationServiceTests
 
         Result<FileProfileVersionMigrationReport> result = await service.RunAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         result.GetValueOrThrow().FilesAssigned.ShouldBe(0);
         result.GetValueOrThrow().Failures.Count.ShouldBe(1);
         result.GetValueOrThrow().Failures.Single().ShouldContain(file.FileId.ToString());
@@ -120,7 +120,7 @@ public class FileProfileVersionMigrationServiceTests
 
         IFileProfileManagerImposter profileManager = new();
         profileManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-                      .ReturnsAsync(Result.Success(new List<FileProfileModel>
+                      .ReturnsAsync(Results.Ok(new List<FileProfileModel>
                       {
                           new FileProfileModel(file.FileProfileId,
                                                "Profile",
@@ -143,8 +143,8 @@ public class FileProfileVersionMigrationServiceTests
                                                                             FileProcessor.Testing.TestData.FileUploadedDateTime,
                                                                             FileProcessor.Testing.TestData.SafaricomOperatorId));
         IAggregateRepositoryImposter<FileAggregateRoot, DomainEvent> repository = new();
-        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(aggregate));
-        repository.SaveChanges(Arg<FileAggregateRoot>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        repository.GetLatestVersion(file.FileId, Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(aggregate));
+        repository.SaveChanges(Arg<FileAggregateRoot>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
 
         FileProfileVersionMigrationService service = new(profileManager.Instance(),
                                                           resolver.Instance(),

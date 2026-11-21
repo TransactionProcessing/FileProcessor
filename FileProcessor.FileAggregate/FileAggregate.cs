@@ -147,31 +147,31 @@ namespace FileProcessor.FileAggregate
         public static Result CreateFile(this FileAggregate aggregate, CreateFileRequest createFileRequest)
         {
             if (aggregate.IsCreated)
-                return Result.Success();
+                return Results.Ok();
 
             FileCreatedEvent fileCreatedEvent = new(aggregate.AggregateId, createFileRequest.fileImportLogId, createFileRequest.estateId, createFileRequest.merchantId, createFileRequest.userId, createFileRequest.fileProfileId, createFileRequest.fileLocation, createFileRequest.fileReceivedDateTime, createFileRequest.operatorId, createFileRequest.fileProfileVersionId);
 
             aggregate.ApplyAndAppend(fileCreatedEvent);
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result AssignFileProfileVersion(this FileAggregate aggregate, Guid fileProfileVersionId)
         {
             if (aggregate.IsCreated == false)
-                return Result.NotFound($"File Id {aggregate.AggregateId} has not been uploaded yet");
+                return new Error(ErrorType.NotFound, $"File Id {aggregate.AggregateId} has not been uploaded yet");
 
             if (fileProfileVersionId == Guid.Empty)
-                return Result.Fail(Error.Validation("File profile version Id cannot be empty"));
+                return new Error(ErrorType.Validation, "File profile version Id cannot be empty");
 
             if (aggregate.FileProfileVersionId == fileProfileVersionId)
-                return Result.Success();
+                return Results.Ok();
 
             if (aggregate.FileProfileVersionId != Guid.Empty)
-                return Result.Fail(Error.Validation($"File Id {aggregate.AggregateId} already has a different file profile version"));
+                return new Error(ErrorType.Validation, $"File Id {aggregate.AggregateId} already has a different file profile version");
 
             aggregate.ApplyAndAppend(new FileProfileVersionAssignedEvent(aggregate.AggregateId, fileProfileVersionId));
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static void PlayEvent(this FileAggregate aggregate, FileRejectedEvent domainEvent)
@@ -192,10 +192,10 @@ namespace FileProcessor.FileAggregate
                                         DateTimeOffset rejectedDateTime)
         {
             if (aggregate.IsCreated == false)
-                return Result.Fail(Error.Validation($"File Id {aggregate.AggregateId} has not been uploaded yet"));
+                return new Error(ErrorType.Validation, $"File Id {aggregate.AggregateId} has not been uploaded yet");
 
             if (aggregate.IsRejected)
-                return Result.Success();
+                return Results.Ok();
 
             FileRejectedEvent fileRejectedEvent = new(aggregate.AggregateId,
                                                        aggregate.EstateId,
@@ -206,17 +206,17 @@ namespace FileProcessor.FileAggregate
                                                        maximumDetailRecordCount,
                                                        rejectedDateTime);
             aggregate.ApplyAndAppend(fileRejectedEvent);
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result AddFileLine(this FileAggregate aggregate, String fileLine)
         {
             if (aggregate.IsCreated == false) {
-                return Result.Fail(Error.Validation($"File Id {aggregate.AggregateId} has not been uploaded yet"));
+                return new Error(ErrorType.Validation, $"File Id {aggregate.AggregateId} has not been uploaded yet");
             }
 
             if (aggregate.IsRejected)
-                return Result.Fail(Error.Validation($"File Id {aggregate.AggregateId} has been rejected"));
+                return new Error(ErrorType.Validation, $"File Id {aggregate.AggregateId} has been rejected");
 
             Int32 lineNumber = aggregate.FileLines.Count + 1;
 
@@ -228,24 +228,24 @@ namespace FileProcessor.FileAggregate
                                                                                lineNumber,
                                                                                fileLine);
                 aggregate.ApplyAndAppend(duplicateFileLineAddedEvent);
-                return Result.Success();
+                return Results.Ok();
             }
 
             FileLineAddedEvent fileLineAddedEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, fileLine);
             aggregate.ApplyAndAppend(fileLineAddedEvent);
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result RecordFileLineAsIgnored(this FileAggregate aggregate, Int32 lineNumber)
         {
             if (aggregate.FileLines.Any() == false)
             {
-                return Result.Fail(Error.Validation("File has no lines to mark as ignored"));
+                return new Error(ErrorType.Validation, "File has no lines to mark as ignored");
             }
 
             if (aggregate.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
             {
-                return Result.NotFound($"File line with number {lineNumber} not found to mark as ignored");
+                return new Error(ErrorType.NotFound, $"File line with number {lineNumber} not found to mark as ignored");
             }
 
             FileLineProcessingIgnoredEvent fileLineProcessingIgnoredEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber);
@@ -254,19 +254,19 @@ namespace FileProcessor.FileAggregate
 
             aggregate.CompletedChecks();
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result RecordFileLineAsRejected(this FileAggregate aggregate, Int32 lineNumber, String reason)
         {
             if (aggregate.FileLines.Any() == false)
             {
-                return Result.Fail(Error.Validation("File has no lines to mark as rejected"));
+                return new Error(ErrorType.Validation, "File has no lines to mark as rejected");
             }
 
             if (aggregate.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
             {
-                return Result.NotFound($"File line with number {lineNumber} not found to mark as rejected");
+                return new Error(ErrorType.NotFound, $"File line with number {lineNumber} not found to mark as rejected");
             }
 
             FileLineProcessingRejectedEvent fileLineProcessingRejectedEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, reason);
@@ -275,19 +275,19 @@ namespace FileProcessor.FileAggregate
 
             aggregate.CompletedChecks();
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result RecordFileLineAsSuccessful(this FileAggregate aggregate, Int32 lineNumber, Guid transactionId)
         {
             if (aggregate.FileLines.Any() == false)
             {
-                return Result.Fail(Error.Validation("File has no lines to mark as successful"));
+                return new Error(ErrorType.Validation, "File has no lines to mark as successful");
             }
 
             if (aggregate.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
             {
-                return Result.NotFound($"File line with number {lineNumber} not found to mark as successful");
+                return new Error(ErrorType.NotFound, $"File line with number {lineNumber} not found to mark as successful");
             }
 
             FileLineProcessingSuccessfulEvent fileLineProcessingSuccessfulEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, transactionId);
@@ -296,19 +296,19 @@ namespace FileProcessor.FileAggregate
 
             aggregate.CompletedChecks();
 
-            return Result.Success();
+            return Results.Ok();
         }
         
         public static Result RecordFileLineAsFailed(this FileAggregate aggregate,Int32 lineNumber, Guid transactionId, String responseCode, String responseMessage)
         {
             if (aggregate.FileLines.Any() == false)
             {
-                return Result.Fail(Error.Validation("File has no lines to mark as failed"));
+                return new Error(ErrorType.Validation, "File has no lines to mark as failed");
             }
 
             if (aggregate.FileLines.SingleOrDefault(l => l.LineNumber == lineNumber) == null)
             {
-                return Result.NotFound($"File line with number {lineNumber} not found to mark as failed");
+                return new Error(ErrorType.NotFound, $"File line with number {lineNumber} not found to mark as failed");
             }
 
             FileLineProcessingFailedEvent fileLineProcessingFailedEvent = new(aggregate.AggregateId, aggregate.EstateId, aggregate.MerchantId, lineNumber, transactionId, responseCode, responseMessage);
@@ -317,7 +317,7 @@ namespace FileProcessor.FileAggregate
 
             aggregate.CompletedChecks();
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Result RecordTransactionDispatchFailure(this FileAggregate aggregate,
@@ -327,10 +327,10 @@ namespace FileProcessor.FileAggregate
                                                                DateTime attemptedAt)
         {
             if (aggregate.FileLines.Any() == false)
-                return Result.Fail(Error.Validation("File has no lines to record a dispatch failure for"));
+                return new Error(ErrorType.Validation, "File has no lines to record a dispatch failure for");
 
             if (aggregate.FileLines.SingleOrDefault(line => line.LineNumber == lineNumber) == null)
-                return Result.NotFound($"File line with number {lineNumber} not found to record a dispatch failure for");
+                return new Error(ErrorType.NotFound, $"File line with number {lineNumber} not found to record a dispatch failure for");
 
             FileLineTransactionDispatchFailedEvent dispatchFailedEvent = new(aggregate.AggregateId,
                                                                              aggregate.EstateId,
@@ -341,7 +341,7 @@ namespace FileProcessor.FileAggregate
                                                                              attemptedAt);
             aggregate.ApplyAndAppend(dispatchFailedEvent);
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         /// <summary>

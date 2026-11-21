@@ -12,9 +12,9 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TransactionProcessing.Shared.General;
-using TransactionProcessing.UnionResults.AspNetCore;
 using TransactionProcessing.Shared.Serialisation;
 using TransactionProcessing.UnionResults;
+using HttpResults = Microsoft.AspNetCore.Http.Results;
 
 namespace FileProcessor.Handlers;
 
@@ -58,10 +58,10 @@ public static class FileHandlers
                 upload.FileName);
 
             Result result = await mediator.Send(command, cancellationToken);
-            uploadAccepted = result.IsSuccess;
+            uploadAccepted = result.IsSuccess();
             
-            if (result.IsSuccess)
-                return Results.Accepted(value: request.FileId);
+            if (result.IsSuccess())
+                return HttpResults.Accepted(value: request.FileId);
 
             return ResponseFactory.FromResult(result);
         }
@@ -89,22 +89,22 @@ public static class FileHandlers
         upload = null;
         validationError = null;
         if (formCollection?.Files == null || formCollection.Files.Count != 1)
-            return SetValidationError(Results.BadRequest("Exactly one file must be supplied."), out validationError);
+            return SetValidationError(HttpResults.BadRequest("Exactly one file must be supplied."), out validationError);
 
         IFormFile file = formCollection.Files[0];
         if (file.Length <= 0)
-            return SetValidationError(Results.BadRequest("The uploaded file must not be empty."), out validationError);
+            return SetValidationError(HttpResults.BadRequest("The uploaded file must not be empty."), out validationError);
 
         if (file.Length > UploadFileSettings.GetMaximumFileSizeBytes())
-            return SetValidationError(Results.StatusCode(StatusCodes.Status413PayloadTooLarge), out validationError);
+            return SetValidationError(HttpResults.StatusCode(StatusCodes.Status413PayloadTooLarge), out validationError);
 
         String fileName = SanitizeFileName(file.FileName);
         if (String.IsNullOrWhiteSpace(fileName))
-            return SetValidationError(Results.BadRequest("The uploaded file must have a valid filename."), out validationError);
+            return SetValidationError(HttpResults.BadRequest("The uploaded file must have a valid filename."), out validationError);
 
         String fileExtension = Path.GetExtension(fileName);
         if (UploadFileSettings.GetAllowedFileExtensions().Contains(fileExtension, StringComparer.OrdinalIgnoreCase) == false)
-            return SetValidationError(Results.BadRequest($"Files with extension [{fileExtension}] are not supported."), out validationError);
+            return SetValidationError(HttpResults.BadRequest($"Files with extension [{fileExtension}] are not supported."), out validationError);
 
         upload = new ValidatedUpload(file, fileName);
         return true;
@@ -138,7 +138,7 @@ public static class FileHandlers
         return sanitizedName[..nameLength] + extension;
     }
 
-    public static async Task<IResultOutcome> GetFile(IMediator mediator,
+    public static async Task<Result<object?>> GetFile(IMediator mediator,
                                                    [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
                                                    [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
                                                    CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ public static class FileHandlers
         return ResponseFactory.FromResult(result, ModelFactory.ConvertFrom);
     }
 
-    public static async Task<IResultOutcome> ReplayLine(IMediator mediator,
+    public static async Task<Result> ReplayLine(IMediator mediator,
                                                    [FromRoute, Description("GUID identifying the uploaded file.")] Guid fileId,
                                                    [FromQuery, Description("GUID identifying the estate that owns the file.")] Guid estateId,
                                                    [FromRoute, Description("One-based line number to retry.")] Int32 lineNumber,

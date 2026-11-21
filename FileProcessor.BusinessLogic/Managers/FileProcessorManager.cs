@@ -105,10 +105,10 @@ namespace FileProcessor.BusinessLogic.Managers
                                                                  CancellationToken cancellationToken)
         {
             if (pageNumber < 1 || pageSize < 1 || pageSize > 200)
-                return Result<FileImportLogQueryResult>.Fail(Error.Validation("Page number must be at least 1 and page size must be between 1 and 200"));
+                return new Error(ErrorType.Validation, "Page number must be at least 1 and page size must be between 1 and 200");
 
             if (endDate < startDate)
-                return Result<FileImportLogQueryResult>.Fail(Error.Validation("End date must be on or after start date"));
+                return new Error(ErrorType.Validation, "End date must be on or after start date");
 
             DateTime startDateTime = startDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
             DateTime endDateTime = endDate.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
@@ -158,12 +158,12 @@ namespace FileProcessor.BusinessLogic.Managers
 
             List<FileImportLog> model = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
-            if (enrichResult.IsFailed)
+            if (enrichResult.IsSuccess() == false)
             {
                 return ResultHelpers.CreateFailure(enrichResult);
             }
 
-            return Result.Success(new FileImportLogQueryResult
+            return Results.Ok(new FileImportLogQueryResult
             {
                 FileImportLogs = model,
                 PageNumber = pageNumber,
@@ -201,7 +201,7 @@ namespace FileProcessor.BusinessLogic.Managers
             var importLogFileQuery = await query.ToListAsync(cancellationToken);
 
             if (importLogQuery == null || importLogQuery.EstateId != estateId)
-                return Result.NotFound($"No import log found for Id [{fileImportLogId}]");
+                return new Error(ErrorType.NotFound, $"No import log found for Id [{fileImportLogId}]");
 
             List<(FileImportLogFile, TransactionProcessor.Database.Entities.File,Merchant)> entityData = new List<(FileImportLogFile, TransactionProcessor.Database.Entities.File, Merchant)>();
             foreach (var file in importLogFileQuery)
@@ -211,12 +211,12 @@ namespace FileProcessor.BusinessLogic.Managers
 
             var x = this.ModelFactory.ConvertFrom(estateId, importLogQuery, entityData);
             Result enrichResult = await this.EnrichFileProfileVersionIds(x, cancellationToken);
-            if (enrichResult.IsFailed)
+            if (enrichResult.IsSuccess() == false)
             {
                 return ResultHelpers.CreateFailure(enrichResult);
             }
 
-            return Result.Success(x);
+            return Results.Ok(x);
         }
 
         public async Task<Result<FileImportLog>> GetFileImportLogForFile(Guid fileId,
@@ -233,7 +233,7 @@ namespace FileProcessor.BusinessLogic.Managers
 
             if (importLogFile == null)
             {
-                return Result.NotFound($"No import log file found for File Id [{fileId}]");
+                return new Error(ErrorType.NotFound, $"No import log file found for File Id [{fileId}]");
             }
 
             FileImportLog model = new FileImportLog
@@ -258,12 +258,12 @@ namespace FileProcessor.BusinessLogic.Managers
             };
 
             Result enrichResult = await this.EnrichFileProfileVersionIds(model, cancellationToken);
-            if (enrichResult.IsFailed)
+            if (enrichResult.IsSuccess() == false)
             {
                 return ResultHelpers.CreateFailure(enrichResult);
             }
 
-            return Result.Success(model);
+            return Results.Ok(model);
         }
 
         public async Task<Result<FileDetails>> GetFile(Guid fileId,
@@ -273,13 +273,13 @@ namespace FileProcessor.BusinessLogic.Managers
             Result<FileAggregate> fileAggregateResult=
                 await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
 
-            if (fileAggregateResult.IsFailed)
+            if (fileAggregateResult.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(fileAggregateResult);
 
             FileAggregate fileAggregate = fileAggregateResult.GetValueOrThrow();
             if (fileAggregate.IsCreated == false)
             {
-                return Result.NotFound($"File with Id [{fileId}] not found");
+                return new Error(ErrorType.NotFound, $"File with Id [{fileId}] not found");
             }
 
             FileDetails fileDetails = fileAggregate.GetFile();
@@ -302,7 +302,7 @@ namespace FileProcessor.BusinessLogic.Managers
             }
 
             Result<FileProfileModel> getFileProfile = await this.GetFileProfile(fileDetails.FileProfileId, cancellationToken);
-            if (getFileProfile.IsFailed)
+            if (getFileProfile.IsSuccess() == false)
             {
                 return ResultHelpers.CreateFailure(getFileProfile);
             }
@@ -312,7 +312,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 fileDetails.FileProfileName = fileProfile.Name;
             }
 
-            return Result.Success(fileDetails);
+            return Results.Ok(fileDetails);
         }
 
         #endregion
@@ -333,7 +333,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 {
                     Result<FileAggregate> fileAggregateResult = await this.FileAggregateRepository.GetLatestVersion(importLogFile.FileId,
                                                                                                                           cancellationToken);
-                    if (fileAggregateResult.IsFailed || fileAggregateResult.GetValueOrThrow() == null || fileAggregateResult.GetValueOrThrow().IsCreated == false)
+                    if (fileAggregateResult.IsSuccess() == false || fileAggregateResult.GetValueOrThrow() == null || fileAggregateResult.GetValueOrThrow().IsCreated == false)
                     {
                         continue;
                     }
@@ -345,7 +345,7 @@ namespace FileProcessor.BusinessLogic.Managers
                 }
             }
 
-            return Result.Success();
+            return Results.Ok();
         }
     }
 }

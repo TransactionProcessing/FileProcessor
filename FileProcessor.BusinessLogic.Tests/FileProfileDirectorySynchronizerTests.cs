@@ -54,7 +54,7 @@ public class FileProfileDirectorySynchronizerTests
 
         fileProfileManager
             .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .Returns(Task.FromResult(Result.Success(new List<FileProfileModel> { historicalProfileVersion, profile })));
+            .Returns(Task.FromResult(Results.Ok(new List<FileProfileModel> { historicalProfileVersion, profile })));
 
         FileProfileDirectorySynchronizer synchronizer = new FileProfileDirectorySynchronizer(
             configuration,
@@ -64,7 +64,7 @@ public class FileProfileDirectorySynchronizerTests
 
         Result result = await synchronizer.SyncAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         fileSystem.Directory.Exists(@"C:\temp\temporary").ShouldBeTrue();
         fileSystem.Directory.Exists(Path.Combine(profile.ListeningDirectory, "inprogress")).ShouldBeTrue();
         fileSystem.Directory.Exists(profile.ProcessedDirectory).ShouldBeTrue();
@@ -95,7 +95,7 @@ public class FileProfileDirectorySynchronizerTests
         fileSystem.AddFile(existingFile, new MockFileData("contents"));
 
         fileProfileManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .Returns(Task.FromResult(Result.Success(new List<FileProfileModel> { firstVersion, secondVersion })));
+            .Returns(Task.FromResult(Results.Ok(new List<FileProfileModel> { firstVersion, secondVersion })));
 
         FileProfileDirectorySynchronizer synchronizer = new(
             configuration,
@@ -105,7 +105,7 @@ public class FileProfileDirectorySynchronizerTests
 
         Result result = await synchronizer.SyncAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         fileSystem.File.Exists(existingFile).ShouldBeTrue();
         fileSystem.Directory.Exists(Path.Combine(sharedDirectory, "inprogress")).ShouldBeTrue();
         fileSystem.Directory.Exists(Path.Combine(sharedDirectory, "processed")).ShouldBeTrue();
@@ -129,7 +129,7 @@ public class FileProfileDirectorySynchronizerTests
             upperCaseVersion.FileProfileId, "Profile A", @"C:\temp\profile", "ProfileARequest", "Operator A", "1", "ProfileAHandler", Guid.NewGuid(), 2);
 
         fileProfileManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .Returns(Task.FromResult(Result.Success(new List<FileProfileModel> { upperCaseVersion, lowerCaseVersion })));
+            .Returns(Task.FromResult(Results.Ok(new List<FileProfileModel> { upperCaseVersion, lowerCaseVersion })));
 
         FileProfileDirectorySynchronizer synchronizer = new(
             configuration,
@@ -139,7 +139,7 @@ public class FileProfileDirectorySynchronizerTests
 
         Result result = await synchronizer.SyncAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         fileSystem.Directory.Exists(Path.Combine(upperCaseVersion.ListeningDirectory, "inprogress")).ShouldBeTrue();
         fileSystem.Directory.Exists(Path.Combine(lowerCaseVersion.ListeningDirectory, "inprogress")).ShouldBeTrue();
     }

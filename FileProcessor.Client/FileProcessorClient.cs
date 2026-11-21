@@ -150,12 +150,12 @@ namespace FileProcessor.Client {
             String requestUri = this.BuildRequestUrl($"/api/file-profiles/{fileProfileId}");
             Result result = await this.Delete(requestUri, accessToken, cancellationToken);
 
-            if (result.IsFailed)
+            if (result.IsSuccess() == false)
             {
                 return ResultHelpers.CreateFailure(result);
             }
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public async Task<Result<ApiFileDetails>> GetFile(String accessToken,
@@ -167,7 +167,7 @@ namespace FileProcessor.Client {
             try {
                 Result<ApiFileDetails> result = await this.Get<ApiFileDetails>(requestUri, accessToken, cancellationToken);
 
-                if (result.IsFailed)
+                if (result.IsSuccess() == false)
                     return ResultHelpers.CreateFailure(result);
 
                 return result;
@@ -194,7 +194,7 @@ namespace FileProcessor.Client {
             try {
                 Result<ApiFileImportLog> result = await this.Get<ApiFileImportLog>(requestUri, accessToken, cancellationToken);
 
-                if (result.IsFailed)
+                if (result.IsSuccess() == false)
                     return ResultHelpers.CreateFailure(result);
 
                 return result;
@@ -227,7 +227,7 @@ namespace FileProcessor.Client {
                 requestUri += $"&merchantId={merchantId}";
 
             Result<FileImportLogList> result = await this.Get<FileImportLogList>(requestUri, accessToken, cancellationToken);
-            return result.IsFailed ? ResultHelpers.CreateFailure(result) : result;
+            return result.IsSuccess() == false ? ResultHelpers.CreateFailure(result) : result;
         }
 
         public async Task<Result<Guid>> UploadFile(String accessToken,
@@ -250,10 +250,10 @@ namespace FileProcessor.Client {
                 formFields.Add(("FileId", fileId.ToString()));
 
                 Result result = await this.Post(requestUri, fileData, fileName, formFields, accessToken, cancellationToken);
-                if (result.IsFailed)
+                if (result.IsSuccess() == false)
                     return ResultHelpers.CreateFailure(result);
 
-                return Result.Success(fileId);
+                return Results.Ok(fileId);
             }
             catch (Exception ex) {
                 // An exception has occurred, add some additional information to the message

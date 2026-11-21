@@ -43,7 +43,7 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
     public async Task<Result<FileProfileVersionMigrationReport>> RunAsync(CancellationToken cancellationToken)
     {
         Result<List<FileProfileModel>> profileVersionsResult = await this.FileProfileManager.GetAllFileProfileVersions(cancellationToken);
-        if (profileVersionsResult.IsFailed)
+        if (profileVersionsResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(profileVersionsResult);
 
         FileProfileVersionMigrationReport report = new();
@@ -61,9 +61,9 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
             report.FilesChecked++;
 
             Result<FileAggregateRoot> aggregateResult = await this.FileAggregateRepository.GetLatestVersion(file.FileId, cancellationToken);
-            if (aggregateResult.IsFailed || aggregateResult.GetValueOrThrow() == null)
+            if (aggregateResult.IsSuccess() == false || aggregateResult.GetValueOrThrow() == null)
             {
-                report.Failures.Add($"File [{file.FileId}] could not be loaded: {aggregateResult.Message}");
+                report.Failures.Add($"File [{file.FileId}] could not be loaded: {aggregateResult.GetErrorMessage()}");
                 continue;
             }
 
@@ -81,23 +81,23 @@ public sealed class FileProfileVersionMigrationService : IFileProfileVersionMigr
             }
 
             Result assignResult = aggregateResult.GetValueOrThrow().AssignFileProfileVersion(initialVersionId);
-            if (assignResult.IsFailed)
+            if (assignResult.IsSuccess() == false)
             {
-                report.Failures.Add($"File [{file.FileId}] could not be assigned profile version [{initialVersionId}]: {assignResult.Message}");
+                report.Failures.Add($"File [{file.FileId}] could not be assigned profile version [{initialVersionId}]: {assignResult.GetErrorMessage()}");
                 continue;
             }
 
             Result saveResult = await this.FileAggregateRepository.SaveChanges(aggregateResult.GetValueOrThrow(), cancellationToken);
-            if (saveResult.IsFailed)
+            if (saveResult.IsSuccess() == false)
             {
-                report.Failures.Add($"File [{file.FileId}] could not be saved: {saveResult.Message}");
+                report.Failures.Add($"File [{file.FileId}] could not be saved: {saveResult.GetErrorMessage()}");
                 continue;
             }
 
             report.FilesAssigned++;
         }
 
-        return Result.Success(report);
+        return Results.Ok(report);
     }
 
     private Dictionary<Guid, Guid> GetInitialVersions(List<FileProfileModel> profileVersions,

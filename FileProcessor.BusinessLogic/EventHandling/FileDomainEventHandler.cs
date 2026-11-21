@@ -66,7 +66,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
             try
             {
                 Result result = await this.Mediator.Send(command, cancellationToken);
-                if (result.IsFailed)
+                if (result.IsSuccess() == false)
                 {
                     FileLineProcessingDiagnostics.EventHandlerDispatchFailed(domainEvent, result);
                 }
@@ -90,7 +90,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
             _ = domainEvent;
             _ = cancellationToken;
             // The event records an attempt for audit purposes; it must not enqueue the line as completed.
-            return Task.FromResult(Result.Success());
+            return Task.FromResult(Results.Ok());
         }
 
         private Task<Result> HandleSpecificDomainEvent(DuplicateFileLineAddedEvent domainEvent,
@@ -98,7 +98,7 @@ namespace FileProcessor.BusinessLogic.EventHandling
         {
             _ = domainEvent;
             _ = cancellationToken;
-            return Task.FromResult(Result.Success());
+            return Task.FromResult(Results.Ok());
         }
 
         /// <summary>

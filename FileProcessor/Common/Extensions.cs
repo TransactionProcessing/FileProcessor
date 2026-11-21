@@ -79,16 +79,16 @@ public static class Extensions
         fileSystem.Directory.CreateDirectory(temporaryFileLocation);
         Logger.LogInformation($"Created TemporaryFileLocation at [{temporaryFileLocation}]");
         Result syncResult = directorySynchronizer.SyncAsync(CancellationToken.None).GetAwaiter().GetResult();
-        if (syncResult.IsFailed)
+        if (syncResult.IsSuccess() == false)
         {
-            Logger.LogWarning($"Error getting file profiles {syncResult.Message}");
+            Logger.LogWarning($"Error getting file profiles {syncResult.GetErrorMessage()}");
             return;
         }
 
         Result recoveryResult = recoveryService.RecoverInProgressFilesAsync(CancellationToken.None).GetAwaiter().GetResult();
-        if (recoveryResult.IsFailed)
+        if (recoveryResult.IsSuccess() == false)
         {
-            Logger.LogWarning($"Error recovering in-progress files {recoveryResult.Message}");
+            Logger.LogWarning($"Error recovering in-progress files {recoveryResult.GetErrorMessage()}");
         }
 
         TypeProvider.LoadDomainEventsTypeDynamically();

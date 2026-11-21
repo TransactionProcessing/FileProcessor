@@ -42,16 +42,16 @@ namespace FileProcessor.BusinessLogic.Tests
         public FileProcessingManagerTests() {
             List<FileProfileModel> fileProfiles = TestData.FileProfiles;
             this.FileProfileManager = new IFileProfileManagerImposter();
-            this.FileProfileManager.GetAllFileProfiles(Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(fileProfiles));
+            this.FileProfileManager.GetAllFileProfiles(Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(fileProfiles));
             this.FileProfileManager.GetFileProfile(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).Returns((Guid fileProfileId, CancellationToken cancellationToken) =>
             {
                 FileProfileModel fileProfile = fileProfiles.SingleOrDefault(f => f.FileProfileId == fileProfileId);
                 if (fileProfile == null)
                 {
-                    return Task.FromResult<Result<FileProfileModel>>(Result.NotFound($"No file profile found for File Profile Id {fileProfileId}"));
+                    return Task.FromResult<Result<FileProfileModel>>(new Error(ErrorType.NotFound, $"No file profile found for File Profile Id {fileProfileId}"));
                 }
 
-                return Task.FromResult<Result<FileProfileModel>>(Result.Success(fileProfile));
+                return Task.FromResult<Result<FileProfileModel>>(Results.Ok(fileProfile));
             });
             this.DbContextFactory = new IDbContextResolverImposter<EstateManagementContext>();
             this.Context = this.GetContext(Guid.NewGuid().ToString("N"));
@@ -77,7 +77,7 @@ namespace FileProcessor.BusinessLogic.Tests
         public async Task FileProcessingManager_GetAllFileProfiles_AllFileProfilesReturned()
         {
             Result<List<FileProfileModel>> allFileProfiles = await this.Manager.GetAllFileProfiles(CancellationToken.None);
-            allFileProfiles.IsSuccess.ShouldBeTrue();
+            allFileProfiles.IsSuccess().ShouldBeTrue();
             allFileProfiles.GetValueOrThrow().ShouldNotBeEmpty();
         }
 
@@ -85,14 +85,14 @@ namespace FileProcessor.BusinessLogic.Tests
         public async Task FileProcessingManager_GetFileProfile_FileProfileReturned()
         {
             Result<FileProfileModel> fileProfile = await this.Manager.GetFileProfile(TestData.SafaricomFileProfileId, CancellationToken.None);
-            fileProfile.IsSuccess.ShouldBeTrue();
+            fileProfile.IsSuccess().ShouldBeTrue();
             fileProfile.GetValueOrThrow().FileProfileId.ShouldBe(TestData.SafaricomFileProfileId);
         }
 
         [Fact]
         public async Task FileProcessingManager_GetFileImportLogs_NoMerchantId_ImportLogsReturned()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
@@ -101,16 +101,16 @@ namespace FileProcessor.BusinessLogic.Tests
             await this.Context.SaveChangesAsync();
 
             Result<FileImportLogQueryResult> getFileImportLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), null, 1, 50, false, CancellationToken.None);
-            getFileImportLogsResult.IsSuccess.ShouldBeTrue();
+            getFileImportLogsResult.IsSuccess().ShouldBeTrue();
             List<FileImportLog> importLogs = getFileImportLogsResult.GetValueOrThrow().FileImportLogs;
-            this.VerifyImportLogs(TestData.FileImportLogs, Result.Success(importLogs));
+            this.VerifyImportLogs(TestData.FileImportLogs, Results.Ok(importLogs));
             importLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
         public async Task FileProcessingManager_GetFileImportLogs_WithMerchantId_ImportLogsReturned()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
@@ -120,14 +120,14 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLogQueryResult> importLogsResult = await this.Manager.GetFileImportLogs(TestData.EstateId, DateOnly.FromDateTime(TestData.ImportLogStartDate.DateTime), DateOnly.FromDateTime(TestData.ImportLogEndDate.DateTime), TestData.MerchantId, 1, 50, false, CancellationToken.None);
 
-            this.VerifyImportLogs(TestData.FileImportLogs, Result.Success(importLogsResult.GetValueOrThrow().FileImportLogs), TestData.MerchantId);
+            this.VerifyImportLogs(TestData.FileImportLogs, Results.Ok(importLogsResult.GetValueOrThrow().FileImportLogs), TestData.MerchantId);
             importLogsResult.GetValueOrThrow().FileImportLogs.SelectMany(log => log.Files).ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
         }
 
         [Fact]
         public async Task FileProcessingManager_GetFileImportLog_NoMerchantId_ImportLogReturned()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
@@ -144,7 +144,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLog_WithMerchantId_ImportLogReturned()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
@@ -177,7 +177,7 @@ namespace FileProcessor.BusinessLogic.Tests
                 false,
                 CancellationToken.None);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.GetValueOrThrow().FileImportLogs.ShouldHaveSingleItem();
             result.GetValueOrThrow().FileImportLogs.Single().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
             result.GetValueOrThrow().TotalCount.ShouldBe(2);
@@ -187,7 +187,7 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLog_FilesAreScopedToRequestedImportLog()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.AddRange(TestData.FileImportLogs);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog1Files);
             this.Context.FileImportLogFiles.AddRange(TestData.FileImportLog2Files);
@@ -197,7 +197,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result<FileImportLog> result = await this.Manager.GetFileImportLog(TestData.FileImportLogId1, TestData.EstateId, null, CancellationToken.None);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.GetValueOrThrow().Files.ShouldNotBeEmpty();
             result.GetValueOrThrow().Files.ShouldAllBe(file => TestData.FileImportLog1Files.Any(expected => expected.FileId == file.FileId));
             result.GetValueOrThrow().Files.ShouldAllBe(file => file.FileProfileVersionId == TestData.FileProfileVersionId);
@@ -206,14 +206,14 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFileImportLogForFile_ReturnsEntryWithoutFileReadModelRow()
         {
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetCreatedFileAggregate()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetCreatedFileAggregate()));
             this.Context.FileImportLogs.Add(TestData.FileImportLog1);
             this.Context.FileImportLogFiles.Add(TestData.FileImportLog1Files.First());
             await this.Context.SaveChangesAsync();
 
             Result<FileImportLog> importLog = await this.Manager.GetFileImportLogForFile(TestData.FileId1, TestData.EstateId, CancellationToken.None);
 
-            importLog.IsSuccess.ShouldBeTrue();
+            importLog.IsSuccess().ShouldBeTrue();
             importLog.GetValueOrThrow().FileImportLogId.ShouldBe(TestData.FileImportLogId1);
             importLog.GetValueOrThrow().Files.ShouldHaveSingleItem();
             importLog.GetValueOrThrow().Files.Single().FileId.ShouldBe(TestData.FileId1);
@@ -228,11 +228,11 @@ namespace FileProcessor.BusinessLogic.Tests
             {
                 TestData.FileProfile
             };
-            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            this.FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetFileAggregateWithLines()));
             
              Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
-             fileDetails.IsSuccess.ShouldBeTrue();
+             fileDetails.IsSuccess().ShouldBeTrue();
              this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
              fileDetails.GetValueOrThrow().MerchantName.ShouldBeNull();
              fileDetails.GetValueOrThrow().UserEmailAddress.ShouldBeNull();
@@ -241,11 +241,11 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileAggregateFailed_ErrorReturned()
         {
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure("Failure"));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(new Error(ErrorType.Failure, "Failure"));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
 
-            fileDetails.IsFailed.ShouldBeTrue();
+            fileDetails.IsSuccess().ShouldBeFalse();
         }
 
         [Fact]
@@ -259,10 +259,10 @@ namespace FileProcessor.BusinessLogic.Tests
                 Name = TestData.MerchantName
             });
             await this.Context.SaveChangesAsync();
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-            fileDetails.IsSuccess.ShouldBeTrue();
+            fileDetails.IsSuccess().ShouldBeTrue();
 
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
             fileDetails.GetValueOrThrow().MerchantName.ShouldBe(TestData.MerchantName);
@@ -279,10 +279,10 @@ namespace FileProcessor.BusinessLogic.Tests
             });
             await this.Context.SaveChangesAsync();
             
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-            fileDetails.IsSuccess.ShouldBeTrue();
+            fileDetails.IsSuccess().ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
             fileDetails.GetValueOrThrow().UserEmailAddress.ShouldBe(TestData.UserEmailAddress);
         }
@@ -307,10 +307,10 @@ namespace FileProcessor.BusinessLogic.Tests
                 EmailAddress = TestData.UserEmailAddress
             });
             await Context.SaveChangesAsync();
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetFileAggregateWithLines()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetFileAggregateWithLines()));
             
             Result<FileDetails> fileDetails = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
-            fileDetails.IsSuccess.ShouldBeTrue();
+            fileDetails.IsSuccess().ShouldBeTrue();
             this.VerifyFile(TestData.GetFileAggregateWithLines(), fileDetails);
             fileDetails.GetValueOrThrow().FileProfileName.ShouldBe(TestData.SafaricomProfileName);
         }
@@ -318,12 +318,12 @@ namespace FileProcessor.BusinessLogic.Tests
         [Fact]
         public async Task FileProcessingManager_GetFile_FileNotFound_ErrorThrown()
         {
-            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success(TestData.GetEmptyFileAggregate()));
+            FileAggregateRepository.GetLatestVersion(Arg<Guid>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok(TestData.GetEmptyFileAggregate()));
             
             Result<FileDetails> result = await this.Manager.GetFile(TestData.FileId, TestData.EstateId, CancellationToken.None);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
 
@@ -365,7 +365,7 @@ namespace FileProcessor.BusinessLogic.Tests
             foreach (TransactionProcessor.Database.Entities.FileImportLog fileImportLog in source)
             {
                 FileImportLog importLog = importLogs.GetValueOrThrow().SingleOrDefault(i => i.FileImportLogId == fileImportLog.FileImportLogId);
-                VerifyImportLog(fileImportLog, Result.Success(importLog), merchantId);
+                VerifyImportLog(fileImportLog, Results.Ok(importLog), merchantId);
             }
         }
 

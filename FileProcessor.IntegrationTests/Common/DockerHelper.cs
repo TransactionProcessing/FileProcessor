@@ -131,7 +131,7 @@ namespace FileProcessor.IntegrationTests.Common
             this.ProjectionManagementClient = new KurrentDBProjectionManagementClient(this.ConfigureKurrentDbSettings());
 
             TransactionProcessing.UnionResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
-            if (bootstrapToken.IsFailed || String.IsNullOrWhiteSpace(bootstrapToken.GetValueOrThrow()?.AccessToken))
+            if (bootstrapToken.IsSuccess() == false || String.IsNullOrWhiteSpace(bootstrapToken.GetValueOrThrow()?.AccessToken))
             {
                 throw new InvalidOperationException("Unable to obtain the integration-test management bootstrap token.");
             }

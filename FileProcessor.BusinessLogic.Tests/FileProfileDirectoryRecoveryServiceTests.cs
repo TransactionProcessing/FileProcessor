@@ -41,15 +41,15 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         fileProcessorManager
             .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
+            .ReturnsAsync(Results.Ok(new List<FileProfileModel> { fileProfile }));
 
         fileProcessorManager
             .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+            .ReturnsAsync(Results.Ok(TestData.GetCreatedFileDetails()));
 
         mediator
             .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Results.Ok());
 
         FileProfileDirectoryRecoveryService service = new(
             fileProcessorManager.Instance(),
@@ -58,7 +58,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         mediator.Send(
             Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
                 command.FileId == TestData.FileId &&
@@ -87,15 +87,15 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         fileProcessorManager
             .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
+            .ReturnsAsync(Results.Ok(new List<FileProfileModel> { fileProfile }));
 
         fileProcessorManager
             .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.NotFound("File aggregate not found"));
+            .ReturnsAsync(new Error(ErrorType.NotFound, "File aggregate not found"));
 
         fileProcessorManager
             .GetFileImportLogForFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new FileImportLogModel
+            .ReturnsAsync(Results.Ok(new FileImportLogModel
             {
                 EstateId = TestData.EstateId,
                 FileImportLogId = TestData.FileImportLogId,
@@ -117,7 +117,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         mediator
             .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Results.Ok());
 
         FileProfileDirectoryRecoveryService service = new(
             fileProcessorManager.Instance(),
@@ -126,7 +126,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         mediator.Send(
             Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
                 command.FileId == TestData.FileId &&
@@ -161,19 +161,19 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         fileProcessorManager
             .GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileProfileModel> { fileProfile }));
+            .ReturnsAsync(Results.Ok(new List<FileProfileModel> { fileProfile }));
         fileProcessorManager
             .GetFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.NotFound("File aggregate not found"));
+            .ReturnsAsync(new Error(ErrorType.NotFound, "File aggregate not found"));
         fileProcessorManager
             .GetFileImportLogForFile(TestData.FileId, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.NotFound("Import log not found"));
+            .ReturnsAsync(new Error(ErrorType.NotFound, "Import log not found"));
         fileProcessorManager
             .GetFile(TestData.FileId2, TestData.EstateId, Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+            .ReturnsAsync(Results.Ok(TestData.GetCreatedFileDetails()));
         mediator
             .Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Results.Ok());
 
         FileProfileDirectoryRecoveryService service = new(
             fileProcessorManager.Instance(),
@@ -182,7 +182,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         mediator.Send(
             Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
                 command.FileId == TestData.FileId2 &&
@@ -224,11 +224,11 @@ public class FileProfileDirectoryRecoveryServiceTests
         fileSystem.AddFile(currentFilePath, new MockFileData("D,1,1,1"));
 
         fileProcessorManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileProfileModel> { historicalVersion, currentVersion }));
+            .ReturnsAsync(Results.Ok(new List<FileProfileModel> { historicalVersion, currentVersion }));
         fileProcessorManager.GetFile(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+            .ReturnsAsync(Results.Ok(TestData.GetCreatedFileDetails()));
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Results.Ok());
 
         FileProfileDirectoryRecoveryService service = new(
             fileProcessorManager.Instance(),
@@ -237,7 +237,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
             (Path.GetFileName(command.FilePath) == Path.GetFileName(historicalFilePath) ||
              Path.GetFileName(command.FilePath) == Path.GetFileName(currentFilePath))),
@@ -275,11 +275,11 @@ public class FileProfileDirectoryRecoveryServiceTests
         string filePath = $"{firstVersion.ListeningDirectory}/inprogress/{TestData.EstateId:N}-{TestData.FileId:N}";
         fileSystem.AddFile(filePath, new MockFileData("D,1,1,1"));
         fileProcessorManager.GetAllFileProfileVersions(Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(new List<FileProfileModel> { firstVersion, secondVersion }));
+            .ReturnsAsync(Results.Ok(new List<FileProfileModel> { firstVersion, secondVersion }));
         fileProcessorManager.GetFile(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success(TestData.GetCreatedFileDetails()));
+            .ReturnsAsync(Results.Ok(TestData.GetCreatedFileDetails()));
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-            .ReturnsAsync(Result.Success());
+            .ReturnsAsync(Results.Ok());
 
         FileProfileDirectoryRecoveryService service = new(
             fileProcessorManager.Instance(),
@@ -288,7 +288,7 @@ public class FileProfileDirectoryRecoveryServiceTests
 
         Result result = await service.RecoverInProgressFilesAsync(CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
     }
 

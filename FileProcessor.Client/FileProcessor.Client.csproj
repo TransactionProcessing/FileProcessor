@@ -21,4 +21,7 @@
 			<BuildOutputInPackage Include="$(OutputPath)FIleProcessor.Models.dll" />
 		</ItemGroup>
 	</Target>		
+  <ItemGroup>
+    <Compile Include="..\FileProcessor.ResultHelpers\ResultHelpers.cs" Link="ResultHelpers.cs" />
+  </ItemGroup>
 </Project>

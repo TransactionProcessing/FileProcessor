@@ -56,9 +56,9 @@ public sealed class FileProfileDirectoryRefreshService : BackgroundService
             try
             {
                 Result result = await this.DirectorySynchronizer.SyncAsync(stoppingToken);
-                if (result.IsFailed)
+                if (result.IsSuccess() == false)
                 {
-                    this.Logger.LogWarning($"File profile directory refresh failed: {result.Message}");
+                    this.Logger.LogWarning($"File profile directory refresh failed: {result.GetErrorMessage()}");
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

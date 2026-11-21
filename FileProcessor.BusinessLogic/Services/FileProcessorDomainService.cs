@@ -112,22 +112,22 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             Result<FileAggregate> getFileResult = await this.FileAggregateRepository.GetLatestVersion(fileId, cancellationToken);
             Result<FileAggregate> fileAggregateResult =
                 DomainServiceHelper.HandleGetAggregateResult(getFileResult, fileId, isNotFoundError);
-            if (fileAggregateResult.IsFailed)
+            if (fileAggregateResult.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(fileAggregateResult);
             FileAggregate fileAggregate = fileAggregateResult.GetValueOrThrow();
             Result result = await action(fileAggregate);
-            if (result.IsFailed)
+            if (result.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(result);
             
             Result saveResult = await this.FileAggregateRepository.SaveChanges(fileAggregate, cancellationToken);
-            if (saveResult.IsFailed)
+            if (saveResult.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(saveResult);
             
-            return Result.Success();
+            return Results.Ok();
         }
         catch (Exception ex)
         {
-            return Result.Failure(ex.GetExceptionMessages());
+            return ResultHelpers.CreateFailure(ex.GetExceptionMessages());
         }
     }
 
@@ -145,17 +145,17 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
             FileImportLogAggregate fileImportLogAggregate = fileImportLogAggregateResult.GetValueOrThrow();
             Result result = await action(fileImportLogAggregate);
-            if (result.IsFailed)
+            if (result.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(result);
 
             Result saveResult = await this.FileImportLogAggregateRepository.SaveChanges(fileImportLogAggregate, cancellationToken);
-            if (saveResult.IsFailed)
+            if (saveResult.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(saveResult);
-            return Result.Success();
+            return Results.Ok();
         }
         catch (Exception ex)
         {
-            return Result.Failure(ex.GetExceptionMessages());
+            return ResultHelpers.CreateFailure(ex.GetExceptionMessages());
         }
     }
 
@@ -164,7 +164,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         DateTimeOffset importLogDateTime = command.FileUploadedDateTime;
 
         Result validateResult = this.ValidateRequest(command);
-        if (validateResult.IsFailed)
+        if (validateResult.IsSuccess() == false)
             return validateResult;
 
         // The import log is created only after validation and duplicate checks succeed.
@@ -186,18 +186,18 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     {
         IFileInfo file = this.FileSystem.FileInfo.New(command.FilePath);
         if (file.Exists == false)
-            return Result.NotFound($"File {file.FullName} not found");
+            return new Error(ErrorType.NotFound, $"File {file.FullName} not found");
 
         String originalName = String.IsNullOrWhiteSpace(command.OriginalFileName) ? file.Name : command.OriginalFileName;
         Result contentResult = await this.ValidateUploadedFileContent(file, command.FileId, cancellationToken);
-        if (contentResult.IsFailed)
+        if (contentResult.IsSuccess() == false)
             return contentResult;
 
         Result<Boolean> existingFileResult = await this.HandleExistingFile(command, cancellationToken);
-        if (existingFileResult.IsFailed)
+        if (existingFileResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(existingFileResult);
         if (existingFileResult.GetValueOrThrow())
-            return Result.Success();
+            return Results.Ok();
 
         if (fileImportLogAggregate.ContainsFile(command.FileId))
             return this.RegisterDuplicateImportLogFile(command, originalName, fileImportLogAggregate);
@@ -223,31 +223,31 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         }
 
         return CreateGuidFromFileData(fileContent) == fileId
-            ? Result.Success()
-            : Result.Fail(Error.Validation("File content does not match the file id provided"));
+            ? Results.Ok()
+            : new Error(ErrorType.Validation, "File content does not match the file id provided");
     }
 
     private async Task<Result<Boolean>> HandleExistingFile(FileCommands.UploadFileCommand command,
                                                            CancellationToken cancellationToken)
     {
         Result<FileAggregate> existingFileResult = await this.FileAggregateRepository.GetLatestVersion(command.FileId, cancellationToken);
-        if (existingFileResult.IsSuccess == true && existingFileResult.GetValueOrThrow()?.IsCreated == true)
+        if (existingFileResult.IsSuccess() == true && existingFileResult.GetValueOrThrow()?.IsCreated == true)
         {
             FileDetails existingFile = existingFileResult.GetValueOrThrow().GetFile();
             if (existingFile.EstateId != command.EstateId ||
                 existingFile.MerchantId != command.MerchantId ||
                 existingFile.UserId != command.UserId ||
                 existingFile.FileProfileId != command.FileProfileId)
-                return Result<Boolean>.Fail(Error.Validation($"File Id [{command.FileId}] is already registered with different upload details"));
+                return new Error(ErrorType.Validation, $"File Id [{command.FileId}] is already registered with different upload details");
 
             this.DeleteDuplicateUploadFile(command.FilePath);
-            return Result.Success(true);
+            return Results.Ok(true);
         }
 
-        if (existingFileResult.IsFailed == true && existingFileResult.Errors[0].ErrorType != ErrorType.NotFound)
+        if (existingFileResult.IsSuccess() == false && existingFileResult.GetErrors()[0].ErrorType != ErrorType.NotFound)
             return ResultHelpers.CreateFailure(existingFileResult);
 
-        return Result.Success(false);
+        return Results.Ok(false);
     }
 
     private Result RegisterDuplicateImportLogFile(FileCommands.UploadFileCommand command,
@@ -261,7 +261,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                          originalName,
                                                                                          command.FilePath,
                                                                                          command.FileUploadedDateTime));
-        if (result.IsSuccess)
+        if (result.IsSuccess())
             this.DeleteDuplicateUploadFile(command.FilePath);
 
         return result;
@@ -274,10 +274,10 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                         CancellationToken cancellationToken)
     {
         Result<FileProfileModel> profileResult = await this.FileProcessorManager.GetFileProfile(command.FileProfileId, cancellationToken);
-        if (profileResult.IsFailed)
+        if (profileResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(profileResult);
         if (profileResult.GetValueOrThrow() == null)
-            return Result.NotFound($"No file profile found with Id {command.FileProfileId}");
+            return new Error(ErrorType.NotFound, $"No file profile found with Id {command.FileProfileId}");
 
         Guid fileProfileVersionId = profileResult.GetValueOrThrow().FileProfileVersionId == Guid.Empty
             ? profileResult.GetValueOrThrow().FileProfileId
@@ -286,7 +286,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (fileImportLogAggregate.IsCreated == false)
         {
             Result createResult = fileImportLogAggregate.CreateImportLog(command.EstateId, importLogDateTime);
-            if (createResult.IsFailed)
+            if (createResult.IsSuccess() == false)
                 return createResult;
         }
 
@@ -320,26 +320,26 @@ public class FileProcessorDomainService : IFileProcessorDomainService
     }
     private Result ValidateRequest(FileCommands.UploadFileCommand command) {
         if (command.EstateId == Guid.Empty) {
-            return Result.Fail(Error.Validation("No Estate Id provided with file upload"));
+            return new Error(ErrorType.Validation, "No Estate Id provided with file upload");
         }
 
         if (command.FileId == Guid.Empty) {
-            return Result.Fail(Error.Validation("No File Id provided with file upload"));
+            return new Error(ErrorType.Validation, "No File Id provided with file upload");
         }
 
         if (command.UserId == Guid.Empty) {
-            return Result.Fail(Error.Validation("No User Id provided with file upload"));
+            return new Error(ErrorType.Validation, "No User Id provided with file upload");
         }
 
         if (command.MerchantId == Guid.Empty) {
-            return Result.Fail(Error.Validation("No Merchant Id provided with file upload"));
+            return new Error(ErrorType.Validation, "No Merchant Id provided with file upload");
         }
 
         if (command.FileProfileId == Guid.Empty) {
-            return Result.Fail(Error.Validation("No File Profile Id provided with file upload"));
+            return new Error(ErrorType.Validation, "No File Profile Id provided with file upload");
         }
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private void DeleteDuplicateUploadFile(String filePath)
@@ -364,19 +364,19 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                               command.FileProfileId,
                                                                               command.FileProfileVersionId,
                                                                               cancellationToken);
-            if (operatorIdResult.IsFailed)
+            if (operatorIdResult.IsSuccess() == false)
                 return ResultHelpers.CreateFailure(operatorIdResult);
 
             FileAggregateExtensions.CreateFileRequest request = new(command.FileImportLogId, command.EstateId, command.MerchantId, command.UserId, command.FileProfileId, command.FilePath, command.FileUploadedDateTime, operatorIdResult.GetValueOrThrow(), command.FileProfileVersionId);
             Result stateResult = fileAggregate.CreateFile(request);
-            if (stateResult.IsFailed)
+            if (stateResult.IsSuccess() == false)
                 return stateResult;
 
-            return Result.Success();
+            return Results.Ok();
 
         }, command.FileId, cancellationToken, false );
 
-        if (result.IsFailed) {
+        if (result.IsSuccess() == false) {
             await MoveAcceptedFileToFailedDirectory(command.FileId,
                                                     command.FileProfileId,
                                                     command.FileProfileVersionId,
@@ -404,7 +404,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                               fileProfileId,
                                                                                               fileProfileVersionId,
                                                                                               cancellationToken);
-        if (fileProfileResult.IsFailed || fileProfileResult.GetValueOrThrow() == null)
+        if (fileProfileResult.IsSuccess() == false || fileProfileResult.GetValueOrThrow() == null)
             return;
 
         IFileInfo file = this.FileSystem.FileInfo.New(filePath);
@@ -428,29 +428,29 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                               fileProfileVersionId,
                                                                                               cancellationToken);
 
-        if (fileProfileResult.IsFailed){
+        if (fileProfileResult.IsSuccess() == false){
             Logger.LogInformation("file profile {fileProfileId} not found", fileProfileId);
             return ResultHelpers.CreateFailure(fileProfileResult);
         }
         FileProfileModel fileProfile = fileProfileResult.GetValueOrThrow();
 
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
-        if (getTokenResult.IsFailed) {
+        if (getTokenResult.IsSuccess() == false) {
             return ResultHelpers.CreateFailure(getTokenResult);
         }
         this.TokenResponse = getTokenResult.GetValueOrThrow();
         Result <List<OperatorResponse>> getOperatorsResult = await this.TransactionProcessorClient.GetOperators(this.TokenResponse.AccessToken, estateId, cancellationToken);
-        if (getOperatorsResult.IsFailed) {
+        if (getOperatorsResult.IsSuccess() == false) {
             return ResultHelpers.CreateFailure(getOperatorsResult);
         }
 
         List<OperatorResponse> operatorList = getOperatorsResult.GetValueOrThrow();
         OperatorResponse @operator = operatorList.SingleOrDefault(o => o.Name == fileProfile.OperatorName);
         if (@operator == null){
-            return Result.NotFound($"No operator record found with name [{fileProfile.OperatorName}]");
+            return new Error(ErrorType.NotFound, $"No operator record found with name [{fileProfile.OperatorName}]");
         }
 
-        return Result.Success(@operator.OperatorId);
+        return Results.Ok(@operator.OperatorId);
     }
 
     public async Task<Result> ReplayFileLine(FileCommands.ReplayFileLineCommand command, CancellationToken cancellationToken)
@@ -462,12 +462,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             FileLine fileLine = fileDetails.FileLines.SingleOrDefault(l => l.LineNumber == command.LineNumber);
             if (fileLine == null)
             {
-                return Result.NotFound($"Line number {command.LineNumber} not found in file Id {command.FileId}");
+                return new Error(ErrorType.NotFound, $"Line number {command.LineNumber} not found in file Id {command.FileId}");
             }
 
             if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
             {
-                return Result.Success();
+                return Results.Ok();
             }
 
             // Build the command to reprocess the line
@@ -494,13 +494,13 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return stateResult;
         }, command.FileId, cancellationToken);
 
-        if (result.IsSuccess && dispatchFailureResult.HasValue)
+        if (result.IsSuccess() && dispatchFailureResult.HasValue)
             result = dispatchFailureResult.Value;
 
-        if (result.IsFailed)
+        if (result.IsSuccess() == false)
         {
             FileLineProcessingDiagnostics.ProcessingFailed(processingContext, result);
-            Logger.LogWarning("Line Processing failed {LineNumber} Status {Status} Message {Message}", command.LineNumber, result.Errors[0].ErrorType, result.Message);
+            Logger.LogWarning("Line Processing failed {LineNumber} Status {Status} Message {Message}", command.LineNumber, result.GetErrors()[0].ErrorType, result.GetErrorMessage());
         }
         else if (processingContext.Stage == FileLineProcessingStage.FileLineStatePersisted)
         {
@@ -523,16 +523,16 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         processingContext.Stage = FileLineProcessingStage.FileLineLookup;
         if (fileDetails.FileLines.Any() == false)
-            return (Result.Fail(Error.Validation($"File Id [{command.FileId}] has no lines added")), null);
+            return (new Error(ErrorType.Validation, $"File Id [{command.FileId}] has no lines added"), null);
 
         FileLine fileLine = fileDetails.FileLines.SingleOrDefault(f => f.LineNumber == command.LineNumber);
         if (fileLine == null)
-            return (Result.NotFound($"File Line Number {command.LineNumber} not found in File Id {command.FileId}"), null);
+            return (new Error(ErrorType.NotFound, $"File Line Number {command.LineNumber} not found in File Id {command.FileId}"), null);
 
         if (fileLine.ProcessingResult != ProcessingResult.NotProcessed)
         {
             FileLineProcessingDiagnostics.LineProcessingSkipped(processingContext, fileLine.ProcessingResult);
-            return (Result.Success(), null);
+            return (Results.Ok(), null);
         }
 
         processingContext.Stage = FileLineProcessingStage.FileProfileLookup;
@@ -540,7 +540,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                               fileDetails.FileProfileId,
                                                                                               fileDetails.FileProfileVersionId,
                                                                                               cancellationToken);
-        if (fileProfileResult.IsFailed)
+        if (fileProfileResult.IsSuccess() == false)
             return (ResultHelpers.CreateFailure(fileProfileResult), null);
 
         FileProfileModel fileProfile = fileProfileResult.GetValueOrThrow();
@@ -551,25 +551,25 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         {
             processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
             Result stateResult = fileAggregate.RecordFileLineAsIgnored(fileLine.LineNumber);
-            if (stateResult.IsFailed)
+            if (stateResult.IsSuccess() == false)
                 return (stateResult, null);
 
             FileLineProcessingDiagnostics.LineIgnored(processingContext);
             processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
-            return (Result.Success(), null);
+            return (Results.Ok(), null);
         }
 
         processingContext.Stage = FileLineProcessingStage.TransactionDetailsParsing;
         Result<Dictionary<String, String>> metadataResult = this.BuildTransactionMetadata(command, fileLine, fileProfile, out String parsedOperatorName);
         processingContext.OperatorName = parsedOperatorName;
-        if (metadataResult.IsFailed)
+        if (metadataResult.IsSuccess() == false)
         {
             processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
             Result stateResult = fileAggregate.RecordFileLineAsRejected(fileLine.LineNumber, "Invalid Format");
-            if (stateResult.IsFailed)
+            if (stateResult.IsSuccess() == false)
                 return (ResultHelpers.CreateFailure(stateResult), null);
 
-            if (stateResult.IsSuccess)
+            if (stateResult.IsSuccess())
             {
                 FileLineProcessingDiagnostics.LineRejected(processingContext, "Invalid Format");
                 processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
@@ -602,7 +602,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                                                                                        fileProfile,
                                                                                                                                                        processingContext.OperatorName,
                                                                                                                                                        processingContext);
-        if (detailsForTransaction.IsFailed)
+        if (detailsForTransaction.IsSuccess() == false)
             return (ResultHelpers.CreateFailure(detailsForTransaction), null);
 
         processingContext.Stage = FileLineProcessingStage.TransactionDetailsResolved;
@@ -612,23 +612,23 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                                      transactionNumber,
                                                                                      processingContext,
                                                                                      cancellationToken);
-        processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess;
-        if (saleResult.IsSuccess)
+        processingContext.TransactionDispatchSucceeded = saleResult.IsSuccess();
+        if (saleResult.IsSuccess())
             processingContext.ResponseCode = saleResult.GetValueOrThrow().ResponseCode;
 
         // A failed dispatch has no definitive processor response. Leave the line unmodified so
         // the file processing workflow can retry it with the same file and line identity.
-        if (saleResult.IsFailed)
+        if (saleResult.IsSuccess() == false)
         {
             Result stateResult = fileAggregate.RecordTransactionDispatchFailure(command.LineNumber,
                                                                                   transactionNumber,
                                                                                   processingContext.TransactionDispatchFailureType,
                                                                                   DateTime.UtcNow);
-            if (stateResult.IsFailed)
+            if (stateResult.IsSuccess() == false)
                 return (stateResult, null);
 
             processingContext.Stage = FileLineProcessingStage.TransactionDispatchAttemptPersisted;
-            return (Result.Success(), ResultHelpers.CreateFailure(saleResult));
+            return (Results.Ok(), ResultHelpers.CreateFailure(saleResult));
         }
 
         processingContext.Stage = FileLineProcessingStage.FileLineStateUpdate;
@@ -640,7 +640,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             ? ProcessingResult.Successful
             : ProcessingResult.Failed;
         FileLineProcessingDiagnostics.LineStateDetermined(processingContext, processingResult);
-        if (stateUpdateResult.IsSuccess)
+        if (stateUpdateResult.IsSuccess())
             processingContext.Stage = FileLineProcessingStage.FileLineStatePersisted;
 
         return (stateUpdateResult, null);
@@ -656,7 +656,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (transactionMetadata.Any() == false) {
             // Line failed to parse so record this
             operatorName = null;
-            return Result.Failure("Invalid Format");
+            return new Error(ErrorType.Failure, "Invalid Format");
         }
 
         // Add the file data to the request metadata
@@ -671,7 +671,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             transactionMetadata = transactionMetadata.Where(x => x.Key != "OperatorName").ToDictionary(x => x.Key, x => x.Value);
         }
 
-        return Result.Success(transactionMetadata);
+        return Results.Ok(transactionMetadata);
     }
 
     private async Task<Result<SaleTransactionResponse>> SendSaleTransaction(FileDetails fileDetails,
@@ -682,7 +682,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                                                                             CancellationToken cancellationToken) {
         processingContext.Stage = FileLineProcessingStage.TokenAcquisition;
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
-        if (getTokenResult.IsFailed) {
+        if (getTokenResult.IsSuccess() == false) {
             return ResultHelpers.CreateFailure(getTokenResult);
         }
 
@@ -723,10 +723,10 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             processingContext.TransactionDispatchFailureType = exception is TimeoutException or TaskCanceledException
                 ? "Timeout"
                 : "SendFailure";
-            return Result.Failure(exception.GetExceptionMessages());
+            return ResultHelpers.CreateFailure(exception.GetExceptionMessages());
         }
 
-        if (result.IsFailed)
+        if (result.IsSuccess() == false)
         {
             processingContext.TransactionDispatchFailureType = "SendFailure";
             FileLineProcessingDiagnostics.TransactionDispatchFailed(processingContext, result);
@@ -747,7 +747,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         processingContext.Stage = FileLineProcessingStage.TokenAcquisition;
         Result<TokenResponse> getTokenResult = await this.GetToken(cancellationToken);
-        if (getTokenResult.IsFailed)
+        if (getTokenResult.IsSuccess() == false)
         {
             return ResultHelpers.CreateFailure(getTokenResult);
         }
@@ -757,60 +757,60 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         // Get the merchant details
         processingContext.Stage = FileLineProcessingStage.MerchantLookup;
         Result<MerchantResponse> getMerchantResult = await this.TransactionProcessorClient.GetMerchant(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-        if (getMerchantResult.IsFailed) {
+        if (getMerchantResult.IsSuccess() == false) {
             return ResultHelpers.CreateFailure(getMerchantResult);
         }
 
         MerchantResponse merchant = getMerchantResult.GetValueOrThrow();
         Result merchantResult = this.ValidateMerchant(merchant, fileDetails);
-        if (merchantResult.IsFailed)
+        if (merchantResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(merchantResult);
 
         processingContext.Stage = FileLineProcessingStage.ContractLookup;
         Result<List<ContractResponse>> getContractsResult = await this.TransactionProcessorClient.GetMerchantContracts(this.TokenResponse.AccessToken, fileDetails.EstateId, fileDetails.MerchantId, cancellationToken);
-        if (getContractsResult.IsFailed) {
+        if (getContractsResult.IsSuccess() == false) {
             return ResultHelpers.CreateFailure(getContractsResult);
         }
 
         List<ContractResponse> contracts = getContractsResult.GetValueOrThrow();
         Result contractsResult = this.ValidateContracts(contracts, fileDetails);
-        if (contractsResult.IsFailed)
+        if (contractsResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(contractsResult);
 
         processingContext.Stage = FileLineProcessingStage.ContractOperatorMatch;
         Result<ContractResponse> contractResult = this.FindContract(contracts, fileProfile.OperatorName, operatorName, merchant.MerchantId);
-        if (contractResult.IsFailed)
+        if (contractResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(contractResult);
 
         processingContext.Stage = FileLineProcessingStage.VariableValueProductLookup;
         Result<ContractProduct> productResult = this.FindVariableValueProduct(contractResult.GetValueOrThrow(), fileProfile.OperatorName, merchant.MerchantId);
-        if (productResult.IsFailed)
+        if (productResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(productResult);
 
         processingContext.Stage = FileLineProcessingStage.MerchantDeviceResolution;
         Result<String> merchantDeviceResult = this.ResolveMerchantDevice(merchant, fileDetails);
-        if (merchantDeviceResult.IsFailed)
+        if (merchantDeviceResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(merchantDeviceResult);
 
-        return Result.Success((contractResult.GetValueOrThrow().ContractId, contractResult.GetValueOrThrow().OperatorId, productResult.GetValueOrThrow().ProductId, merchantDeviceResult.GetValueOrThrow()));
+        return Results.Ok((contractResult.GetValueOrThrow().ContractId, contractResult.GetValueOrThrow().OperatorId, productResult.GetValueOrThrow().ProductId, merchantDeviceResult.GetValueOrThrow()));
     }
 
     private Result ValidateMerchant(MerchantResponse merchant,
                                      FileDetails fileDetails)
     {
         if (merchant == null)
-            return Result.NotFound($"Merchant Id {fileDetails.MerchantId} not found on estate Id {fileDetails.EstateId}");
+            return new Error(ErrorType.NotFound, $"Merchant Id {fileDetails.MerchantId} not found on estate Id {fileDetails.EstateId}");
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private Result ValidateContracts(List<ContractResponse> contracts,
                                      FileDetails fileDetails)
     {
         if (contracts == null || contracts.Any() == false)
-            return Result.NotFound($"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
+            return new Error(ErrorType.NotFound, $"No contracts found for Merchant Id {fileDetails.MerchantId} on estate Id {fileDetails.EstateId}");
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private Result<ContractResponse> FindContract(List<ContractResponse> contracts,
@@ -825,9 +825,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         };
 
         if (contract == null)
-            return Result.NotFound($"No merchant contract for operator Id {operatorName} found for Merchant Id {merchantId}");
+            return new Error(ErrorType.NotFound, $"No merchant contract for operator Id {operatorName} found for Merchant Id {merchantId}");
 
-        return Result.Success(contract);
+        return Results.Ok(contract);
     }
 
     private Result<ContractProduct> FindVariableValueProduct(ContractResponse contract,
@@ -837,18 +837,18 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         ContractProduct product = contract.Products?.SingleOrDefault(p => p.Value == null);
 
         if (product == null)
-            return Result.NotFound($"No variable value product found on the merchant contract for operator Id {profileOperatorName} and Merchant Id {merchantId}");
+            return new Error(ErrorType.NotFound, $"No variable value product found on the merchant contract for operator Id {profileOperatorName} and Merchant Id {merchantId}");
 
-        return Result.Success(product);
+        return Results.Ok(product);
     }
 
     private Result<String> ResolveMerchantDevice(MerchantResponse merchant,
                                                   FileDetails fileDetails)
     {
         if (merchant.Devices == null || merchant.Devices.Any() == false || String.IsNullOrWhiteSpace(merchant.Devices.First().Value))
-            return Result.NotFound($"No valid merchant device found for Merchant Id {merchant.MerchantId} on estate Id {fileDetails.EstateId}");
+            return new Error(ErrorType.NotFound, $"No valid merchant device found for Merchant Id {merchant.MerchantId} on estate Id {fileDetails.EstateId}");
 
-        return Result.Success(merchant.Devices.First().Value);
+        return Results.Ok(merchant.Devices.First().Value);
     }
 
     private async Task<Result> ProcessFile(Guid fileId,
@@ -859,12 +859,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         Result<FileProfileModel> fileProfileResult =
             await this.GetFileProfileForProcessing(fileId, fileProfileId, fileProfileVersionId, cancellationToken);
 
-        if (fileProfileResult.IsFailed)
+        if (fileProfileResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(fileProfileResult);
         FileProfileModel fileProfile = fileProfileResult.GetValueOrThrow();
 
         Result<IFileInfo> inProgressFileResult = this.ResolveInProgressFile(fileName, fileProfile);
-        if (inProgressFileResult.IsFailed)
+        if (inProgressFileResult.IsSuccess() == false)
             return ResultHelpers.CreateFailure(inProgressFileResult);
 
         IFileInfo inProgressFile = inProgressFileResult.GetValueOrThrow();
@@ -874,7 +874,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             if (fileAggregate.GetFile().IsRejected)
             {
                 fileWasRejected = true;
-                return Result.Success();
+                return Results.Ok();
             }
 
             Result contentResult = await this.ProcessFileContents(fileAggregate, inProgressFile, fileProfile, cancellationToken);
@@ -882,12 +882,12 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             return contentResult;
         }, fileId, cancellationToken);
 
-        if (result.IsSuccess) {
+        if (result.IsSuccess()) {
             if (fileWasRejected)
             {
                 Logger.LogWarning("About to move rejected file {FileName} to [{Directory}]", inProgressFile.Name, fileProfile.FailedDirectory);
                 inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
-                return Result.Success();
+                return Results.Ok();
             }
 
             Logger.LogInformation("About to move file {{FileName}} to [{Directory}]", inProgressFile.Name, fileProfile.ProcessedDirectory);
@@ -896,7 +896,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
             inProgressFile.MoveTo($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}", true);
         }
         else {
-            Logger.LogWarning("About to move file {FileName} to [{Directory}]. Reason(s) [{Reason}]", inProgressFile.Name, fileProfile.FailedDirectory, String.Join(",", result.Errors));
+            Logger.LogWarning("About to move file {FileName} to [{Directory}]. Reason(s) [{Reason}]", inProgressFile.Name, fileProfile.FailedDirectory, String.Join(",", result.GetErrors()));
             inProgressFile.MoveTo($"{fileProfile.FailedDirectory}/{inProgressFile.Name}", true);
         }
 
@@ -910,7 +910,7 @@ public class FileProcessorDomainService : IFileProcessorDomainService
 
         IFileInfo inProgressFile = this.FileSystem.FileInfo.New(fileName);
         if (inProgressFile.Exists)
-            return Result.Success(inProgressFile);
+            return Results.Ok(inProgressFile);
 
         IFileInfo failedFileInfo = this.FileSystem.FileInfo.New($"{fileProfile.FailedDirectory}/{inProgressFile.Name}");
         IFileInfo processedFileInfo = this.FileSystem.FileInfo.New($"{fileProfile.ProcessedDirectory}/{inProgressFile.Name}");
@@ -922,8 +922,8 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         };
 
         return replayFile == null
-            ? Result.NotFound($"File {inProgressFile.FullName} not found")
-            : Result.Success(replayFile);
+            ? new Error(ErrorType.NotFound, $"File {inProgressFile.FullName} not found")
+            : Results.Ok(replayFile);
     }
 
     private void EnsureDirectoryExists(String directory)
@@ -997,11 +997,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
                 continue;
 
             Result stateResult = fileAggregate.AddFileLine(trimmedFileLine);
-            if (stateResult.IsFailed)
+            if (stateResult.IsSuccess() == false)
                 return stateResult;
         }
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private async Task<Result<FileProfileModel>> GetFileProfileForProcessing(Guid fileId,
@@ -1015,11 +1015,11 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         Result<FileProfileModel> versionResult = await this.FileProcessorManager.GetFileProfileVersion(fileProfileId,
                                                                                                          fileProfileVersionId,
                                                                                                          cancellationToken);
-        if (versionResult.IsFailed == false)
+        if (versionResult.IsSuccess())
             return versionResult;
 
-        if (versionResult.Errors[0].ErrorType == ErrorType.NotFound)
-            return Result.NotFound($"File [{fileId}] references unavailable file profile version [{fileProfileVersionId}] for profile [{fileProfileId}]");
+        if (versionResult.GetErrors()[0].ErrorType == ErrorType.NotFound)
+            return new Error(ErrorType.NotFound, $"File [{fileId}] references unavailable file profile version [{fileProfileVersionId}] for profile [{fileProfileId}]");
 
         return ResultHelpers.CreateFailure(versionResult);
     }
@@ -1075,9 +1075,9 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         if (this.TokenResponse == null)
         {
             Result<TokenResponse> getTokenResult = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            if (getTokenResult.IsFailed)
+            if (getTokenResult.IsSuccess() == false)
             {
-                Logger.LogWarning($"Failed to get token: {getTokenResult.Message}");
+                Logger.LogWarning($"Failed to get token: {getTokenResult.GetErrorMessage()}");
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
 
@@ -1088,15 +1088,15 @@ public class FileProcessorDomainService : IFileProcessorDomainService
         {
             Logger.LogDebug($"Token is about to expire at {this.TokenResponse.Expires.DateTime:O}");
             Result<TokenResponse> getTokenResult = await this.SecurityServiceClient.GetToken(clientId, clientSecret, cancellationToken);
-            if (getTokenResult.IsFailed)
+            if (getTokenResult.IsSuccess() == false)
             {
-                Logger.LogWarning($"Failed to get token: {getTokenResult.Message}");
+                Logger.LogWarning($"Failed to get token: {getTokenResult.GetErrorMessage()}");
                 return ResultHelpers.CreateFailure(getTokenResult);
             }
 
             return getTokenResult;
         }
 
-        return Result.Success(this.TokenResponse);
+        return Results.Ok(this.TokenResponse);
     }
 }

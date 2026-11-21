@@ -27,7 +27,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
         {
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
             Result result = fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileImportLog fileImportLog = fileImportLogAggregate.GetFileImportLog();
             fileImportLog.ShouldNotBeNull();
@@ -51,7 +51,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
             fileImportLog.FileImportLogDateTime.ShouldBe(TestData.ImportLogDateTime);
 
             var result = fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
                                                                                                 TestData.FileUploadedDateTime,
                                                                                                 TestData.FileProfileVersionId));
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             fileImportLogAggregate.GetFileImportLog().Files.Single().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
         }
 
@@ -93,8 +93,8 @@ namespace FileProcessor.FileImportLogAggregate.Tests
             FileImportLogAggregate fileImportLogAggregate = FileImportLogAggregate.Create(TestData.FileImportLogId);
 
             var result = fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace FileProcessor.FileImportLogAggregate.Tests
             fileImportLogAggregate.CreateImportLog(TestData.EstateId, TestData.ImportLogDateTime);
             fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
             Result result = fileImportLogAggregate.AddImportedFile(TestData.FileId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.OriginalFileName, TestData.FilePath, TestData.FileUploadedDateTime);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             fileImportLogAggregate.GetFileImportLog().Files.Count.ShouldBe(1);
         }
     }

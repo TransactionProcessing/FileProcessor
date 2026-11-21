@@ -28,7 +28,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             Result result = aggregate.AssignFileProfileVersion(TestData.FileProfileVersionId);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             aggregate.GetFile().FileProfileVersionId.ShouldBe(TestData.FileProfileVersionId);
         }
 
@@ -76,7 +76,7 @@ namespace FileProcessor.FileAggregate.Tests
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             FileAggregateExtensions.CreateFileRequest request = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId, TestData.FileProfileVersionId);
             var result = fileAggregate.CreateFile(request);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             fileAggregate.IsCreated.ShouldBeTrue();
             FileDetails fileDetails = fileAggregate.GetFile();
@@ -120,7 +120,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.CreateFile(createFileRequest);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace FileProcessor.FileAggregate.Tests
                                                       "File contains more than the maximum permitted detail records",
                                                       TestData.FileUploadedDateTime);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.IsRejected.ShouldBeTrue();
             fileDetails.RejectionCode.ShouldBe("MaximumDetailRecordsExceeded");
@@ -156,7 +156,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.RejectFile(1001, 1000, "MaximumDetailRecordsExceeded", "too many", TestData.FileUploadedDateTime);
             Result result = fileAggregate.RejectFile(1002, 1000, "MaximumDetailRecordsExceeded", "too many", TestData.FileUploadedDateTime.AddMinutes(1));
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             fileAggregate.GetFile().ObservedDetailRecordCount.ShouldBe(1001);
         }
 
@@ -170,7 +170,7 @@ namespace FileProcessor.FileAggregate.Tests
 
             Result result = fileAggregate.AddFileLine(TestData.FileLine);
 
-            result.IsFailed.ShouldBeTrue();
+            result.IsSuccess().ShouldBeFalse();
             fileAggregate.GetFile().FileLines.ShouldBeEmpty();
         }
 
@@ -181,7 +181,7 @@ namespace FileProcessor.FileAggregate.Tests
             FileAggregateExtensions.CreateFileRequest createFileRequest = new(TestData.FileImportLogId, TestData.EstateId, TestData.MerchantId, TestData.UserId, TestData.FileProfileId, TestData.FileLocation, TestData.FileUploadedDateTime, TestData.SafaricomOperatorId);
             fileAggregate.CreateFile(createFileRequest);
             var result = fileAggregate.AddFileLine(TestData.FileLine);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -216,7 +216,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.AddFileLine(TestData.FileLine);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -231,8 +231,8 @@ namespace FileProcessor.FileAggregate.Tests
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
 
             var result = fileAggregate.AddFileLine(TestData.FileLine);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -243,7 +243,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -268,8 +268,8 @@ namespace FileProcessor.FileAggregate.Tests
             FileAggregate fileAggregate = FileAggregate.Create(TestData.FileId);
             
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -280,8 +280,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.LineNumber, TestData.TransactionId);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -292,8 +292,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsSuccessful(TestData.NotFoundLineNumber, TestData.TransactionId);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
         [Fact]
@@ -304,7 +304,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId,TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -330,8 +330,8 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                                     
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -342,8 +342,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
 
             var result = fileAggregate.RecordFileLineAsFailed(TestData.LineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -355,8 +355,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsFailed(TestData.NotFoundLineNumber, TestData.TransactionId, TestData.ResponseCodeFailed, TestData.ResponseMessageFailed);
                                             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
         [Fact]
@@ -367,7 +367,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -392,8 +392,8 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -405,8 +405,8 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.LineNumber);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -418,8 +418,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsIgnored(TestData.NotFoundLineNumber);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
 
 
@@ -432,7 +432,7 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.CreateFile(createFileRequest);
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber, TestData.RejectionReason);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
 
             FileDetails fileDetails = fileAggregate.GetFile();
             fileDetails.FileLines.ShouldNotBeNull();
@@ -459,8 +459,8 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -472,8 +472,8 @@ namespace FileProcessor.FileAggregate.Tests
 
             var result = fileAggregate.RecordFileLineAsRejected(TestData.LineNumber,TestData.RejectionReason);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.Validation);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.Validation);
         }
 
         [Fact]
@@ -485,8 +485,8 @@ namespace FileProcessor.FileAggregate.Tests
             fileAggregate.AddFileLine(TestData.FileLine);
             var result = fileAggregate.RecordFileLineAsRejected(TestData.NotFoundLineNumber, TestData.RejectionReason);
             
-            result.IsFailed.ShouldBeTrue();
-            result.Errors[0].ErrorType.ShouldBe(ErrorType.NotFound);
+            result.IsSuccess().ShouldBeFalse();
+            result.GetErrors()[0].ErrorType.ShouldBe(ErrorType.NotFound);
         }
     }
 }

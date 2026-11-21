@@ -54,11 +54,11 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             FileCommands.ReplayFileLineCommand command = new(TestData.FileId, TestData.EstateId, TestData.LineNumber);
             this.FileProcessorDomainService.ReplayFileLine(Arg<FileCommands.ReplayFileLineCommand>.Any(), Arg<CancellationToken>.Any())
-                .ReturnsAsync(Result.Success());
+                .ReturnsAsync(Results.Ok());
 
             Result result = await this.FileRequestHandler.Handle(command, CancellationToken.None);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             this.FileProcessorDomainService.ReplayFileLine(command, CancellationToken.None).Called(Count.Once());
         }
     }
