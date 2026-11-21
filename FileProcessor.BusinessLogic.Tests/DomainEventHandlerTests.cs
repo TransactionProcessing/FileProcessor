@@ -32,12 +32,12 @@ namespace FileProcessor.BusinessLogic.Tests
         {
             IMediatorImposter mediator = new IMediatorImposter();
             mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any())
-                .ReturnsAsync(Result.Failure("Processing failed"));
+                .ReturnsAsync(new Error(ErrorType.Failure, "Processing failed"));
             FileDomainEventHandler eventHandler = new(mediator.Instance());
 
             Result result = await eventHandler.Handle(TestData.FileLineAddedEvent, CancellationToken.None);
 
-            result.IsFailed.ShouldBeTrue();
+            result.IsSuccess().ShouldBeFalse();
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileDomainEventHandler_FileLineAddedEvent_EventIsHandled()
         {
             IMediatorImposter mediator = new IMediatorImposter();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
             FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
             FileLineAddedEvent fileLineAddedEvent = TestData.FileLineAddedEvent;
             Should.NotThrow(async () =>
@@ -71,7 +71,7 @@ namespace FileProcessor.BusinessLogic.Tests
         public void FileDomainEventHandler_FileAddedToImportLogEvent_EventIsHandled()
         {
             IMediatorImposter mediator = new IMediatorImposter();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
             FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
             FileAddedToImportLogEvent fileAddedToImportLogEvent = TestData.FileAddedToImportLogEvent;
             Should.NotThrow(async () =>
@@ -84,7 +84,7 @@ namespace FileProcessor.BusinessLogic.Tests
         public async Task FileDomainEventHandler_FileAddedToImportLogEvent_PropagatesFileProfileVersionId()
         {
             IMediatorImposter mediator = new IMediatorImposter();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
             FileDomainEventHandler eventHandler = new FileDomainEventHandler(mediator.Instance());
             FileAddedToImportLogEvent domainEvent = new(TestData.FileImportLogId,
                                                         TestData.FileId,
@@ -99,7 +99,7 @@ namespace FileProcessor.BusinessLogic.Tests
 
             Result result = await eventHandler.Handle(domainEvent, CancellationToken.None);
 
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             mediator.Send(Arg<IRequest<Result>>.Is(request => request is FileCommands.ProcessUploadedFileCommand command &&
                                                               command.FileProfileVersionId == TestData.FileProfileVersionId),
                           Arg<CancellationToken>.Any()).Called(Count.Once());

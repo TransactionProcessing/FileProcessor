@@ -17,13 +17,13 @@ public class DomainServiceHelperTests
     public void DomainServiceHelper_HandleGetAggregateResult_SuccessfulGet_ResultHandled()
     {
         Guid aggregateId = Guid.Parse("0639682D-1D28-4AD8-B29D-4B76619083F1");
-        Result<TestAggregate> result = Result.Success(new TestAggregate
+        Result<TestAggregate> result = Results.Ok(new TestAggregate
         {
             AggregateId = aggregateId
         });
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, true);
-        handleResult.IsSuccess.ShouldBeTrue();
+        handleResult.IsSuccess().ShouldBeTrue();
         handleResult.GetValueOrThrow().ShouldBeOfType(typeof(TestAggregate));
         handleResult.GetValueOrThrow().AggregateId.ShouldBe(aggregateId);
     }
@@ -32,32 +32,32 @@ public class DomainServiceHelperTests
     public void DomainServiceHelper_HandleGetAggregateResult_FailedGet_ResultHandled()
     {
         Guid aggregateId = Guid.Parse("0639682D-1D28-4AD8-B29D-4B76619083F1");
-        Result<TestAggregate> result = Result.Failure("Failed Get");
+        Result<TestAggregate> result = new Error(ErrorType.Failure, "Failed Get");
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, true);
-        handleResult.IsFailed.ShouldBeTrue();
-        handleResult.Message.ShouldBe("Failed Get");
+        handleResult.IsSuccess().ShouldBeFalse();
+        handleResult.GetErrorMessage().ShouldBe("Failed Get");
     }
 
     [Fact]
     public void DomainServiceHelper_HandleGetAggregateResult_FailedGet_NotFoundButIsError_ResultHandled()
     {
         Guid aggregateId = Guid.Parse("0639682D-1D28-4AD8-B29D-4B76619083F1");
-        Result<TestAggregate> result = Result.NotFound("Failed Get");
+        Result<TestAggregate> result = new Error(ErrorType.NotFound, "Failed Get");
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, true);
-        handleResult.IsFailed.ShouldBeTrue();
-        handleResult.Message.ShouldBe("Failed Get");
+        handleResult.IsSuccess().ShouldBeFalse();
+        handleResult.GetErrorMessage().ShouldBe("Failed Get");
     }
 
     [Fact]
     public void DomainServiceHelper_HandleGetAggregateResult_FailedGet_NotFoundButIsNotError_ResultHandled()
     {
         Guid aggregateId = Guid.Parse("0639682D-1D28-4AD8-B29D-4B76619083F1");
-        Result<TestAggregate> result = Result.NotFound("Failed Get");
+        Result<TestAggregate> result = new Error(ErrorType.NotFound, "Failed Get");
 
         var handleResult = DomainServiceHelper.HandleGetAggregateResult(result, aggregateId, false);
-        handleResult.IsSuccess.ShouldBeTrue();
+        handleResult.IsSuccess().ShouldBeTrue();
         handleResult.GetValueOrThrow().ShouldBeOfType(typeof(TestAggregate));
         handleResult.GetValueOrThrow().AggregateId.ShouldBe(aggregateId);
     }

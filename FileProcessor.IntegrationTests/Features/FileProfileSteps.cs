@@ -84,15 +84,15 @@ public class FileProfileSteps
                 };
 
             Result<FileProfile> duplicateResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
-            duplicateResult.IsFailed.ShouldBeTrue(duplicateResult.Message);
+            duplicateResult.IsSuccess().ShouldBeFalse(duplicateResult.GetErrorMessage());
 
             if (duplicateType.Equals("Name", StringComparison.OrdinalIgnoreCase))
             {
-                duplicateResult.Message.ShouldContain("A file profile with name");
+                duplicateResult.GetErrorMessage().ShouldContain("A file profile with name");
             }
             else
             {
-                duplicateResult.Message.ShouldContain("A file profile with request type");
+                duplicateResult.GetErrorMessage().ShouldContain("A file profile with request type");
             }
         }
     }
@@ -108,9 +108,9 @@ public class FileProfileSteps
                 request,
                 CancellationToken.None);
 
-            result.IsFailed.ShouldBeTrue(result.Message);
-            result.Errors.Any(error => error.Message.Contains("Unsupported request type")).ShouldBeTrue();
-            result.Errors.Any(error => error.Message.Contains("Unsupported file format handler")).ShouldBeTrue();
+            result.IsSuccess().ShouldBeFalse(result.GetErrorMessage());
+            result.GetErrors().Any(error => error.Message.Contains("Unsupported request type")).ShouldBeTrue();
+            result.GetErrors().Any(error => error.Message.Contains("Unsupported file format handler")).ShouldBeTrue();
         }
     }
 
@@ -120,7 +120,7 @@ public class FileProfileSteps
     {
         Result<List<FileProfile>> fileProfilesResult = await this.FileProcessorSteps.GetFileProfiles(this.TestingContext.AccessToken, CancellationToken.None);
 
-        fileProfilesResult.IsSuccess.ShouldBeTrue(fileProfilesResult.Message);
+        fileProfilesResult.IsSuccess().ShouldBeTrue(fileProfilesResult.GetErrorMessage());
         fileProfilesResult.GetValueOrThrow().ShouldNotBeNull();
         fileProfilesResult.GetValueOrThrow().Count.ShouldBe(expectedCount);
     }
@@ -129,7 +129,7 @@ public class FileProfileSteps
     public async Task ThenTheFileProfilesShouldHaveTheFollowingValues(DataTable table)
     {
         Result<List<FileProfile>> fileProfilesResult = await this.FileProcessorSteps.GetFileProfiles(this.TestingContext.AccessToken, CancellationToken.None);
-        fileProfilesResult.IsSuccess.ShouldBeTrue(fileProfilesResult.Message);
+        fileProfilesResult.IsSuccess().ShouldBeTrue(fileProfilesResult.GetErrorMessage());
         fileProfilesResult.GetValueOrThrow().ShouldNotBeNull();
 
         foreach (DataTableRow row in table.Rows)
@@ -165,7 +165,7 @@ public class FileProfileSteps
     {
         Result<FileProfile> createResult = await this.FileProcessorSteps.CreateFileProfile(this.TestingContext.AccessToken, request, CancellationToken.None);
 
-        createResult.IsSuccess.ShouldBeTrue(createResult.Message);
+        createResult.IsSuccess().ShouldBeTrue(createResult.GetErrorMessage());
         createResult.GetValueOrThrow().ShouldNotBeNull();
 
         this.FileProfileIds[alias] = createResult.GetValueOrThrow().FileProfileId;
@@ -217,7 +217,7 @@ public class FileProfileSteps
         Guid fileProfileId = this.FileProfileIds[alias];
         Result updateResult = await this.FileProcessorSteps.UpdateFileProfile(this.TestingContext.AccessToken, fileProfileId, request, CancellationToken.None);
 
-        updateResult.IsSuccess.ShouldBeTrue(updateResult.Message);
+        updateResult.IsSuccess().ShouldBeTrue(updateResult.GetErrorMessage());
     }
 
     private async Task<FileProfile> GetProfileByAlias(string alias)
@@ -225,7 +225,7 @@ public class FileProfileSteps
         Guid fileProfileId = this.FileProfileIds[alias];
         Result<FileProfile> result = await this.FileProcessorSteps.GetFileProfile(this.TestingContext.AccessToken, fileProfileId, CancellationToken.None);
 
-        result.IsSuccess.ShouldBeTrue(result.Message);
+        result.IsSuccess().ShouldBeTrue(result.GetErrorMessage());
         result.GetValueOrThrow().ShouldNotBeNull();
         return result.GetValueOrThrow();
     }

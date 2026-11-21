@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 using TransactionProcessing.UnionResults;
+using Results = TransactionProcessing.UnionResults.Results;
 using FileProcessor.Testing;
 using TransactionProcessing.Shared.General;
 using TransactionProcessing.Shared.Logger;
@@ -25,12 +26,12 @@ public class FileHandlersTests
     public async Task ReplayLine_SendsReplayCommand_AndReturnsOk()
     {
         IMediatorImposter mediator = new();
-        mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+        mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
 
-        IResultOutcome result = await FileHandlers.ReplayLine(
+        Result result = await FileHandlers.ReplayLine(
             mediator.Instance(), TestData.FileId, TestData.EstateId, TestData.LineNumber, CancellationToken.None);
 
-        result.ShouldBeOfType<Result>().IsSuccess.ShouldBeTrue();
+        result.ShouldBeOfType<Result>().IsSuccess().ShouldBeTrue();
         mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).Called(Count.Once());
     }
 
@@ -51,7 +52,7 @@ public class FileHandlersTests
             Logger.Initialise(NullLogger.Instance);
 
             IMediatorImposter mediator = new();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Failure("Failure"));
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(new Error(ErrorType.Failure, "Failure"));
 
             await using MemoryStream content = new("D,1,1,1"u8.ToArray());
             FormFile formFile = new(content, 0, content.Length, "file", "source.csv")
@@ -98,7 +99,7 @@ public class FileHandlersTests
             Logger.Initialise(NullLogger.Instance);
 
             IMediatorImposter mediator = new();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
 
             FormCollection firstForm = CreateFormCollection();
             DefaultHttpContext firstContext = new();
@@ -136,7 +137,7 @@ public class FileHandlersTests
             Logger.Initialise(NullLogger.Instance);
 
             IMediatorImposter mediator = new();
-            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Result.Success());
+            mediator.Send(Arg<IRequest<Result>>.Any(), Arg<CancellationToken>.Any()).ReturnsAsync(Results.Ok());
 
             FormCollection formCollection = CreateFormCollection("invoice:payload.csv");
             DefaultHttpContext httpContext = new();

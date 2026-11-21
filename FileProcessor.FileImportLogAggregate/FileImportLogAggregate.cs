@@ -17,12 +17,12 @@ namespace FileProcessor.FileImportLogAggregate
         {
             // Silently handle a duplicate create
             if (aggregate.IsCreated)
-                return Result.Success();
+                return Results.Ok();
 
             ImportLogCreatedEvent importLogCreatedEvent = new ImportLogCreatedEvent(aggregate.AggregateId, estateId, importLogDateTime);
 
             aggregate.ApplyAndAppend(importLogCreatedEvent);
-            return Result.Success();
+            return Results.Ok();
         }
         
         public static Result AddImportedFile(this FileImportLogAggregate aggregate,
@@ -47,7 +47,7 @@ namespace FileProcessor.FileImportLogAggregate
         {
             if (aggregate.IsCreated == false)
             {
-                return Result.Fail(Error.Validation("Import log has not been created"));
+                return new Error(ErrorType.Validation, "Import log has not been created");
             }
 
             ImportLogFile existingFile = aggregate.Files.SingleOrDefault(f => f.FileId == request.FileId);
@@ -58,10 +58,10 @@ namespace FileProcessor.FileImportLogAggregate
                     existingFile.UserId == request.UserId &&
                     existingFile.FileProfileId == request.FileProfileId)
                 {
-                    return Result.Success();
+                    return Results.Ok();
                 }
 
-                return Result.Fail(Error.Validation($"File Id [{request.FileId}] is already registered with different upload details"));
+                return new Error(ErrorType.Validation, $"File Id [{request.FileId}] is already registered with different upload details");
             }
 
             FileAddedToImportLogEvent fileAddedToImportLogEvent =
@@ -78,7 +78,7 @@ namespace FileProcessor.FileImportLogAggregate
 
             aggregate.ApplyAndAppend(fileAddedToImportLogEvent);
 
-            return Result.Success();
+            return Results.Ok();
         }
 
         public static Boolean ContainsFile(this FileImportLogAggregate aggregate, Guid fileId)

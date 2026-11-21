@@ -35,4 +35,7 @@
     <ProjectReference Include="..\FileProcessor\FileProcessor.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\FileProcessor.ResultHelpers\ResultHelpers.cs" Link="ResultHelpers.cs" />
+  </ItemGroup>
 </Project>

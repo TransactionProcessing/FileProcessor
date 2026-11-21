@@ -1,39 +1,29 @@
+#nullable enable
+
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TransactionProcessing.UnionResults;
 
-public static class ResultHelpers
+internal static class ResultHelpers
 {
-    public static Result CreateFailure(object result) => Result.Fail(CreateFailureErrors(result));
+    internal static ErrorList CreateFailure(Result result) => CreateFailure(result.GetErrors());
 
-    public static Result<T> CreateFailure<T>(object result) => Result<T>.Fail(CreateFailureErrors(result));
+    internal static ErrorList CreateFailure<T>(Result<T> result) => CreateFailure(result.GetErrors());
 
-    public static Result<T> CreateFailure<T>(Result<T> result) => Result<T>.Fail(CreateFailureErrors(result));
+    internal static ErrorList CreateFailure(IEnumerable<string> messages) =>
+        new(messages.Select(message => new Error(ErrorType.Failure, message)));
 
-    private static ErrorList CreateFailureErrors(object result)
+    internal static T GetValueOrThrow<T>(this Result<T> result) =>
+        result.Value is Success<T> success
+            ? success.Value
+            : throw new InvalidOperationException(result.GetErrorMessage());
+
+    private static ErrorList CreateFailure(IReadOnlyList<Error> errors) => errors switch
     {
-        ArgumentNullException.ThrowIfNull(result);
-
-        if (result is IResultOutcome unionResult)
-        {
-            return unionResult.GetOutcome() switch
-            {
-                { Kind: ResultKind.Error, Error: not null } outcome => new ErrorList([outcome.Error]),
-                { Kind: ResultKind.ErrorList, Errors: not null } outcome => outcome.Errors,
-                _ => throw new InvalidOperationException("Only a failed result can be propagated as a failure."),
-            };
-        }
-
-        Type resultType = result.GetType();
-        bool isFailed = resultType.GetProperty("IsFailed", BindingFlags.Instance | BindingFlags.Public)?.GetValue(result) as bool? ?? false;
-        if (!isFailed)
-        {
-            throw new InvalidOperationException("Only a failed result can be propagated as a failure.");
-        }
-
-        string? message = resultType.GetProperty("Message", BindingFlags.Instance | BindingFlags.Public)?.GetValue(result) as string;
-        return new ErrorList([Error.Failure(string.IsNullOrWhiteSpace(message) ? "The operation failed." : message)]);
-    }
-
+        ErrorList list => list,
+        { Count: > 0 } => new ErrorList(errors),
+        _ => throw new InvalidOperationException("Only a failed result can be propagated as a failure.")
+    };
 }

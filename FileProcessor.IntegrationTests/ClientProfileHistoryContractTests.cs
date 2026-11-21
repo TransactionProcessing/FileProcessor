@@ -44,8 +44,8 @@ public class ClientProfileHistoryContractTests
                                                                          Guid.NewGuid(),
                                                                          CancellationToken.None);
 
-        Assert.That(result.Errors[0].ErrorType, Is.EqualTo(ErrorType.NotFound));
-        Assert.That(result.Message, Does.Contain("historical version missing"));
+        Assert.That(result.GetErrors()[0].ErrorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.That(result.GetErrorMessage(), Does.Contain("historical version missing"));
     }
 
     private sealed class NotFoundHandler : HttpMessageHandler

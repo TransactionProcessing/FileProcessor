@@ -135,8 +135,8 @@ internal static class FileLineProcessingDiagnostics
             context.TransactionDispatchAttempted,
             context.TransactionDispatchSucceeded,
             context.ResponseCode,
-            result.Errors[0].ErrorType,
-            result.Message);
+            result.GetErrors()[0].ErrorType,
+            result.GetErrorMessage());
     }
 
     public static void LineStatePersisted(FileLineProcessingContext context)
@@ -176,8 +176,8 @@ internal static class FileLineProcessingDiagnostics
             context.MerchantId,
             context.OperatorName,
             "PerformTransaction",
-            result.Errors[0].ErrorType,
-            result.Message);
+            result.GetErrors()[0].ErrorType,
+            result.GetErrorMessage());
     }
 
     public static void TransactionDispatchCompleted(FileLineProcessingContext context, SaleTransactionResponse response)
@@ -204,8 +204,8 @@ internal static class FileLineProcessingDiagnostics
             domainEvent.EstateId,
             domainEvent.MerchantId,
             nameof(FileLineAddedEvent),
-            result.Errors[0].ErrorType,
-            result.Message);
+            result.GetErrors()[0].ErrorType,
+            result.GetErrorMessage());
     }
 
     public static void EventHandlerDispatchCompleted(FileLineAddedEvent domainEvent)

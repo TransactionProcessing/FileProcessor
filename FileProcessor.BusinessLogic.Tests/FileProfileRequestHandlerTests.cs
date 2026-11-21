@@ -22,7 +22,7 @@ public class FileProfileRequestHandlerTests
         IFileProfileManagerImposter manager = new();
         List<FileProfileModel> expected = new();
         manager.GetFileProfileVersions(Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-               .ReturnsAsync(Result.Success(expected));
+               .ReturnsAsync(Results.Ok(expected));
         FileProfileRequestHandler handler = new(manager.Instance());
         FileProfileQueries.GetFileProfileVersionsQuery query = new(Guid.NewGuid());
 
@@ -38,7 +38,7 @@ public class FileProfileRequestHandlerTests
         IFileProfileManagerImposter manager = new();
         FileProfileModel expected = new(Guid.NewGuid(), "Profile", "/tmp/profile", "Request", "Operator", "\n", "Handler");
         manager.GetFileProfileVersion(Arg<Guid>.Any(), Arg<Guid>.Any(), Arg<CancellationToken>.Any())
-               .ReturnsAsync(Result.Success(expected));
+               .ReturnsAsync(Results.Ok(expected));
         FileProfileRequestHandler handler = new(manager.Instance());
         FileProfileQueries.GetFileProfileVersionQuery query = new(Guid.NewGuid(), Guid.NewGuid());
 

@@ -204,7 +204,7 @@ namespace FileProcessor.IntegrationTests.Steps
                                                       .CreateEstate(this.TestingContext.AccessToken, request, CancellationToken.None)
                                                       .ConfigureAwait(false);
 
-                createResult.IsSuccess.ShouldBeTrue($"CreateEstate failed for Estate {request.EstateName}: {createResult.Message}");
+                createResult.IsSuccess().ShouldBeTrue($"CreateEstate failed for Estate {request.EstateName}: {createResult.GetErrorMessage()}");
 
                 EstateResponse estate = null;
                 await Retry.For(async () =>
@@ -214,10 +214,10 @@ namespace FileProcessor.IntegrationTests.Steps
                                         .ConfigureAwait(false);
 
                                     this.TestingContext.Logger.LogInformation($"GetEstates verification for EstateId {createResult.GetValueOrThrow()}: " +
-                                                                             $"isSuccess={getEstatesResult.IsSuccess}, message={getEstatesResult.Message}, " +
+                                                                             $"isSuccess={getEstatesResult.IsSuccess()}, message={getEstatesResult.GetErrorMessage()}, " +
                                                                              $"rows={(getEstatesResult.GetValueOrThrow() == null ? "null" : getEstatesResult.GetValueOrThrow().Count.ToString())}");
 
-                                    getEstatesResult.IsSuccess.ShouldBeTrue(getEstatesResult.Message);
+                                    getEstatesResult.IsSuccess().ShouldBeTrue(getEstatesResult.GetErrorMessage());
                                     List<EstateResponse> estates = getEstatesResult.GetValueOrThrow();
                                     estates.ShouldNotBeNull();
                                     estates.ShouldHaveSingleItem();

@@ -39,16 +39,16 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
         string temporaryFileLocation = this.Configuration.GetValue<string>(TemporaryFileLocationKey);
         if (string.IsNullOrWhiteSpace(temporaryFileLocation))
         {
-            return Result.Fail(Error.Validation("No temporary file location configured"));
+            return new Error(ErrorType.Validation, "No temporary file location configured");
         }
 
         this.FileSystem.Directory.CreateDirectory(temporaryFileLocation);
         this.Logger.LogInformation("Ensured temporary file location exists at [{Directory}]", temporaryFileLocation);
 
         Result<List<FileProfileModel>> fileProfilesResult = await this.FileProfileManager.GetAllFileProfileVersions(cancellationToken);
-        if (fileProfilesResult.IsFailed)
+        if (fileProfilesResult.IsSuccess() == false)
         {
-            this.Logger.LogWarning("Error getting file profiles {Message}", fileProfilesResult.Message);
+            this.Logger.LogWarning("Error getting file profiles {Message}", fileProfilesResult.GetErrorMessage());
             return ResultHelpers.CreateFailure(fileProfilesResult);
         }
 
@@ -63,7 +63,7 @@ public sealed class FileProfileDirectorySynchronizer : IFileProfileDirectorySync
             this.EnsureDirectory(fileProfile.FailedDirectory, "failed");
         }
 
-        return Result.Success();
+        return Results.Ok();
     }
 
     private static StringComparer GetPathComparer()

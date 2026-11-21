@@ -12,6 +12,7 @@ using TransactionProcessing.Shared.General;
 using TransactionProcessing.Shared.Logger;
 using TransactionProcessing.Shared.Serialisation;
 using TransactionProcessing.UnionResults;
+using Results = TransactionProcessing.UnionResults.Results;
 using Shouldly;
 using FileProcessor.Testing;
 using Xunit;
@@ -49,7 +50,7 @@ public class DomainEventHandlersTests
         await Should.ThrowAsync<KeyNotFoundException>(() => DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>())),
+            new Resolver(Results.Ok(new List<IDomainEventHandler>())),
             CancellationToken.None));
     }
 
@@ -75,7 +76,7 @@ public class DomainEventHandlersTests
         IResult result = await DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler> { new Handler(Result.Success()) })),
+            new Resolver(Results.Ok(new List<IDomainEventHandler> { new Handler(Results.Ok()) })),
             CancellationToken.None);
 
         result.ShouldBeOfType<Microsoft.AspNetCore.Http.HttpResults.Ok>();
@@ -89,9 +90,9 @@ public class DomainEventHandlersTests
         IResult result = await DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>
+            new Resolver(Results.Ok(new List<IDomainEventHandler>
             {
-                new Handler(Result.Failure("Processing failed"))
+                new Handler(new Error(ErrorType.Failure, "Processing failed"))
             })),
             CancellationToken.None);
 
@@ -110,7 +111,7 @@ public class DomainEventHandlersTests
         IResult result = await DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>
+            new Resolver(Results.Ok(new List<IDomainEventHandler>
             {
                 new Handler(exception: new InvalidOperationException("Handler failed"))
             })),
@@ -127,7 +128,7 @@ public class DomainEventHandlersTests
         IResult result = await DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>
+            new Resolver(Results.Ok(new List<IDomainEventHandler>
             {
                 new Handler(task: Task.FromException<Result>(new InvalidOperationException("Handler failed")))
             })),
@@ -144,7 +145,7 @@ public class DomainEventHandlersTests
         IResult result = await DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>
+            new Resolver(Results.Ok(new List<IDomainEventHandler>
             {
                 new Handler(task: Task.FromCanceled<Result>(new CancellationToken(true)))
             })),
@@ -163,7 +164,7 @@ public class DomainEventHandlersTests
         await Should.ThrowAsync<OperationCanceledException>(() => DomainEventHandlers.HandleDomainEvent(
             context.Request,
             TestData.FileLineAddedEvent,
-            new Resolver(Result.Success(new List<IDomainEventHandler>())),
+            new Resolver(Results.Ok(new List<IDomainEventHandler>())),
             cancellation.Token));
     }
 
@@ -177,7 +178,7 @@ public class DomainEventHandlersTests
 
     private static Result<List<IDomainEventHandler>> FailedHandlersResult()
     {
-        return Result<List<IDomainEventHandler>>.Fail(Error.Failure("No handlers"));
+        return new Error(ErrorType.Failure, "No handlers");
     }
 
     private sealed class Resolver(Result<List<IDomainEventHandler>> result) : IDomainEventHandlerResolver
@@ -192,7 +193,7 @@ public class DomainEventHandlersTests
 
         public Handler(Result? result = null, Task<Result> task = null, Exception exception = null)
         {
-            this.task = task ?? Task.FromResult(result ?? Result.Success());
+            this.task = task ?? Task.FromResult(result ?? Results.Ok());
             this.exception = exception;
         }
 
