@@ -35,6 +35,7 @@ using TransactionProcessing.Shared.EventStore.Aggregate;
 using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
 using System.IO.Abstractions;
 using TransactionProcessing.ApiDefaults;
+using TransactionProcessing.CertificateDefaults;
 using TransactionProcessing.UnionResults.AspNetCore;
 
 namespace FileProcessor;
@@ -85,8 +86,12 @@ public class Program
             services.IncludeRegistry<SerialiserRegistry>();
         });
 
-        builder.WebHost.UseConfiguration(BuildHostingConfiguration(assemblyDirectory));
+        builder.WebHost.UseConfiguration(BuildHostingConfiguration(assemblyDirectory, builder.Environment.EnvironmentName));
         builder.WebHost.UseKestrel();
+        if (builder.Configuration.GetSection("ServiceOptions:KestrelOptions").Exists())
+        {
+            builder.WebHost.ConfigureTransactionProcessingHttps();
+        }
 
         if (builder.Configuration.GetSection("SentryConfiguration").Exists() && builder.Environment.IsDevelopment() == false)
         {
@@ -132,12 +137,12 @@ public class Program
             });
     }
 
-    private static IConfiguration BuildHostingConfiguration(string assemblyDirectory)
+    private static IConfiguration BuildHostingConfiguration(string assemblyDirectory, string environmentName)
     {
         return new ConfigurationBuilder()
             .SetBasePath(assemblyDirectory)
             .AddJsonFile("hosting.json", optional: true)
-            .AddJsonFile("hosting.development.json", optional: true)
+            .AddJsonFile($"hosting.{environmentName}.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
     }
