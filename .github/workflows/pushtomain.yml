@@ -125,6 +125,7 @@ jobs:
           $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
           $serviceEnvironment = @(
             "ASPNETCORE_ENVIRONMENT=Development",
+            "ASPNETCORE_URLS=http://*:8009;https://*:8001",
             "ServiceOptions__KestrelOptions__Path=$env:FILEPROCESSOR_CERTIFICATE_PATH",
             "ServiceOptions__KestrelOptions__Password=$env:FILEPROCESSOR_CERTIFICATE_PASSWORD"
           )

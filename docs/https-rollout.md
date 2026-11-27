@@ -2,7 +2,7 @@
 
 FileProcessor serves both HTTP and HTTPS during the private-CA rollout. HTTP stays available for existing callers. The listener ports are 8009 (development HTTP), 8001 (development HTTPS), 5009 (staging HTTP), and 5001 (staging HTTPS). Production continues to use its existing HTTP listener until its rollout is scheduled.
 
-Kestrel loads a CA-issued, password-protected PFX through `TransactionProcessing.CertificateDefaults`. Development and staging deploy jobs require these GitHub environment secrets:
+Kestrel loads a CA-issued, password-protected PFX through `TransactionProcessing.CertificateDefaults`. The development and staging Windows service deployments set both listener URLs explicitly; local and integration-test runs without certificate settings remain HTTP-only. Development and staging deploy jobs require these GitHub environment secrets:
 
 - `FILEPROCESSOR_CERTIFICATE_PATH`: absolute path to the issued PFX on that service host.
 - `FILEPROCESSOR_CERTIFICATE_PASSWORD`: PFX password.
