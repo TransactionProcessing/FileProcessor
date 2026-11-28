@@ -96,6 +96,18 @@ namespace FileProcessor.IntegrationTests.Common
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole());
         }
 
+        public override ContainerBuilder SetupSecurityServiceContainer()
+        {
+            this.AdditionalVariables[ContainerType.SecurityService] = new Dictionary<String, String>
+            {
+                ["ServiceOptions:ManagementBootstrap:Enabled"] = "true",
+                ["ServiceOptions:ManagementBootstrap:ClientId"] = "management-bootstrap",
+                ["ServiceOptions:ManagementBootstrap:ClientSecret"] = "management-bootstrap-secret"
+            };
+
+            return base.SetupSecurityServiceContainer();
+        }
+
         public override ContainerBuilder SetupTransactionProcessorContainer()
         {
             if (this.IntegrationTestCertificate is null)
