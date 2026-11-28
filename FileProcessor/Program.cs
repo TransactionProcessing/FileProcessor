@@ -86,7 +86,7 @@ public class Program
             services.IncludeRegistry<SerialiserRegistry>();
         });
 
-        builder.WebHost.UseConfiguration(BuildHostingConfiguration(assemblyDirectory, builder.Environment.EnvironmentName));
+        builder.WebHost.UseUrls(builder.Configuration["ASPNETCORE_URLS"] ?? builder.Configuration["urls"] ?? "http://*:5009");
         builder.WebHost.UseKestrel();
         if (builder.Configuration.GetSection("ServiceOptions:KestrelOptions").Exists())
         {
@@ -135,16 +135,6 @@ public class Program
             {
                 ["HealthMonitoring:Service:Version"] = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.0.0.0"
             });
-    }
-
-    private static IConfiguration BuildHostingConfiguration(string assemblyDirectory, string environmentName)
-    {
-        return new ConfigurationBuilder()
-            .SetBasePath(assemblyDirectory)
-            .AddJsonFile("hosting.json", optional: true)
-            .AddJsonFile($"hosting.{environmentName}.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
     }
 
     private static void ConfigurePipeline(WebApplication app)
