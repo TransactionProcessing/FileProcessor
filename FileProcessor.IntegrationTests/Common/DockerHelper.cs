@@ -77,7 +77,7 @@ namespace FileProcessor.IntegrationTests.Common
             var variables = new Dictionary<String, String>()
             {
                 { "AppSettings:FileProfilePollingWindowInSeconds", "5" },
-                { "ASPNETCORE_URLS", $"http://*:{DockerPorts.FileProcessorDockerPort}" }
+                { "ASPNETCORE_URLS", $"http://0.0.0.0:{DockerPorts.FileProcessorDockerPort}" }
             };
 
             this.AdditionalVariables[ContainerType.FileProcessor] = variables;
