@@ -44,7 +44,7 @@
     <PackageVersion Include="TransactionProcessing.Shared" Version="2026.11.8" />
     <PackageVersion Include="TransactionProcessing.Shared.DomainDrivenDesign" Version="2026.11.8" />
     <PackageVersion Include="TransactionProcessing.Shared.EventStore" Version="2026.11.8" />
-    <PackageVersion Include="TransactionProcessing.Shared.IntegrationTesting" Version="2026.11.8" />
+    <PackageVersion Include="TransactionProcessing.Shared.IntegrationTesting" Version="2026.11.7" />
     <PackageVersion Include="TransactionProcessing.UnionResults" Version="2026.11.8" />
     <PackageVersion Include="TransactionProcessing.UnionResults.AspNetCore" Version="2026.11.8" />
     <PackageVersion Include="SecurityService.Client" Version="2026.10.3.219" />
