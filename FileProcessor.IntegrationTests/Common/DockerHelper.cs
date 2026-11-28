@@ -81,7 +81,8 @@ namespace FileProcessor.IntegrationTests.Common
             };
 
             this.AdditionalVariables[ContainerType.FileProcessor] = variables;
-            return base.SetupFileProcessorContainer();
+            return base.SetupFileProcessorContainer()
+                .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole());
         }
 
         public String AccessToken;
