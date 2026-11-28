@@ -83,7 +83,7 @@ namespace FileProcessor.IntegrationTests.Common
             var variables = new Dictionary<String, String>()
             {
                 { "AppSettings:FileProfilePollingWindowInSeconds", "5" },
-                { "urls", $"https://*:{DockerPorts.FileProcessorDockerPort}" },
+                { "ASPNETCORE_URLS", $"https://*:{DockerPorts.FileProcessorDockerPort}" },
                 { "ServiceOptions:KestrelOptions:Path", this.IntegrationTestCertificate.GetContainerCertificatePath() },
                 { "ServiceOptions:KestrelOptions:Password", this.IntegrationTestCertificate.Password },
                 { "HealthMonitoring:Service:HealthUrl", $"https://localhost:{DockerPorts.FileProcessorDockerPort}/healthui" }
