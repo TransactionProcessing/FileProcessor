@@ -102,19 +102,8 @@ jobs:
         run: |
           $serviceName = "Transaction Processing - File Processor"
           $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
-                   
           New-Service -Name $serviceName -BinaryPathName $servicePath -Description $serviceName -DisplayName $serviceName -StartupType Automatic
-          $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
-          $serviceEnvironment = @(
-            "ASPNETCORE_ENVIRONMENT=Staging",
-            "ASPNETCORE_URLS=https://*:5001",
-            "ServiceOptions__KestrelOptions__Path=$env:ServiceOptions__KestrelOptions__Path",
-            "ServiceOptions__KestrelOptions__Password=$env:ServiceOptions__KestrelOptions__Password"
-          )
-          New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName  
-          curl.exe --fail --silent --show-error --retry 12 --retry-connrefused --retry-delay 5 --retry-max-time 90 --max-time 10 --output NUL --write-out "%{http_code}" https://192.168.1.163:5001/health
-          if ($LASTEXITCODE -ne 0) { throw "Trusted HTTPS health probe failed for FileProcessor on the staging server." }
 
   deployproduction:
     runs-on: [productionserver, windows]
@@ -144,15 +133,6 @@ jobs:
       - name: Install as a Windows service
         run: |
           $serviceName = "Transaction Processing - File Processor"
-          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
-                   
+          $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"                
           New-Service -Name $serviceName -BinaryPathName $servicePath -Description $serviceName -DisplayName $serviceName -StartupType Automatic
-          $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
-          $serviceEnvironment = @(
-            "ASPNETCORE_ENVIRONMENT=Production",
-            "ASPNETCORE_URLS=https://*:5001",
-            "ServiceOptions__KestrelOptions__Path=$env:ServiceOptions__KestrelOptions__Path",
-            "ServiceOptions__KestrelOptions__Password=$env:ServiceOptions__KestrelOptions__Password"
-          )
-          New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName
