@@ -79,8 +79,8 @@ jobs:
     environment: staging
     name: "Deploy to Staging"
     env:
-      FILEPROCESSOR_CERTIFICATE_PATH: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PATH }}
-      FILEPROCESSOR_CERTIFICATE_PASSWORD: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PASSWORD }}
+      ServiceOptions__KestrelOptions__Path: ${{ secrets.ServiceOptions__KestrelOptions__Path }}
+      ServiceOptions__KestrelOptions__Password: ${{ secrets.ServiceOptions__KestrelOptions__Password }}
     
     steps:
       - name: Download the artifact
@@ -91,10 +91,10 @@ jobs:
       - name: Check staging HTTPS certificate settings
         shell: powershell
         run: |
-          if (-not $env:FILEPROCESSOR_CERTIFICATE_PATH -or -not $env:FILEPROCESSOR_CERTIFICATE_PASSWORD) {
-            throw "FILEPROCESSOR_CERTIFICATE_PATH and FILEPROCESSOR_CERTIFICATE_PASSWORD must be configured in the staging environment."
+          if (-not $env:ServiceOptions__KestrelOptions__Path -or -not $env:ServiceOptions__KestrelOptions__Password) {
+            throw "ServiceOptions__KestrelOptions__Path and ServiceOptions__KestrelOptions__Password must be configured in the staging environment."
           }
-          if (-not (Test-Path -LiteralPath $env:FILEPROCESSOR_CERTIFICATE_PATH -PathType Leaf)) {
+          if (-not (Test-Path -LiteralPath $env:ServiceOptions__KestrelOptions__Path -PathType Leaf)) {
             throw "The configured FileProcessor certificate PFX does not exist on the staging server."
           }
   
@@ -121,8 +121,8 @@ jobs:
           $serviceEnvironment = @(
             "ASPNETCORE_ENVIRONMENT=Staging",
             "ASPNETCORE_URLS=https://*:5001",
-            "ServiceOptions__KestrelOptions__Path=$env:FILEPROCESSOR_CERTIFICATE_PATH",
-            "ServiceOptions__KestrelOptions__Password=$env:FILEPROCESSOR_CERTIFICATE_PASSWORD"
+            "ServiceOptions__KestrelOptions__Path=$env:ServiceOptions__KestrelOptions__Path",
+            "ServiceOptions__KestrelOptions__Password=$env:ServiceOptions__KestrelOptions__Password"
           )
           New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName  
@@ -135,8 +135,8 @@ jobs:
     environment: production
     name: "Deploy to Production"
     env:
-      FILEPROCESSOR_CERTIFICATE_PATH: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PATH }}
-      FILEPROCESSOR_CERTIFICATE_PASSWORD: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PASSWORD }}
+      ServiceOptions__KestrelOptions__Path: ${{ secrets.ServiceOptions__KestrelOptions__Path }}
+      ServiceOptions__KestrelOptions__Password: ${{ secrets.ServiceOptions__KestrelOptions__Password }}
     
     steps:
       - name: Download the artifact
@@ -147,10 +147,10 @@ jobs:
       - name: Check production HTTPS certificate settings
         shell: powershell
         run: |
-          if (-not $env:FILEPROCESSOR_CERTIFICATE_PATH -or -not $env:FILEPROCESSOR_CERTIFICATE_PASSWORD) {
-            throw "FILEPROCESSOR_CERTIFICATE_PATH and FILEPROCESSOR_CERTIFICATE_PASSWORD must be configured in the production environment."
+          if (-not $env:ServiceOptions__KestrelOptions__Path -or -not $env:ServiceOptions__KestrelOptions__Password) {
+            throw "ServiceOptions__KestrelOptions__Path and ServiceOptions__KestrelOptions__Password must be configured in the production environment."
           }
-          if (-not (Test-Path -LiteralPath $env:FILEPROCESSOR_CERTIFICATE_PATH -PathType Leaf)) {
+          if (-not (Test-Path -LiteralPath $env:ServiceOptions__KestrelOptions__Path -PathType Leaf)) {
             throw "The configured FileProcessor certificate PFX does not exist on the production server."
           }
   
@@ -177,8 +177,8 @@ jobs:
           $serviceEnvironment = @(
             "ASPNETCORE_ENVIRONMENT=Production",
             "ASPNETCORE_URLS=https://*:5001",
-            "ServiceOptions__KestrelOptions__Path=$env:FILEPROCESSOR_CERTIFICATE_PATH",
-            "ServiceOptions__KestrelOptions__Password=$env:FILEPROCESSOR_CERTIFICATE_PASSWORD"
+            "ServiceOptions__KestrelOptions__Path=$env:ServiceOptions__KestrelOptions__Path",
+            "ServiceOptions__KestrelOptions__Password=$env:ServiceOptions__KestrelOptions__Password"
           )
           New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName
