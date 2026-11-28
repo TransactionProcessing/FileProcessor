@@ -131,6 +131,6 @@ jobs:
           )
           New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName  
-          curl.exe --silent --show-error --output NUL --write-out "%{http_code}" https://192.168.1.86:8001/health
+          curl.exe --fail --silent --show-error --retry 12 --retry-connrefused --retry-delay 5 --retry-max-time 90 --max-time 10 --output NUL --write-out "%{http_code}" https://192.168.1.86:8001/health
           if ($LASTEXITCODE -ne 0) { throw "Trusted HTTPS health probe failed for FileProcessor on the development server." }
         
