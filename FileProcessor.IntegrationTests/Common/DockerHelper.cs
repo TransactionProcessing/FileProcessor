@@ -96,18 +96,6 @@ namespace FileProcessor.IntegrationTests.Common
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole());
         }
 
-        public override ContainerBuilder SetupSecurityServiceContainer()
-        {
-            this.AdditionalVariables[ContainerType.SecurityService] = new Dictionary<String, String>
-            {
-                ["ServiceOptions:ManagementBootstrap:Enabled"] = "true",
-                ["ServiceOptions:ManagementBootstrap:ClientId"] = "management-bootstrap",
-                ["ServiceOptions:ManagementBootstrap:ClientSecret"] = "management-bootstrap-secret"
-            };
-
-            return base.SetupSecurityServiceContainer();
-        }
-
         public override ContainerBuilder SetupTransactionProcessorContainer()
         {
             if (this.IntegrationTestCertificate is null)
@@ -189,7 +177,7 @@ namespace FileProcessor.IntegrationTests.Common
             await base.StartContainersForScenarioRun(scenarioName, dockerServices, cancellationToken);
 
             // Setup the base address resolvers
-            String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
+            String SecurityServiceBaseAddressResolver(String api) => $"https://localhost:{this.SecurityServicePort}";
             String FileProcessorBaseAddressResolver(String api) => $"https://127.0.0.1:{this.FileProcessorPort}";
             String TransactionProcessorBaseAddressResolver(String api) => $"https://127.0.0.1:{this.TransactionProcessorPort}";
             String TestHostServiceBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TestHostServicePort}";
@@ -224,7 +212,7 @@ namespace FileProcessor.IntegrationTests.Common
             TransactionProcessing.UnionResults.Result<SecurityService.DataTransferObjects.TokenResponse> bootstrapToken = await this.SecurityServiceClient.GetToken("management-bootstrap", "management-bootstrap-secret", CancellationToken.None);
             if (bootstrapToken.IsSuccess() == false || String.IsNullOrWhiteSpace(bootstrapToken.GetValueOrThrow()?.AccessToken))
             {
-                throw new InvalidOperationException("Unable to obtain the integration-test management bootstrap token.");
+                throw new InvalidOperationException($"Unable to obtain the integration-test management bootstrap token: {bootstrapToken.GetErrorMessage() ?? "No error details were returned."}");
             }
             this.AccessToken = bootstrapToken.GetValueOrThrow().AccessToken;
         }
