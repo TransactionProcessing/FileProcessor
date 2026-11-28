@@ -86,7 +86,12 @@ public class Program
             services.IncludeRegistry<SerialiserRegistry>();
         });
 
-        builder.WebHost.UseUrls(builder.Configuration["ASPNETCORE_URLS"] ?? builder.Configuration["urls"] ?? "http://*:5009");
+        String? urls = builder.Configuration["ASPNETCORE_URLS"] ?? builder.Configuration["urls"];
+        if (String.IsNullOrWhiteSpace(urls))
+        {
+            throw new InvalidOperationException("Configure ASPNETCORE_URLS or urls before starting FileProcessor.");
+        }
+        builder.WebHost.UseUrls(urls);
         builder.WebHost.UseKestrel();
         if (builder.Configuration.GetSection("ServiceOptions:KestrelOptions").Exists())
         {
