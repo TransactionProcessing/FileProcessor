@@ -175,6 +175,7 @@ namespace FileProcessor.IntegrationTests.Common
         {
             
             await base.StartContainersForScenarioRun(scenarioName, dockerServices, cancellationToken);
+            await this.WaitForSecurityService(cancellationToken);
 
             // Setup the base address resolvers
             String SecurityServiceBaseAddressResolver(String api) => $"https://localhost:{this.SecurityServicePort}";
@@ -215,6 +216,32 @@ namespace FileProcessor.IntegrationTests.Common
                 throw new InvalidOperationException($"Unable to obtain the integration-test management bootstrap token: {bootstrapToken.GetErrorMessage() ?? "No error details were returned."}");
             }
             this.AccessToken = bootstrapToken.GetValueOrThrow().AccessToken;
+        }
+
+        private async Task WaitForSecurityService(CancellationToken cancellationToken)
+        {
+            DateTimeOffset timeout = DateTimeOffset.UtcNow.AddMinutes(3);
+            String lastError = "Health check has not completed.";
+
+            while (DateTimeOffset.UtcNow < timeout)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                TransactionProcessing.UnionResults.Result<String> healthCheck = await this.HealthCheckClient.PerformHealthCheck(
+                    "https",
+                    "localhost",
+                    this.SecurityServicePort,
+                    cancellationToken);
+
+                if (healthCheck.IsSuccess())
+                {
+                    return;
+                }
+
+                lastError = healthCheck.GetErrorMessage() ?? lastError;
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+            }
+
+            throw new InvalidOperationException($"SecurityService did not become ready over HTTPS: {lastError}");
         }
 
         String Serialise(Object arg)
