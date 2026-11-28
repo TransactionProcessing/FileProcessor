@@ -48,8 +48,8 @@ jobs:
           (
             while true; do
               date --iso-8601=seconds
-              for container_id in $(docker ps --quiet --filter ancestor=fileprocessor:latest); do
-                docker inspect --format '{{.Name}} {{json .NetworkSettings.Ports}} {{json .NetworkSettings.Networks}}' "$container_id"
+              for container_id in $(docker ps --quiet); do
+                docker inspect --format '{{.Name}} {{.Config.Image}} {{json .NetworkSettings.Ports}} {{json .NetworkSettings.Networks}}' "$container_id"
               done
               sleep 5
             done
