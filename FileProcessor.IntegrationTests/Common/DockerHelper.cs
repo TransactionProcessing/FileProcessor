@@ -226,18 +226,26 @@ namespace FileProcessor.IntegrationTests.Common
             while (DateTimeOffset.UtcNow < timeout)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                TransactionProcessing.UnionResults.Result<String> healthCheck = await this.HealthCheckClient.PerformHealthCheck(
-                    "https",
-                    "localhost",
-                    this.SecurityServicePort,
-                    cancellationToken);
-
-                if (healthCheck.IsSuccess())
+                try
                 {
-                    return;
+                    TransactionProcessing.UnionResults.Result<String> healthCheck = await this.HealthCheckClient.PerformHealthCheck(
+                        "https",
+                        "localhost",
+                        this.SecurityServicePort,
+                        cancellationToken);
+
+                    if (healthCheck.IsSuccess())
+                    {
+                        return;
+                    }
+
+                    lastError = healthCheck.GetErrorMessage() ?? lastError;
+                }
+                catch (HttpRequestException exception)
+                {
+                    lastError = exception.GetBaseException().Message;
                 }
 
-                lastError = healthCheck.GetErrorMessage() ?? lastError;
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
             }
 
