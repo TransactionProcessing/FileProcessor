@@ -35,6 +35,7 @@ using TransactionProcessing.Shared.EventStore.Aggregate;
 using TransactionProcessing.Shared.EventStore.SubscriptionWorker;
 using System.IO.Abstractions;
 using TransactionProcessing.ApiDefaults;
+using TransactionProcessing.CertificateDefaults;
 using TransactionProcessing.UnionResults.AspNetCore;
 
 namespace FileProcessor;
@@ -85,8 +86,17 @@ public class Program
             services.IncludeRegistry<SerialiserRegistry>();
         });
 
-        builder.WebHost.UseConfiguration(BuildHostingConfiguration(assemblyDirectory));
+        String? urls = builder.Configuration["ASPNETCORE_URLS"] ?? builder.Configuration["urls"];
+        if (String.IsNullOrWhiteSpace(urls))
+        {
+            throw new InvalidOperationException("Configure ASPNETCORE_URLS or urls before starting FileProcessor.");
+        }
+        builder.WebHost.UseUrls(urls);
         builder.WebHost.UseKestrel();
+        if (builder.Configuration.GetSection("ServiceOptions:KestrelOptions").Exists())
+        {
+            builder.WebHost.ConfigureTransactionProcessingHttps();
+        }
 
         if (builder.Configuration.GetSection("SentryConfiguration").Exists() && builder.Environment.IsDevelopment() == false)
         {
@@ -130,16 +140,6 @@ public class Program
             {
                 ["HealthMonitoring:Service:Version"] = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "0.0.0.0"
             });
-    }
-
-    private static IConfiguration BuildHostingConfiguration(string assemblyDirectory)
-    {
-        return new ConfigurationBuilder()
-            .SetBasePath(assemblyDirectory)
-            .AddJsonFile("hosting.json", optional: true)
-            .AddJsonFile("hosting.development.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
     }
 
     private static void ConfigurePipeline(WebApplication app)

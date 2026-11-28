@@ -83,12 +83,25 @@ jobs:
     needs: build
     environment: development
     name: "Deploy to Development"
+    env:
+      ServiceOptions__KestrelOptions__Path: ${{ secrets.ServiceOptions__KestrelOptions__Path }}
+      ServiceOptions__KestrelOptions__Password: ${{ secrets.ServiceOptions__KestrelOptions__Password }}
     
     steps:
       - name: Download the artifact
         uses: actions/download-artifact@v4.1.8
         with:
           name: fileprocessor
+
+      - name: Check development HTTPS certificate settings
+        shell: powershell
+        run: |
+          if (-not $env:ServiceOptions__KestrelOptions__Path -or -not $env:ServiceOptions__KestrelOptions__Password) {
+            throw "ServiceOptions__KestrelOptions__Path and ServiceOptions__KestrelOptions__Password must be configured in the development environment."
+          }
+          if (-not (Test-Path -LiteralPath $env:ServiceOptions__KestrelOptions__Path -PathType Leaf)) {
+            throw "The configured FileProcessor certificate PFX does not exist on the development server."
+          }
   
       - name: Remove existing  Windows service
         run: |
@@ -109,5 +122,15 @@ jobs:
           $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
                    
           New-Service -Name $serviceName -BinaryPathName $servicePath -Description $serviceName -DisplayName $serviceName -StartupType Automatic
+          $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
+          $serviceEnvironment = @(
+            "ASPNETCORE_ENVIRONMENT=Development",
+            "ASPNETCORE_URLS=https://*:8001",
+            "ServiceOptions__KestrelOptions__Path=$env:ServiceOptions__KestrelOptions__Path",
+            "ServiceOptions__KestrelOptions__Password=$env:ServiceOptions__KestrelOptions__Password"
+          )
+          New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
           Start-Service -Name $serviceName  
+          curl.exe --fail --silent --show-error --retry 12 --retry-connrefused --retry-delay 5 --retry-max-time 90 --max-time 10 --output NUL --write-out "%{http_code}" https://192.168.1.86:8001/health
+          if ($LASTEXITCODE -ne 0) { throw "Trusted HTTPS health probe failed for FileProcessor on the development server." }
         

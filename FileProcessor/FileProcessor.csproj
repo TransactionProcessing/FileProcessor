@@ -29,6 +29,7 @@
       <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
       <PackageReference Include="Sentry.AspNetCore" />
       <PackageReference Include="TransactionProcessing.ApiDefaults" />
+      <PackageReference Include="TransactionProcessing.CertificateDefaults" />
   </ItemGroup>
 
   <ItemGroup>
