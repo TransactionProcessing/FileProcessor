@@ -11,6 +11,7 @@ namespace FileProcessor.IntegrationTests.Common
     using SecurityService.Client;
     using TransactionProcessing.UnionResults;
     using TransactionProcessing.Shared.IntegrationTesting;
+    using TransactionProcessing.Shared.IntegrationTesting.TestContainers;
     using TransactionProcessing.Shared.Serialisation;
     using System.Net.Http;
     using System.Threading;
@@ -113,7 +114,7 @@ namespace FileProcessor.IntegrationTests.Common
                 environmentVariables.Add(additionalVariable.Key, additionalVariable.Value);
             }
 
-            (String imageName, Boolean useLatest) imageDetails = this.GetImageDetails(ContainerType.TransactionProcessor).Data;
+            (String imageName, Boolean useLatest) imageDetails = this.GetImageDetails(ContainerType.TransactionProcessor).GetValueOrThrow();
             return new ContainerBuilder(imageDetails.imageName)
                 .WithName(this.TransactionProcessorContainerName)
                 .WithEnvironment(environmentVariables)
