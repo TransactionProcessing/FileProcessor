@@ -120,7 +120,7 @@ jobs:
           $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
           $serviceEnvironment = @(
             "ASPNETCORE_ENVIRONMENT=Staging",
-            "ASPNETCORE_URLS=http://*:5009;https://*:5001",
+            "ASPNETCORE_URLS=https://*:5001",
             "ServiceOptions__KestrelOptions__Path=$env:FILEPROCESSOR_CERTIFICATE_PATH",
             "ServiceOptions__KestrelOptions__Password=$env:FILEPROCESSOR_CERTIFICATE_PASSWORD"
           )
@@ -134,12 +134,25 @@ jobs:
     needs: [build, deploystaging]
     environment: production
     name: "Deploy to Production"
+    env:
+      FILEPROCESSOR_CERTIFICATE_PATH: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PATH }}
+      FILEPROCESSOR_CERTIFICATE_PASSWORD: ${{ secrets.FILEPROCESSOR_CERTIFICATE_PASSWORD }}
     
     steps:
       - name: Download the artifact
         uses: actions/download-artifact@v4.1.8
         with:
           name: fileprocessor
+
+      - name: Check production HTTPS certificate settings
+        shell: powershell
+        run: |
+          if (-not $env:FILEPROCESSOR_CERTIFICATE_PATH -or -not $env:FILEPROCESSOR_CERTIFICATE_PASSWORD) {
+            throw "FILEPROCESSOR_CERTIFICATE_PATH and FILEPROCESSOR_CERTIFICATE_PASSWORD must be configured in the production environment."
+          }
+          if (-not (Test-Path -LiteralPath $env:FILEPROCESSOR_CERTIFICATE_PATH -PathType Leaf)) {
+            throw "The configured FileProcessor certificate PFX does not exist on the production server."
+          }
   
       - name: Remove existing  Windows service
         run: |
@@ -160,4 +173,12 @@ jobs:
           $servicePath = "C:\txnproc\transactionprocessing\fileprocessor\FileProcessor.exe"
                    
           New-Service -Name $serviceName -BinaryPathName $servicePath -Description $serviceName -DisplayName $serviceName -StartupType Automatic
-          Start-Service -Name $serviceName        
+          $serviceRegistryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
+          $serviceEnvironment = @(
+            "ASPNETCORE_ENVIRONMENT=Production",
+            "ASPNETCORE_URLS=https://*:5001",
+            "ServiceOptions__KestrelOptions__Path=$env:FILEPROCESSOR_CERTIFICATE_PATH",
+            "ServiceOptions__KestrelOptions__Password=$env:FILEPROCESSOR_CERTIFICATE_PASSWORD"
+          )
+          New-ItemProperty -Path $serviceRegistryPath -Name Environment -PropertyType MultiString -Value $serviceEnvironment -Force | Out-Null
+          Start-Service -Name $serviceName

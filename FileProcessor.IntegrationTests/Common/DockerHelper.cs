@@ -75,13 +75,24 @@ namespace FileProcessor.IntegrationTests.Common
 
         public override ContainerBuilder SetupFileProcessorContainer() {
 
+            if (this.IntegrationTestCertificate is null)
+            {
+                throw new InvalidOperationException("Integration test certificate was not initialised before FileProcessor container setup.");
+            }
+
             var variables = new Dictionary<String, String>()
             {
-                { "AppSettings:FileProfilePollingWindowInSeconds", "5" }
+                { "AppSettings:FileProfilePollingWindowInSeconds", "5" },
+                { "urls", $"https://*:{DockerPorts.FileProcessorDockerPort}" },
+                { "ServiceOptions:KestrelOptions:Path", this.IntegrationTestCertificate.GetContainerCertificatePath() },
+                { "ServiceOptions:KestrelOptions:Password", this.IntegrationTestCertificate.Password },
+                { "HealthMonitoring:Service:HealthUrl", $"https://localhost:{DockerPorts.FileProcessorDockerPort}/healthui" }
             };
 
             this.AdditionalVariables[ContainerType.FileProcessor] = variables;
             return base.SetupFileProcessorContainer()
+                .WithResourceMapping(this.IntegrationTestCertificate.CertificateDirectory,
+                                     this.IntegrationTestCertificate.ContainerCertificateDirectory)
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole());
         }
 
@@ -167,8 +178,8 @@ namespace FileProcessor.IntegrationTests.Common
 
             // Setup the base address resolvers
             String SecurityServiceBaseAddressResolver(String api) => $"https://127.0.0.1:{this.SecurityServicePort}";
-            String FileProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.FileProcessorPort}";
-            String TransactionProcessorBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TransactionProcessorPort}";
+            String FileProcessorBaseAddressResolver(String api) => $"https://127.0.0.1:{this.FileProcessorPort}";
+            String TransactionProcessorBaseAddressResolver(String api) => $"https://127.0.0.1:{this.TransactionProcessorPort}";
             String TestHostServiceBaseAddressResolver(String api) => $"http://127.0.0.1:{this.TestHostServicePort}";
             
             HttpClientHandler clientHandler = new HttpClientHandler{
